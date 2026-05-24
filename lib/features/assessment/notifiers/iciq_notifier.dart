@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/iciq_model.dart';
 
@@ -40,5 +41,8 @@ class IciqNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  ICIQModel submit() => model;
+  Future<ICIQModel> submit() async {
+    if (Supabase.instance.client.auth.currentUser == null) return model;
+    return model;
+  }
 }

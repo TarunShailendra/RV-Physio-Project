@@ -58,4 +58,9 @@ class BladderDiaryNotifier extends ChangeNotifier {
         first.month == second.month &&
         first.day == second.day;
   }
+
+  void reset() {
+    days.clear();
+    notifyListeners();
+  }
 }

@@ -45,6 +45,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/login'),
+        ),
         title: Text(l10n.profileSetup),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
@@ -68,8 +72,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     LinearProgressIndicator(
                       value: 1 / 3,
                       minHeight: 6,
-                      backgroundColor:
-                          AppTheme.primaryColor.withValues(alpha: 0.12),
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.12,
+                      ),
                       color: AppTheme.primaryColor,
                     ),
                     const SizedBox(height: 24),
@@ -118,8 +123,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       onChanged: profileNotifier.isLoading
                           ? null
                           : (value) => setState(() {
-                                _selectedIncontinenceTypeKey = value;
-                              }),
+                              _selectedIncontinenceTypeKey = value;
+                            }),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return l10n.selectIncontinenceType;
@@ -156,8 +161,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         onChanged: profileNotifier.isLoading
                             ? null
                             : (value) => setState(() {
-                                  _hasSoughtTreatment = value;
-                                }),
+                                _hasSoughtTreatment = value;
+                              }),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -166,8 +171,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
                       ),
-                      onPressed:
-                          profileNotifier.isLoading ? null : _handleSubmit,
+                      onPressed: profileNotifier.isLoading
+                          ? null
+                          : _handleSubmit,
                       child: profileNotifier.isLoading
                           ? const SizedBox(
                               width: 20,
@@ -211,9 +217,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     final authNotifier = context.read<AuthNotifier>();
     final currentUser = authNotifier.currentUser;
+    final parsedDob = _parseDob(currentUser?.dob) ?? currentUser?.dateOfBirth;
 
     // Map selected key back to English value for storage
-    final incontinenceTypeValue = _getEnglishIncontinenceType(_selectedIncontinenceTypeKey!);
+    final incontinenceTypeValue = _getEnglishIncontinenceType(
+      _selectedIncontinenceTypeKey!,
+    );
 
     final profile = ProfileModel(
       userId: currentUser?.id ?? 'mock_user_id',
@@ -223,6 +232,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       incontinenceType: incontinenceTypeValue,
       symptomDurationMonths: int.parse(_symptomDurationController.text.trim()),
       hasSoughtTreatment: _hasSoughtTreatment,
+      fullName: currentUser?.name,
+      phone: currentUser?.phone,
+      email: currentUser?.email,
+      dateOfBirth: parsedDob,
     );
 
     await context.read<ProfileNotifier>().saveProfile(profile);
@@ -230,6 +243,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (mounted) {
       context.go('/iciq');
     }
+  }
+
+  DateTime? _parseDob(String? dob) {
+    if (dob != null && dob.isNotEmpty) {
+      final parts = dob.split('/');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse(parts[2]),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+        );
+      }
+    }
+    return null;
   }
 
   String _getEnglishIncontinenceType(String key) {

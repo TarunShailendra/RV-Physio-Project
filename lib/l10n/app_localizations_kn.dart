@@ -33,6 +33,16 @@ class AppLocalizationsKn extends AppLocalizations {
   String get dontHaveAccount => 'ಖಾತೆ ಇಲ್ಲವೇ? ಸೈನ್ ಅಪ್ ಮಾಡಿ';
 
   @override
+  String get continueWithGoogle => 'Google ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ';
+
+  @override
+  String get googleSignInCancelled => 'Google ಸೈನ್ ಇನ್ ರದ್ದುಪಡಿಸಲಾಗಿದೆ';
+
+  @override
+  String get googleSignInFailed =>
+      'Google ಸೈನ್ ಇನ್ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
   String get createAccount => 'ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಿ';
 
   @override
@@ -51,13 +61,29 @@ class AppLocalizationsKn extends AppLocalizations {
   String get enterPassword => 'ಪಾಸ್ವರ್ಡ್ ನಮೂದಿಸಿ';
 
   @override
-  String get passwordMinLength => 'ಪಾಸ್ವರ್ಡ್ ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳಾಗಿರಬೇಕು';
+  String get passwordMinLength => 'ಪಾಸ್ವರ್ಡ್ ಕನಿಷ್ಠ 8 ಅಕ್ಷರಗಳಾಗಿರಬೇಕು';
 
   @override
   String get enterPhoneNumber => 'ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ';
 
   @override
   String get enterValidPhone => 'ಮಾನ್ಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get invalidPhoneFormat =>
+      'ಫೋನ್ ಸಂಖ್ಯೆಯಲ್ಲಿ ಕೇವಲ ಅಂಕೆಗಳಿರಬೇಕೆಂದು ಖಚಿತಪಡಿಸಿ ಮತ್ತು 10 ಅಂಕೆಗಳಾಗಿರಬೇಕು';
+
+  @override
+  String get invalidNameFormat =>
+      'ಹೆಸರಿನಲ್ಲಿ ಕೇವಲ ಅಕ್ಷರಗಳು ಮತ್ತು ಜಾಗಗಳು ಮಾತ್ರ ಇರಬೇಕು';
+
+  @override
+  String get enterValidDob =>
+      'ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕವನ್ನು DD/MM/YYYY ಸ್ವರೂಪದಲ್ಲಿ ನಮೂದಿಸಿ';
+
+  @override
+  String get invalidDobFormat =>
+      'DD/MM/YYYY ಸ್ವರೂಪದಲ್ಲಿ ಮಾನ್ಯ ದಿನಾಂಕವನ್ನು ನಮೂದಿಸಿ';
 
   @override
   String get selectAge => 'ನಿಮ್ಮ ವಯಸ್ಸನ್ನು ಆಯ್ಕೆಮಾಡಿ';
@@ -887,4 +913,36 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get totalMetMinutes => 'ಒಟ್ಟು MET-ನಿಮಿಷಗಳು';
+
+  @override
+  String get notAtAll => 'ಇಲ್ಲ';
+
+  @override
+  String get aGreatDeal => 'ತುಂಬಾ';
+
+  @override
+  String get thisQuestionIsRequired => 'ಈ ಪ್ರಶ್ನೆ ಅವಶ್ಯಕ';
+
+  @override
+  String get noDays => 'ಯಾವುದೇ ದಿನಗಳಿಲ್ಲ';
+
+  @override
+  String get allSevenDays => 'ಎಲ್ಲಾ ಏಳು ದಿನಗಳು';
+
+  @override
+  String get ok => 'ಸರಿ';
+
+  @override
+  String get iciqHighSeverityTitle => 'ಹೆಚ್ಚಿನ ತೀವ್ರತೆ ಪತ್ತೆ';
+
+  @override
+  String get iciqHighSeverityMessage =>
+      'ನಿಮ್ಮ ಉತ್ತರಗಳ ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳು ತೀವ್ರವಾಗಿರಬಹುದು ಎಂದು ತೋರುತ್ತದೆ. ಈ ಕಾರ್ಯಕ್ರಮದೊಂದಿಗೆ ಮುಂದುವರಿಯುವ ಮೊದಲು ಸಂಪೂರ್ಣ ಮೌಲ್ಯಮಾಪನಕ್ಕಾಗಿ ವೈದ್ಯಕೀಯ ಅರ್ಹತೆ ಪಡೆದ ವೃತ್ತಿಪರರನ್ನು ಸಂಪರ್ಕಿಸಿ.';
+
+  @override
+  String get iciqOfferExercisesTitle => 'ವ್ಯಾಯಾಮಗಳೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ?';
+
+  @override
+  String get iciqOfferExercisesMessage =>
+      'ನೀವು ಭೌತಿಕ ಚಟುವಟಿಕೆ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಮುಂದುವರಿಯಲು ಬಯಸುವಿರಾ?';
 }

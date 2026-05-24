@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/ipaq_model.dart';
 
@@ -61,5 +62,10 @@ class IpaqNotifier extends ChangeNotifier {
       return IPAQActivityLevel.moderate;
     }
     return IPAQActivityLevel.low;
+  }
+
+  Future<IPAQModel> submit() async {
+    if (Supabase.instance.client.auth.currentUser == null) return model;
+    return model;
   }
 }

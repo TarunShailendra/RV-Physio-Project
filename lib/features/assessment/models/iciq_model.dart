@@ -1,13 +1,14 @@
 class ICIQModel {
   const ICIQModel({
-    this.leakFrequency = 0,
-    this.leakAmount = 0,
-    this.lifeInterference = 0,
+    this.leakFrequency = -1,
+    this.leakAmount = 1,
+    this.lifeInterference = -1,
     this.whenLeaks = const [],
     this.dob,
     this.gender,
   });
 
+  // -1 = not yet answered by the user; valid scale answers start at 0
   final int leakFrequency;
   final int leakAmount;
   final int lifeInterference;
@@ -15,11 +16,17 @@ class ICIQModel {
   final DateTime? dob;
   final String? gender;
 
-  int get iciqScore => leakFrequency + leakAmount + lifeInterference;
+  int get iciqScore {
+    final lf = leakFrequency < 0 ? 0 : leakFrequency;
+    final la = leakAmount < 0 ? 0 : leakAmount;
+    final li = lifeInterference < 0 ? 0 : lifeInterference;
+    return lf + la + li;
+  }
 
   String get severityBand {
-    if (iciqScore <= 7) return 'mild';
-    if (iciqScore <= 14) return 'moderate';
+    final score = iciqScore;
+    if (score <= 7) return 'mild';
+    if (score <= 14) return 'moderate';
     return 'severe';
   }
 
@@ -55,9 +62,9 @@ class ICIQModel {
 
   factory ICIQModel.fromJson(Map<String, dynamic> json) {
     return ICIQModel(
-      leakFrequency: json['leakFrequency'] as int? ?? 0,
-      leakAmount: json['leakAmount'] as int? ?? 0,
-      lifeInterference: json['lifeInterference'] as int? ?? 0,
+      leakFrequency: json['leakFrequency'] as int? ?? -1,
+      leakAmount: json['leakAmount'] as int? ?? -1,
+      lifeInterference: json['lifeInterference'] as int? ?? -1,
       whenLeaks: List<String>.from(json['whenLeaks'] as List? ?? const []),
       dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
       gender: json['gender'] as String?,

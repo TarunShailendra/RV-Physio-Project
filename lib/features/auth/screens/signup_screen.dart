@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../l10n/app_localizations.dart';  // ✅ added
+import '../../../l10n/app_localizations.dart'; // ✅ added
 import '../auth_notifier.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -19,7 +20,26 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
-  int? _selectedAge;
+  DateTime? _selectedDob;
+  int? _selectedDay;
+  int? _selectedMonth;
+  int? _selectedYear;
+  bool _emailTaken = false;
+
+  static const _months = [
+    (1, 'Jan'),
+    (2, 'Feb'),
+    (3, 'Mar'),
+    (4, 'Apr'),
+    (5, 'May'),
+    (6, 'Jun'),
+    (7, 'Jul'),
+    (8, 'Aug'),
+    (9, 'Sep'),
+    (10, 'Oct'),
+    (11, 'Nov'),
+    (12, 'Dec'),
+  ];
 
   @override
   void dispose() {
@@ -33,11 +53,11 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final authNotifier = context.watch<AuthNotifier>();
-    final l10n = AppLocalizations.of(context)!;  // ✅
+    final l10n = AppLocalizations.of(context)!; // ✅
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.signUp),  // ✅
+        title: Text(l10n.signUp), // ✅
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -57,7 +77,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.createAccount,  // ✅
+                      l10n.createAccount, // ✅
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -67,12 +87,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.name],
                       decoration: InputDecoration(
-                        labelText: l10n.name,  // ✅
+                        labelText: l10n.name, // ✅
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if ((value?.trim() ?? '').isEmpty) {
-                          return l10n.enterYourName;  // ✅ new key
+                          return l10n.enterYourName; // ✅ new key
                         }
                         return null;
                       },
@@ -84,16 +104,23 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                       decoration: InputDecoration(
-                        labelText: l10n.email,  // ✅
+                        labelText: l10n.email, // ✅
                         border: const OutlineInputBorder(),
+                        errorStyle: const TextStyle(fontSize: 14),
                       ),
+                      onChanged: (_) {
+                        if (_emailTaken) setState(() => _emailTaken = false);
+                      },
                       validator: (value) {
                         final email = value?.trim() ?? '';
                         if (email.isEmpty) {
-                          return l10n.enterYourEmail;  // ✅ new key
+                          return l10n.enterYourEmail; // ✅ new key
                         }
                         if (!email.contains('@')) {
-                          return l10n.enterValidEmail;  // ✅ new key
+                          return l10n.enterValidEmail; // ✅ new key
+                        }
+                        if (_emailTaken) {
+                          return 'This email is already registered';
                         }
                         return null;
                       },
@@ -105,15 +132,21 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: l10n.password,  // ✅
+                        labelText: l10n.password, // ✅
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
-                        if ((value ?? '').isEmpty) {
-                          return l10n.enterPassword;  // ✅ new key (or reuse)
+                        final password = value ?? '';
+                        if (password.isEmpty) {
+                          return l10n.enterPassword; // ✅ new key (or reuse)
                         }
-                        if ((value ?? '').length < 6) {
-                          return l10n.passwordMinLength;  // ✅ new key
+                        if (password.length < 8) {
+                          return 'Password must be at least 8 characters';
+                        }
+                        if (!RegExp(
+                          r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/`~]',
+                        ).hasMatch(password)) {
+                          return 'Password must contain at least one special character';
                         }
                         return null;
                       },
@@ -125,42 +158,124 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.telephoneNumber],
                       decoration: InputDecoration(
-                        labelText: l10n.phone,  // ✅
+                        labelText: l10n.phone, // ✅
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         final phone = value?.trim() ?? '';
                         if (phone.isEmpty) {
-                          return l10n.enterPhoneNumber;  // ✅ new key
+                          return l10n.enterPhoneNumber; // ✅ new key
                         }
                         if (phone.length < 10) {
-                          return l10n.enterValidPhone;  // ✅ new key
+                          return l10n.enterValidPhone; // ✅ new key
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      initialValue: _selectedAge,
-                      decoration: InputDecoration(
-                        labelText: l10n.age,  // ✅
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: [
-                        for (var age = 20; age <= 60; age++)
-                          DropdownMenuItem<int>(
-                            value: age,
-                            child: Text(age.toString()),
-                          ),
-                      ],
-                      onChanged: authNotifier.isLoading
-                          ? null
-                          : (value) => setState(() => _selectedAge = value),
-                      validator: (value) {
-                        if (value == null) {
-                          return l10n.selectAge;  // ✅ new key
+                    FormField<DateTime>(
+                      validator: (_) {
+                        if (_selectedDay == null ||
+                            _selectedMonth == null ||
+                            _selectedYear == null) {
+                          return l10n.selectDateOfBirth;
                         }
                         return null;
+                      },
+                      builder: (field) {
+                        final now = DateTime.now();
+                        return InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: l10n.dateOfBirth,
+                            border: const OutlineInputBorder(),
+                            errorText: field.errorText,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<int>(
+                                    value: _selectedDay,
+                                    hint: const Text('Day'),
+                                    isExpanded: true,
+                                    items: [
+                                      for (var day = 1; day <= 31; day++)
+                                        DropdownMenuItem<int>(
+                                          value: day,
+                                          child: Text(day.toString()),
+                                        ),
+                                    ],
+                                    onChanged: authNotifier.isLoading
+                                        ? null
+                                        : (value) {
+                                            setState(() {
+                                              _selectedDay = value;
+                                              _updateSelectedDob();
+                                              field.didChange(_selectedDob);
+                                            });
+                                          },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<int>(
+                                    value: _selectedMonth,
+                                    hint: const Text('Month'),
+                                    isExpanded: true,
+                                    items: [
+                                      for (final month in _months)
+                                        DropdownMenuItem<int>(
+                                          value: month.$1,
+                                          child: Text(month.$2),
+                                        ),
+                                    ],
+                                    onChanged: authNotifier.isLoading
+                                        ? null
+                                        : (value) {
+                                            setState(() {
+                                              _selectedMonth = value;
+                                              _updateSelectedDob();
+                                              field.didChange(_selectedDob);
+                                            });
+                                          },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<int>(
+                                    value: _selectedYear,
+                                    hint: const Text('Year'),
+                                    isExpanded: true,
+                                    items: [
+                                      for (
+                                        var year = now.year;
+                                        year >= 1930;
+                                        year--
+                                      )
+                                        DropdownMenuItem<int>(
+                                          value: year,
+                                          child: Text(year.toString()),
+                                        ),
+                                    ],
+                                    onChanged: authNotifier.isLoading
+                                        ? null
+                                        : (value) {
+                                            setState(() {
+                                              _selectedYear = value;
+                                              _updateSelectedDob();
+                                              field.didChange(_selectedDob);
+                                            });
+                                          },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 24),
@@ -179,14 +294,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : Text(l10n.signUp),  // ✅
+                          : Text(l10n.signUp), // ✅
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: authNotifier.isLoading
                           ? null
                           : () => context.go('/login'),
-                      child: Text(l10n.backToLogin),  // ✅
+                      child: Text(l10n.backToLogin), // ✅
                     ),
                   ],
                 ),
@@ -203,17 +318,53 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    final email = _emailController.text.trim();
+    final existing = await Supabase.instance.client
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+    if (existing != null) {
+      setState(() => _emailTaken = true);
+      _formKey.currentState!.validate();
+      return;
+    }
+
     final authNotifier = context.read<AuthNotifier>();
     await authNotifier.signup(
       _nameController.text.trim(),
-      _emailController.text.trim(),
+      email,
       _passwordController.text,
       _phoneController.text.trim(),
-      _selectedAge!,
+      _ageFromDateOfBirth(_selectedDob!),
+      dob: _selectedDob != null
+          ? '${_selectedDob!.day.toString().padLeft(2, '0')}/${_selectedDob!.month.toString().padLeft(2, '0')}/${_selectedDob!.year}'
+          : null,
     );
 
     if (mounted) {
       context.go('/profile-setup');
     }
+  }
+
+  void _updateSelectedDob() {
+    if (_selectedDay == null ||
+        _selectedMonth == null ||
+        _selectedYear == null) {
+      _selectedDob = null;
+      return;
+    }
+
+    _selectedDob = DateTime(_selectedYear!, _selectedMonth!, _selectedDay!);
+  }
+
+  int _ageFromDateOfBirth(DateTime dateOfBirth) {
+    final today = DateTime.now();
+    var age = today.year - dateOfBirth.year;
+    if (today.month < dateOfBirth.month ||
+        (today.month == dateOfBirth.month && today.day < dateOfBirth.day)) {
+      age--;
+    }
+    return age;
   }
 }

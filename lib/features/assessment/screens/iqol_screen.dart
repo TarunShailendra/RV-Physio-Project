@@ -1,9 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/glass_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
@@ -20,6 +21,51 @@ class IqolScreen extends StatefulWidget {
 class _IqolScreenState extends State<IqolScreen> {
   final PageController _controller = PageController();
   int _page = 0;
+  bool _triedToAdvance = false;
+
+  bool _isCurrentPageAnswered(IqolNotifier notifier) {
+    if (_page < 22) {
+      return notifier.model.items[_page] != 0;
+    }
+    if (_page == 22) {
+      return notifier.model.durationYears > 0 ||
+          notifier.model.durationMonths > 0;
+    }
+    return true;
+  }
+
+  void _handleNext(IqolNotifier notifier) {
+    setState(() => _triedToAdvance = true);
+    if (!_isCurrentPageAnswered(notifier)) return;
+
+    setState(() => _triedToAdvance = false);
+    _controller.nextPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> _handleSubmit() async {
+    final notifier = context.read<IqolNotifier>();
+    if (!_isCurrentPageAnswered(notifier)) return;
+
+    final summary = context.read<AssessmentSummaryNotifier>();
+    summary.saveIqol(await notifier.submit());
+    if (!context.mounted) return;
+    context.read<DashboardNotifier>().applyAssessmentSummary(summary);
+    context.read<ExerciseNotifier>().loadRecommendedWeek(
+      summary.recommendedStartWeek,
+    );
+    context.go('/dashboard');
+  }
+
+  void _goBack() {
+    setState(() => _triedToAdvance = false);
+    _controller.previousPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   void dispose() {
@@ -31,7 +77,6 @@ class _IqolScreenState extends State<IqolScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final notifier = context.watch<IqolNotifier>();
-    final questions = _questions(l10n);
     final options = [
       l10n.iqolExtremely,
       l10n.iqolQuiteABit,
@@ -39,94 +84,123 @@ class _IqolScreenState extends State<IqolScreen> {
       l10n.iqolALittle,
       l10n.iqolNotAtAll,
     ];
+    final questions = _questions(l10n);
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.go('/dashboard'),
+        ),
         title: Text(l10n.iqolTitle),
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: const Color(0xFF00897B),
         foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            LinearProgressIndicator(
-              value: (_page + 1) / 24,
-              minHeight: 6,
-              color: AppTheme.primaryColor,
-              backgroundColor: AppTheme.primaryColor.withAlpha(32),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                onPageChanged: (value) => setState(() => _page = value),
-                itemCount: 24,
-                itemBuilder: (context, index) {
-                  if (index < 22) {
-                    return _QuestionPage(
-                      title: questions[index],
-                      groupValue: notifier.model.items[index] == 0
-                          ? null
-                          : notifier.model.items[index],
-                      options: options,
-                      onChanged: (value) => notifier.updateItem(index, value),
-                    );
-                  }
-                  if (index == 22) {
-                    return _AboutPage(notifier: notifier);
-                  }
-                  return _IqolResultPage(notifier: notifier);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  if (_page > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _controller.previousPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOut,
-                        ),
-                        child: Text(l10n.assessmentBack),
-                      ),
-                    ),
-                  if (_page > 0) const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: _page == 23
-                          ? () {
-                              final summary = context
-                                  .read<AssessmentSummaryNotifier>();
-                              summary.saveIqol(notifier.submit());
-                              context
-                                  .read<DashboardNotifier>()
-                                  .applyAssessmentSummary(summary);
-                              context
-                                  .read<ExerciseNotifier>()
-                                  .loadRecommendedWeek(
-                                    summary.recommendedStartWeek,
-                                  );
-                              context.go('/dashboard');
-                            }
-                          : () => _controller.nextPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                            ),
-                      child: Text(
-                        _page == 23 ? l10n.submit : l10n.assessmentNext,
-                      ),
-                    ),
+      body: GlassBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: (_page + 1) / 24,
+                    minHeight: 6,
+                    color: const Color(0xFF4DB6AC),
+                    backgroundColor: Colors.white.withOpacity(0.2),
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: PageView.builder(
+                  controller: _controller,
+                  onPageChanged: (value) => setState(() {
+                    _page = value;
+                    _triedToAdvance = false;
+                  }),
+                  itemCount: 24,
+                  itemBuilder: (context, index) {
+                    if (index < 22) {
+                      return _QuestionPage(
+                        title: questions[index],
+                        value: notifier.model.items[index],
+                        showError: _triedToAdvance,
+                        options: options,
+                        onChanged: (v) => notifier.updateItem(index, v),
+                      );
+                    }
+                    if (index == 22) {
+                      return _AboutPage(
+                        notifier: notifier,
+                        showError: _triedToAdvance,
+                        l10n: l10n,
+                      );
+                    }
+                    return _IqolResultPage(notifier: notifier);
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    if (_page > 0)
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: BorderSide(
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _goBack,
+                          child: Text(l10n.assessmentBack),
+                        ),
+                      ),
+                    if (_page > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00897B).withOpacity(0.5),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF00897B),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _page == 23
+                              ? _handleSubmit
+                              : () => _handleNext(notifier),
+                          child: Text(
+                            _page == 23 ? l10n.submit : l10n.assessmentNext,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -161,91 +235,287 @@ class _IqolScreenState extends State<IqolScreen> {
 class _QuestionPage extends StatelessWidget {
   const _QuestionPage({
     required this.title,
-    required this.groupValue,
+    required this.value,
+    required this.showError,
     required this.options,
     required this.onChanged,
   });
 
   final String title;
-  final int? groupValue;
+  final int value;
+  final bool showError;
   final List<String> options;
   final ValueChanged<int> onChanged;
 
+  int get _displayValue => value == 0 ? 1 : value;
+
+  String get _currentLabel {
+    if (value == 0) return '';
+    final index = value - 1;
+    if (index >= 0 && index < options.length) {
+      return '$value — ${options[index]}';
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final unanswered = value == 0;
+
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        _RequiredQuestionLabel(
+          label: title,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
         const SizedBox(height: 16),
-        RadioGroup<int>(
-          groupValue: groupValue,
-          onChanged: (value) {
-            if (value != null) onChanged(value);
-          },
+        GlassCard(
+          hasError: showError && unanswered,
+          padding: const EdgeInsets.all(20),
+          opacity: 0.12,
           child: Column(
             children: [
-              for (var index = 0; index < options.length; index++)
-                Card(
-                  child: RadioListTile<int>(
-                    value: index + 1,
-                    title: Text(options[index]),
-                    activeColor: AppTheme.primaryColor,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      _currentLabel.isEmpty ? '--' : _currentLabel,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
+              ),
+              if (_currentLabel.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Score: $value / 5',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+              const SizedBox(height: 16),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: const Color(0xFF4DB6AC),
+                  inactiveTrackColor: Colors.white.withOpacity(0.2),
+                  thumbColor: Colors.white,
+                  overlayColor: const Color(0xFF00897B).withOpacity(0.2),
+                  valueIndicatorColor: const Color(0xFF00897B),
+                  valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+                  thumbShape: GlowingThumbShape(),
+                ),
+                child: Slider(
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  value: _displayValue.toDouble(),
+                  onChanged: (v) => onChanged(v.round()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        options.first,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        options.last,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
+        if (showError && unanswered)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Please answer all questions',
+              style: TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
+          ),
       ],
     );
   }
 }
 
-class _AboutPage extends StatelessWidget {
-  const _AboutPage({required this.notifier});
+class _RequiredQuestionLabel extends StatelessWidget {
+  const _RequiredQuestionLabel({required this.label, this.style});
 
-  final IqolNotifier notifier;
+  final String label;
+  final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    return Text.rich(
+      TextSpan(
+        text: label,
+        children: const [
+          TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        ],
+      ),
+      style: style,
+    );
+  }
+}
+
+class _AboutPage extends StatelessWidget {
+  const _AboutPage({
+    required this.notifier,
+    required this.showError,
+    required this.l10n,
+  });
+
+  final IqolNotifier notifier;
+  final bool showError;
+  final AppLocalizations l10n;
+
+  bool get _answered =>
+      notifier.model.durationYears > 0 || notifier.model.durationMonths > 0;
+
+  @override
+  Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        Text(
-          l10n.iqolAboutTitle,
-          style: Theme.of(context).textTheme.titleLarge,
+        _RequiredQuestionLabel(
+          label: l10n.iqolAboutTitle,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
+        const SizedBox(height: 8),
+        GlassLabeledSlider(
+          title: l10n.iqol_about_q1,
+          value: notifier.model.durationYears,
+          min: 0,
+          max: 80,
+          showError: showError && !_answered,
+          currentLabel: notifier.model.durationYears == 0
+              ? ''
+              : '${notifier.model.durationYears}',
+          minLabel: '0',
+          maxLabel: '80',
+          onChanged: (v) => notifier.updateBackground(durationYears: v),
+        ),
+        const SizedBox(height: 20),
+        GlassLabeledSlider(
+          title: l10n.iqol_about_q2,
+          value: notifier.model.durationMonths,
+          min: 0,
+          max: 11,
+          showError: showError && !_answered,
+          currentLabel: notifier.model.durationMonths == 0
+              ? ''
+              : '${notifier.model.durationMonths}',
+          minLabel: '0',
+          maxLabel: '11',
+          onChanged: (v) => notifier.updateBackground(durationMonths: v),
+        ),
+        const SizedBox(height: 20),
+        GlassLabeledSlider(
+          title: l10n.iqol_about_q3,
+          value: notifier.model.severity,
+          min: 0,
+          max: 5,
+          showError: false,
+          currentLabel: notifier.model.severity == 0
+              ? ''
+              : '${notifier.model.severity}',
+          minLabel: '0',
+          maxLabel: '5',
+          onChanged: (v) => notifier.updateBackground(severity: v),
         ),
         const SizedBox(height: 16),
-        _NumberField(
-          label: l10n.iqol_about_q1,
-          onChanged: (value) => notifier.updateBackground(durationYears: value),
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          opacity: 0.12,
+          child: Column(
+            children: [
+              SwitchListTile(
+                title: Text(
+                  l10n.iqol_about_q4,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                activeColor: const Color(0xFF4DB6AC),
+                onChanged: (value) =>
+                    notifier.updateBackground(stressLeak: value),
+                value: notifier.model.stressLeak,
+                activeTrackColor: const Color(0xFF00897B).withOpacity(0.5),
+              ),
+              SwitchListTile(
+                title: Text(
+                  l10n.iqol_about_q5,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                activeColor: const Color(0xFF4DB6AC),
+                onChanged: (value) =>
+                    notifier.updateBackground(urgeLeak: value),
+                value: notifier.model.urgeLeak,
+                activeTrackColor: const Color(0xFF00897B).withOpacity(0.5),
+              ),
+            ],
+          ),
         ),
-        _NumberField(
-          label: l10n.iqol_about_q2,
-          onChanged: (value) =>
-              notifier.updateBackground(durationMonths: value),
+        const SizedBox(height: 16),
+        GlassLabeledSlider(
+          title: l10n.iqol_about_q6,
+          value: notifier.model.freqCode,
+          min: 0,
+          max: 5,
+          showError: false,
+          currentLabel: notifier.model.freqCode == 0
+              ? ''
+              : '${notifier.model.freqCode}',
+          minLabel: '0',
+          maxLabel: '5',
+          onChanged: (v) => notifier.updateBackground(freqCode: v),
         ),
-        _NumberField(
-          label: l10n.iqol_about_q3,
-          onChanged: (value) => notifier.updateBackground(severity: value),
-        ),
-        SwitchListTile(
-          title: Text(l10n.iqol_about_q4),
-          value: notifier.model.stressLeak,
-          activeThumbColor: AppTheme.primaryColor,
-          onChanged: (value) => notifier.updateBackground(stressLeak: value),
-        ),
-        SwitchListTile(
-          title: Text(l10n.iqol_about_q5),
-          value: notifier.model.urgeLeak,
-          activeThumbColor: AppTheme.primaryColor,
-          onChanged: (value) => notifier.updateBackground(urgeLeak: value),
-        ),
-        _NumberField(
-          label: l10n.iqol_about_q6,
-          onChanged: (value) => notifier.updateBackground(freqCode: value),
-        ),
+        if (showError && !_answered)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Please answer all questions',
+              style: TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
+          ),
       ],
     );
   }
@@ -259,49 +529,37 @@ class _IqolResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final score = notifier.score.clamp(0, 100);
+    final score = notifier.score.clamp(0.0, 100.0);
     return Center(
-      child: CircularPercentIndicator(
-        radius: 100,
-        lineWidth: 14,
-        percent: score / 100,
-        circularStrokeCap: CircularStrokeCap.round,
-        progressColor: AppTheme.primaryColor,
-        center: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.iqolScoreOutOf100),
-            Text(
-              score.toStringAsFixed(1),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.w700,
+      child: GlassCard(
+        padding: const EdgeInsets.all(24),
+        opacity: 0.12,
+        child: CircularPercentIndicator(
+          radius: 90,
+          lineWidth: 12,
+          percent: score / 100,
+          circularStrokeCap: CircularStrokeCap.round,
+          progressColor: const Color(0xFF4DB6AC),
+          backgroundColor: Colors.white.withOpacity(0.1),
+          center: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.iqolScoreOutOf100,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                score.toStringAsFixed(1),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _NumberField extends StatelessWidget {
-  const _NumberField({required this.label, required this.onChanged});
-
-  final String label;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        onChanged: (value) => onChanged(int.tryParse(value) ?? 0),
       ),
     );
   }

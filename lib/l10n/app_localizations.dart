@@ -146,6 +146,24 @@ abstract class AppLocalizations {
   /// **'Don\'t have an account? Sign up'**
   String get dontHaveAccount;
 
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @googleSignInCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in was cancelled'**
+  String get googleSignInCancelled;
+
+  /// No description provided for @googleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed. Please try again.'**
+  String get googleSignInFailed;
+
   /// No description provided for @createAccount.
   ///
   /// In en, this message translates to:
@@ -185,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwordMinLength.
   ///
   /// In en, this message translates to:
-  /// **'Password must be at least 6 characters'**
+  /// **'Password must be at least 8 characters'**
   String get passwordMinLength;
 
   /// No description provided for @enterPhoneNumber.
@@ -199,6 +217,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid phone number'**
   String get enterValidPhone;
+
+  /// No description provided for @invalidPhoneFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone must contain only digits and be 10 digits long'**
+  String get invalidPhoneFormat;
+
+  /// No description provided for @invalidNameFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must contain only letters and spaces'**
+  String get invalidNameFormat;
+
+  /// No description provided for @enterValidDob.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your date of birth in DD/MM/YYYY format'**
+  String get enterValidDob;
+
+  /// No description provided for @invalidDobFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid date in DD/MM/YYYY format'**
+  String get invalidDobFormat;
 
   /// No description provided for @selectAge.
   ///
@@ -1759,6 +1801,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total MET-minutes'**
   String get totalMetMinutes;
+
+  /// No description provided for @notAtAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Not at all'**
+  String get notAtAll;
+
+  /// No description provided for @aGreatDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'A great deal'**
+  String get aGreatDeal;
+
+  /// No description provided for @thisQuestionIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This question is required'**
+  String get thisQuestionIsRequired;
+
+  /// No description provided for @noDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No days'**
+  String get noDays;
+
+  /// No description provided for @allSevenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'All seven days'**
+  String get allSevenDays;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @iciqHighSeverityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'High Severity Detected'**
+  String get iciqHighSeverityTitle;
+
+  /// No description provided for @iciqHighSeverityMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on your responses, your symptoms appear severe. Please consult a medical professional for a thorough evaluation before continuing with this program.'**
+  String get iciqHighSeverityMessage;
+
+  /// No description provided for @iciqOfferExercisesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Exercises?'**
+  String get iciqOfferExercisesTitle;
+
+  /// No description provided for @iciqOfferExercisesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to continue with the physical activity assessment?'**
+  String get iciqOfferExercisesMessage;
 }
 
 class _AppLocalizationsDelegate

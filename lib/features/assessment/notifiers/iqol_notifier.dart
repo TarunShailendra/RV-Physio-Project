@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/iqol_model.dart';
 
@@ -34,5 +35,8 @@ class IqolNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  IQOLModel submit() => model;
+  Future<IQOLModel> submit() async {
+    if (Supabase.instance.client.auth.currentUser == null) return model;
+    return model;
+  }
 }

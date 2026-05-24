@@ -33,6 +33,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dontHaveAccount => 'Don\'t have an account? Sign up';
 
   @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleSignInCancelled => 'Google sign-in was cancelled';
+
+  @override
+  String get googleSignInFailed => 'Google sign-in failed. Please try again.';
+
+  @override
   String get createAccount => 'Create your account';
 
   @override
@@ -51,13 +60,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPassword => 'Enter a password';
 
   @override
-  String get passwordMinLength => 'Password must be at least 6 characters';
+  String get passwordMinLength => 'Password must be at least 8 characters';
 
   @override
   String get enterPhoneNumber => 'Enter your phone number';
 
   @override
   String get enterValidPhone => 'Enter a valid phone number';
+
+  @override
+  String get invalidPhoneFormat =>
+      'Phone must contain only digits and be 10 digits long';
+
+  @override
+  String get invalidNameFormat => 'Name must contain only letters and spaces';
+
+  @override
+  String get enterValidDob => 'Enter your date of birth in DD/MM/YYYY format';
+
+  @override
+  String get invalidDobFormat => 'Enter a valid date in DD/MM/YYYY format';
 
   @override
   String get selectAge => 'Select your age';
@@ -899,4 +921,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalMetMinutes => 'Total MET-minutes';
+
+  @override
+  String get notAtAll => 'Not at all';
+
+  @override
+  String get aGreatDeal => 'A great deal';
+
+  @override
+  String get thisQuestionIsRequired => 'This question is required';
+
+  @override
+  String get noDays => 'No days';
+
+  @override
+  String get allSevenDays => 'All seven days';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get iciqHighSeverityTitle => 'High Severity Detected';
+
+  @override
+  String get iciqHighSeverityMessage =>
+      'Based on your responses, your symptoms appear severe. Please consult a medical professional for a thorough evaluation before continuing with this program.';
+
+  @override
+  String get iciqOfferExercisesTitle => 'Continue with Exercises?';
+
+  @override
+  String get iciqOfferExercisesMessage =>
+      'Would you like to continue with the physical activity assessment?';
 }

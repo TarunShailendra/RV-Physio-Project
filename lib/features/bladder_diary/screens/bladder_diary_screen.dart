@@ -521,6 +521,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
+              if (!context.mounted) return;
               context.go('/dashboard');
             },
             style: ElevatedButton.styleFrom(
@@ -542,6 +543,10 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9F8),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.go('/dashboard'),
+        ),
         title: Text(l10n.bladderDiaryTitle,
             style: GoogleFonts.poppins(
                 color: Colors.white, fontWeight: FontWeight.w600)),

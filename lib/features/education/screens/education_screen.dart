@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
@@ -46,6 +47,10 @@ class EducationScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.go('/dashboard'),
+        ),
         title: Text(l10n.education),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
@@ -148,6 +153,10 @@ class _EducationDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
         title: Text(title),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,

@@ -106,6 +106,16 @@ class ExerciseNotifier extends ChangeNotifier {
     timerSecondsRemaining = _secondsForCurrentSession();
   }
 
+  void reset() {
+    _timer?.cancel();
+    _timer = null;
+    currentPlan = null;
+    currentSessionIndex = 0;
+    isTimerRunning = false;
+    timerSecondsRemaining = 0;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();

@@ -53,4 +53,11 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
     ipaq = value;
     notifyListeners();
   }
+
+  void reset() {
+    iciq = null;
+    iqol = null;
+    ipaq = null;
+    notifyListeners();
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -20,10 +21,14 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final summary = context.read<AssessmentSummaryNotifier>();
-      context.read<ExerciseNotifier>().loadRecommendedWeek(
-        summary.recommendedStartWeek,
-      );
+      try {
+        final summary = context.read<AssessmentSummaryNotifier>();
+        context.read<ExerciseNotifier>().loadRecommendedWeek(
+          summary.recommendedStartWeek,
+        );
+      } catch (e) {
+        debugPrint('Exercise init error: $e');
+      }
     });
   }
 
@@ -35,6 +40,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/dashboard'),
+        ),
         title: Text(l10n.exercise),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
@@ -59,6 +68,7 @@ class _ExerciseContent extends StatelessWidget {
     final completedCount = plan.sessions
         .where((session) => session.isCompleted)
         .length;
+    if (plan.sessions.isEmpty) return const SizedBox.shrink();
     final currentSession = plan.sessions[notifier.currentSessionIndex];
 
     return SafeArea(
