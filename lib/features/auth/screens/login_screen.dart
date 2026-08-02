@@ -1,11 +1,11 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../auth_notifier.dart';
-import '../../../l10n/app_localizations.dart'; // ✅ added
+import '../../../l10n/app_localizations.dart'; // âœ… added
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,9 +20,16 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthNotifier>();
-    final l10n = AppLocalizations.of(context)!; // ✅ get localizations
+    final l10n = AppLocalizations.of(context)!; // âœ… get localizations
 
     return Scaffold(
       body: Container(
@@ -40,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.favorite, color: Colors.white, size: 48),
               const SizedBox(height: 12),
               Text(
-                'RV Physio', // Brand name – can stay or be localized
+                'RV Physio', // Brand name â€“ can stay or be localized
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -48,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Text(
-                l10n.appTitle, // ✅ 'Telerehab App' / Kannada translation
+                l10n.appTitle, // âœ… 'Telerehab App' / Kannada translation
                 style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
               ),
               const SizedBox(height: 40),
@@ -78,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.welcomeBack, // ✅
+                                l10n.welcomeBack, // âœ…
                                 style: GoogleFonts.poppins(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
@@ -86,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               Text(
-                                l10n.signInToContinue, // ✅
+                                l10n.signInToContinue, // âœ…
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: Colors.white70,
@@ -170,6 +177,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 _passwordController.text,
                                               );
                                               if (context.mounted) {
+                                                if (auth.currentUser == null) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        auth.errorMessage ??
+                                                            'Unable to sign in. Please try again.',
+                                                      ),
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
                                                 context.go(
                                                   auth
                                                               .currentUser
@@ -201,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               strokeWidth: 2,
                                             ),
                                           )
-                                        : Text(l10n.login), // ✅
+                                        : Text(l10n.login), // âœ…
                                   ),
                                 ),
                               ),
@@ -214,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: const TextStyle(
                                       color: Colors.white70,
                                     ),
-                                  ), // ✅ (add this key)
+                                  ), // âœ… (add this key)
                                 ),
                               ),
                             ],

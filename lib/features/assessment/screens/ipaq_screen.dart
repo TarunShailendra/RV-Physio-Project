@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -69,7 +69,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
     final steps = [
       _SittingStep(notifier: notifier, showError: _triedToAdvance),
       _ActivityStep(
-        label: l10n.ipaq_q2,
+        label: '${l10n.ipaq_q2}\nExamples: walking for transport, work, or recreation.',
         days: notifier.model.walkDays,
         hours: notifier.model.walkHours,
         mins: notifier.model.walkMins,
@@ -77,7 +77,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
         onChanged: notifier.updateWalking,
       ),
       _ActivityStep(
-        label: l10n.ipaq_q3,
+        label: '${l10n.ipaq_q3}\nExamples: brisk cycling, cleaning, gardening, or swimming.',
         days: notifier.model.moderateDays,
         hours: notifier.model.moderateHours,
         mins: notifier.model.moderateMins,
@@ -85,7 +85,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
         onChanged: notifier.updateModerate,
       ),
       _ActivityStep(
-        label: l10n.ipaq_q4,
+        label: '${l10n.ipaq_q4}\nExamples: running, aerobics, heavy lifting, or fast cycling.',
         days: notifier.model.vigorousDays,
         hours: notifier.model.vigorousHours,
         mins: notifier.model.vigorousMins,

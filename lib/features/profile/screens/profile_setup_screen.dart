@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -27,14 +27,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _cityController = TextEditingController();
   final _occupationController = TextEditingController();
   final _symptomDurationController = TextEditingController();
+  final _childrenAgesController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
   String? _selectedIncontinenceTypeKey;
   bool _hasSoughtTreatment = false;
+  String? _maritalStatus;
+  bool? _hasChildren;
+  String? _deliveryType;
+  double _childbirthPainLevel = 0;
+  bool _hasDiabetes = false;
+  bool _hasHypertension = false;
 
   @override
   void dispose() {
     _cityController.dispose();
     _occupationController.dispose();
     _symptomDurationController.dispose();
+    _childrenAgesController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -165,6 +177,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               }),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _maritalStatus,
+                      decoration: const InputDecoration(labelText: 'Marital status', border: OutlineInputBorder()),
+                      items: const ['Single', 'Married', 'Separated', 'Divorced', 'Widowed']
+                          .map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                      onChanged: (value) => setState(() => _maritalStatus = value),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      value: _hasChildren ?? false,
+                      title: const Text('Do you have children?'),
+                      onChanged: (value) => setState(() => _hasChildren = value),
+                    ),
+                    if (_hasChildren == true) ...[
+                      DropdownButtonFormField<String>(
+                        value: _deliveryType,
+                        decoration: const InputDecoration(labelText: 'Type of delivery', border: OutlineInputBorder()),
+                        items: const ['Vaginal delivery', 'Caesarean section', 'Assisted delivery', 'Other']
+                            .map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                        onChanged: (value) => setState(() => _deliveryType = value),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(controller: _childrenAgesController, decoration: const InputDecoration(labelText: 'Age(s) of child / children', hintText: 'Example: 3, 7', border: OutlineInputBorder())),
+                      const SizedBox(height: 12),
+                      Text('Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10'),
+                      Slider(value: _childbirthPainLevel, min: 0, max: 10, divisions: 10, onChanged: (value) => setState(() => _childbirthPainLevel = value)),
+                    ],
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(child: TextFormField(controller: _heightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Height (cm) — optional', border: OutlineInputBorder()))),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextFormField(controller: _weightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Weight (kg) — optional', border: OutlineInputBorder()))),
+                    ]),
+                    const SizedBox(height: 12),
+                    SwitchListTile(value: _hasDiabetes, title: const Text('Do you have diabetes?'), onChanged: (value) => setState(() => _hasDiabetes = value)),
+                    SwitchListTile(value: _hasHypertension, title: const Text('Do you have hypertension?'), onChanged: (value) => setState(() => _hasHypertension = value)),
                     const SizedBox(height: 24),
                     FilledButton(
                       style: FilledButton.styleFrom(
@@ -217,7 +266,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     final authNotifier = context.read<AuthNotifier>();
     final currentUser = authNotifier.currentUser;
-    final parsedDob = _parseDob(currentUser?.dob) ?? currentUser?.dateOfBirth;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your session has expired. Please sign in again.'),
+        ),
+      );
+      context.go('/login');
+      return;
+    }
+    final parsedDob = _parseDob(currentUser.dob) ?? currentUser.dateOfBirth;
 
     // Map selected key back to English value for storage
     final incontinenceTypeValue = _getEnglishIncontinenceType(
@@ -225,22 +283,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
 
     final profile = ProfileModel(
-      userId: currentUser?.id ?? 'mock_user_id',
-      age: currentUser?.age ?? 0,
+      userId: currentUser.id,
+      age: currentUser.age,
       city: _cityController.text.trim(),
       occupation: _occupationController.text.trim(),
       incontinenceType: incontinenceTypeValue,
       symptomDurationMonths: int.parse(_symptomDurationController.text.trim()),
       hasSoughtTreatment: _hasSoughtTreatment,
-      fullName: currentUser?.name,
-      phone: currentUser?.phone,
-      email: currentUser?.email,
+      fullName: currentUser.name,
+      phone: currentUser.phone,
+      email: currentUser.email,
       dateOfBirth: parsedDob,
+      maritalStatus: _maritalStatus,
+      hasChildren: _hasChildren,
+      deliveryType: _deliveryType,
+      childrenAges: _childrenAgesController.text.trim().isEmpty ? null : _childrenAgesController.text.trim(),
+      childbirthPainLevel: _hasChildren == true ? _childbirthPainLevel.round() : null,
+      heightCm: double.tryParse(_heightController.text.trim()),
+      weightKg: double.tryParse(_weightController.text.trim()),
+      hasDiabetes: _hasDiabetes,
+      hasHypertension: _hasHypertension,
     );
 
-    await context.read<ProfileNotifier>().saveProfile(profile);
+    final profileNotifier = context.read<ProfileNotifier>();
+    await profileNotifier.saveProfile(profile);
 
     if (mounted) {
+      if (profileNotifier.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(profileNotifier.errorMessage!)),
+        );
+        return;
+      }
       context.go('/iciq');
     }
   }

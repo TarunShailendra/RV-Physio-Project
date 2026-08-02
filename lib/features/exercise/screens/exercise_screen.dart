@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -99,7 +99,9 @@ class _ExerciseContent extends StatelessWidget {
                         ? AppTheme.primaryColor
                         : Colors.grey.shade300,
                   ),
-                  onSelected: (_) => notifier.loadWeek(week),
+                  onSelected: notifier.canAccessWeek(week)
+                      ? (_) => notifier.loadWeek(week)
+                      : null,
                 );
               },
             ),
@@ -224,7 +226,12 @@ class _ExerciseContent extends StatelessWidget {
             ),
             onPressed: currentSession.isCompleted
                 ? null
-                : () => notifier.completeSession(notifier.currentSessionIndex),
+                : () {
+                    notifier.completeSession(notifier.currentSessionIndex);
+                    if (plan.weekNumber == 1 && notifier.isWeekOneComplete) {
+                      context.go('/iqol');
+                    }
+                  },
             child: Text(l10n.completeSession),
           ),
           const SizedBox(height: 28),

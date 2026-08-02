@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../core/theme/app_theme.dart';
-import '../../../l10n/app_localizations.dart'; // ✅ added
+import '../../../l10n/app_localizations.dart'; // âœ… added
 import '../auth_notifier.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -53,11 +51,11 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final authNotifier = context.watch<AuthNotifier>();
-    final l10n = AppLocalizations.of(context)!; // ✅
+    final l10n = AppLocalizations.of(context)!; // âœ…
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.signUp), // ✅
+        title: Text(l10n.signUp), // âœ…
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -77,7 +75,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.createAccount, // ✅
+                      l10n.createAccount, // âœ…
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -87,12 +85,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.name],
                       decoration: InputDecoration(
-                        labelText: l10n.name, // ✅
+                        labelText: l10n.name, // âœ…
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if ((value?.trim() ?? '').isEmpty) {
-                          return l10n.enterYourName; // ✅ new key
+                          return l10n.enterYourName; // âœ… new key
                         }
                         return null;
                       },
@@ -104,7 +102,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                       decoration: InputDecoration(
-                        labelText: l10n.email, // ✅
+                        labelText: l10n.email, // âœ…
                         border: const OutlineInputBorder(),
                         errorStyle: const TextStyle(fontSize: 14),
                       ),
@@ -114,10 +112,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       validator: (value) {
                         final email = value?.trim() ?? '';
                         if (email.isEmpty) {
-                          return l10n.enterYourEmail; // ✅ new key
+                          return l10n.enterYourEmail; // âœ… new key
                         }
                         if (!email.contains('@')) {
-                          return l10n.enterValidEmail; // ✅ new key
+                          return l10n.enterValidEmail; // âœ… new key
                         }
                         if (_emailTaken) {
                           return 'This email is already registered';
@@ -132,13 +130,13 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: l10n.password, // ✅
+                        labelText: l10n.password, // âœ…
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         final password = value ?? '';
                         if (password.isEmpty) {
-                          return l10n.enterPassword; // ✅ new key (or reuse)
+                          return l10n.enterPassword; // âœ… new key (or reuse)
                         }
                         if (password.length < 8) {
                           return 'Password must be at least 8 characters';
@@ -158,16 +156,16 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.telephoneNumber],
                       decoration: InputDecoration(
-                        labelText: l10n.phone, // ✅
+                        labelText: l10n.phone, // âœ…
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         final phone = value?.trim() ?? '';
                         if (phone.isEmpty) {
-                          return l10n.enterPhoneNumber; // ✅ new key
+                          return l10n.enterPhoneNumber; // âœ… new key
                         }
                         if (phone.length < 10) {
-                          return l10n.enterValidPhone; // ✅ new key
+                          return l10n.enterValidPhone; // âœ… new key
                         }
                         return null;
                       },
@@ -294,14 +292,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : Text(l10n.signUp), // ✅
+                          : Text(l10n.signUp), // âœ…
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: authNotifier.isLoading
                           ? null
                           : () => context.go('/login'),
-                      child: Text(l10n.backToLogin), // ✅
+                      child: Text(l10n.backToLogin), // âœ…
                     ),
                   ],
                 ),
@@ -319,16 +317,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     final email = _emailController.text.trim();
-    final existing = await Supabase.instance.client
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-    if (existing != null) {
-      setState(() => _emailTaken = true);
-      _formKey.currentState!.validate();
-      return;
-    }
 
     final authNotifier = context.read<AuthNotifier>();
     await authNotifier.signup(
@@ -343,6 +331,17 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (mounted) {
+      if (authNotifier.currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authNotifier.errorMessage ??
+                  'Unable to create your account. Please try again.',
+            ),
+          ),
+        );
+        return;
+      }
       context.go('/profile-setup');
     }
   }

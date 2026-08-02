@@ -1,4 +1,4 @@
-class ProfileModel {
+﻿class ProfileModel {
   const ProfileModel({
     required this.userId,
     required this.age,
@@ -12,6 +12,15 @@ class ProfileModel {
     this.email,
     this.dateOfBirth,
     this.profileCompletedAt,
+    this.maritalStatus,
+    this.hasChildren,
+    this.deliveryType,
+    this.childrenAges,
+    this.childbirthPainLevel,
+    this.heightCm,
+    this.weightKg,
+    this.hasDiabetes = false,
+    this.hasHypertension = false,
   });
 
   final String userId;
@@ -26,6 +35,15 @@ class ProfileModel {
   final String? email;
   final DateTime? dateOfBirth;
   final DateTime? profileCompletedAt;
+  final String? maritalStatus;
+  final bool? hasChildren;
+  final String? deliveryType;
+  final String? childrenAges;
+  final int? childbirthPainLevel;
+  final double? heightCm;
+  final double? weightKg;
+  final bool hasDiabetes;
+  final bool hasHypertension;
 
   Map<String, dynamic> toJson() {
     return {
@@ -41,6 +59,15 @@ class ProfileModel {
       'email': email,
       'dateOfBirth': dateOfBirth?.toIso8601String(),
       'profileCompletedAt': profileCompletedAt?.toIso8601String(),
+      'maritalStatus': maritalStatus,
+      'hasChildren': hasChildren,
+      'deliveryType': deliveryType,
+      'childrenAges': childrenAges,
+      'childbirthPainLevel': childbirthPainLevel,
+      'heightCm': heightCm,
+      'weightKg': weightKg,
+      'hasDiabetes': hasDiabetes,
+      'hasHypertension': hasHypertension,
     };
   }
 
@@ -67,6 +94,15 @@ class ProfileModel {
       dateOfBirth: json['date_of_birth'] != null
           ? DateTime.tryParse(json['date_of_birth'] as String)
           : null,
+      maritalStatus: json['marital_status'] as String?,
+      hasChildren: json['has_children'] as bool?,
+      deliveryType: json['delivery_type'] as String?,
+      childrenAges: json['children_ages'] as String?,
+      childbirthPainLevel: json['childbirth_pain_level'] as int?,
+      heightCm: (json['height_cm'] as num?)?.toDouble(),
+      weightKg: (json['weight_kg'] as num?)?.toDouble(),
+      hasDiabetes: json['has_diabetes'] as bool? ?? false,
+      hasHypertension: json['has_hypertension'] as bool? ?? false,
       profileCompletedAt: _parseDate(
         json['profileCompletedAt'] ?? json['profile_completed_at'],
       ),

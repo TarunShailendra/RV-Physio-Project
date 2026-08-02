@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/profile_model.dart';
@@ -22,7 +22,7 @@ class ProfileNotifier extends ChangeNotifier {
       final row = await _supabase
           .from('profiles')
           .select(
-            'id, full_name, city, occupation, incontinence_type, symptom_duration_months, has_sought_treatment, date_of_birth, profile_completed_at, phone, email',
+            'id, full_name, city, occupation, incontinence_type, symptom_duration_months, has_sought_treatment, date_of_birth, profile_completed_at, phone, email, marital_status, has_children, delivery_type, children_ages, childbirth_pain_level, height_cm, weight_kg, has_diabetes, has_hypertension',
           )
           .eq('id', user.id)
           .maybeSingle();
@@ -54,6 +54,15 @@ class ProfileNotifier extends ChangeNotifier {
         'profile_completed_at': completedAt.toIso8601String(),
         'phone': p.phone,
         'email': p.email,
+        'marital_status': p.maritalStatus,
+        'has_children': p.hasChildren,
+        'delivery_type': p.deliveryType,
+        'children_ages': p.childrenAges,
+        'childbirth_pain_level': p.childbirthPainLevel,
+        'height_cm': p.heightCm,
+        'weight_kg': p.weightKg,
+        'has_diabetes': p.hasDiabetes,
+        'has_hypertension': p.hasHypertension,
       };
 
       await _supabase.from('profiles').upsert(row, onConflict: 'id');
@@ -70,6 +79,15 @@ class ProfileNotifier extends ChangeNotifier {
         email: p.email,
         dateOfBirth: p.dateOfBirth,
         profileCompletedAt: completedAt,
+        maritalStatus: p.maritalStatus,
+        hasChildren: p.hasChildren,
+        deliveryType: p.deliveryType,
+        childrenAges: p.childrenAges,
+        childbirthPainLevel: p.childbirthPainLevel,
+        heightCm: p.heightCm,
+        weightKg: p.weightKg,
+        hasDiabetes: p.hasDiabetes,
+        hasHypertension: p.hasHypertension,
       );
     } catch (e) {
       errorMessage = e.toString();

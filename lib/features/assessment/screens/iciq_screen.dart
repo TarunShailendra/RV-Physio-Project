@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -81,9 +81,9 @@ class _IciqScreenState extends State<IciqScreen> {
         ),
       );
       if (!context.mounted) return;
-      context.go('/dashboard');
+      context.go('/ipaq');
     } else {
-      final proceed = await showDialog<bool>(
+      await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(AppLocalizations.of(ctx)!.iciqOfferExercisesTitle),
@@ -101,7 +101,7 @@ class _IciqScreenState extends State<IciqScreen> {
         ),
       );
       if (!context.mounted) return;
-      context.go(proceed == true ? '/ipaq' : '/dashboard');
+      context.go('/ipaq');
     }
   }
 
@@ -263,7 +263,7 @@ class _FrequencyStep extends StatelessWidget {
       l10n.severalTimesADay,
       l10n.allTheTime,
     ];
-    if (value >= 0 && value < labels.length) return '$value — ${labels[value]}';
+    if (value >= 0 && value < labels.length) return '$value â€” ${labels[value]}';
     return '';
   }
 }
@@ -296,9 +296,9 @@ class _AmountStep extends StatelessWidget {
   }
 
   String _amountLabel(int value, AppLocalizations l10n) {
-    if (value == 1) return '1 — ${l10n.none}';
-    if (value == 2) return '2 — ${l10n.smallAmount}';
-    if (value == 3) return '3 — ${l10n.moderateAmount}';
+    if (value == 1) return '1 â€” ${l10n.none}';
+    if (value == 2) return '2 â€” ${l10n.smallAmount}';
+    if (value == 3) return '3 â€” ${l10n.moderateAmount}';
     return '';
   }
 }
