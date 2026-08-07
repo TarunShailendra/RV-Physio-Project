@@ -17,7 +17,7 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         brightness: Brightness.light,
-        background: background,
+        surface: background,
       ),
       scaffoldBackgroundColor: background,
       textTheme: GoogleFonts.poppinsTextTheme().copyWith(
@@ -54,7 +54,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: cardColor,
         elevation: 2,
-        shadowColor: primary.withOpacity(0.1),
+        shadowColor: primary.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

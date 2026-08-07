@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 
 class BladderDiaryScreen extends StatefulWidget {
@@ -126,7 +125,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF00897B).withOpacity(0.12)
+                        ? const Color(0xFF00897B).withValues(alpha: 0.12)
                         : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
@@ -194,7 +193,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
               padding: const EdgeInsets.symmetric(vertical: 4),
               decoration: BoxDecoration(
                 color: hasData
-                    ? const Color(0xFF00897B).withOpacity(0.1)
+                    ? const Color(0xFF00897B).withValues(alpha: 0.1)
                     : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -275,7 +274,9 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                   GestureDetector(
                     onTap: () => setState(() {
                       entry.cantMeasure = !entry.cantMeasure;
-                      if (entry.cantMeasure) entry.urineOutput = '';
+                      if (entry.cantMeasure) {
+                        entry.urineOutput = '';
+                      }
                     }),
                     child: Row(
                       children: [
@@ -317,7 +318,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                                       : Colors.grey.shade300),
                               borderRadius: BorderRadius.circular(8),
                               color: entry.bladderSensation != null
-                                  ? const Color(0xFF00897B).withOpacity(0.05)
+                                  ? const Color(0xFF00897B).withValues(alpha: 0.05)
                                   : Colors.white,
                             ),
                             child: Row(
@@ -479,7 +480,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
           children: sensationLabels.entries
               .map((e) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('${e.value}',
+                    child: Text(e.value,
                         style: GoogleFonts.poppins(fontSize: 12)),
                   ))
               .toList(),

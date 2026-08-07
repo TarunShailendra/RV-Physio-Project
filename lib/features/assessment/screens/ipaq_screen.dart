@@ -120,7 +120,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
                     value: (_step + 1) / steps.length,
                     minHeight: 6,
                     color: const Color(0xFF4DB6AC),
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -135,7 +135,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: BorderSide(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -156,7 +156,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withOpacity(0.5),
+                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -386,10 +386,10 @@ class _IpaqResultStep extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF4DB6AC).withOpacity(0.3),
+                color: const Color(0xFF4DB6AC).withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: const Color(0xFF80CBC4).withOpacity(0.4),
+                  color: const Color(0xFF80CBC4).withValues(alpha: 0.4),
                 ),
               ),
               child: Text(
@@ -446,7 +446,7 @@ class _NumberField extends StatelessWidget {
             borderSide: const BorderSide(color: Color(0xFF4DB6AC), width: 2),
           ),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.08),
+          fillColor: Colors.white.withValues(alpha: 0.08),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,

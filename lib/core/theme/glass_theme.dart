@@ -57,7 +57,7 @@ class GlassCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: shadowColor.withOpacity(shadowOpacity),
+            color: shadowColor.withValues(alpha: shadowOpacity),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -69,12 +69,12 @@ class GlassCard extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(hasError ? 0.05 : opacity),
+              color: Colors.white.withValues(alpha: hasError ? 0.05 : opacity),
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: hasError
-                    ? Colors.red.withOpacity(borderOpacity)
-                    : Colors.white.withOpacity(borderOpacity),
+                    ? Colors.red.withValues(alpha: borderOpacity)
+                    : Colors.white.withValues(alpha: borderOpacity),
                 width: hasError ? 2 : 1,
               ),
             ),
@@ -117,7 +117,7 @@ class GlassButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00897B).withOpacity(0.5),
+            color: const Color(0xFF00897B).withValues(alpha: 0.5),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -144,7 +144,7 @@ class GlassButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
-        side: BorderSide(color: Colors.white.withOpacity(0.6)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
@@ -270,9 +270,9 @@ class GlassLabeledSlider extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
           ),
           child: Text(
             displayText,
@@ -296,9 +296,9 @@ class GlassLabeledSlider extends StatelessWidget {
       data: SliderTheme.of(context).copyWith(
         trackHeight: 8,
         activeTrackColor: const Color(0xFF4DB6AC),
-        inactiveTrackColor: Colors.white.withOpacity(0.2),
+        inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
         thumbColor: Colors.white,
-        overlayColor: const Color(0xFF00897B).withOpacity(0.2),
+        overlayColor: const Color(0xFF00897B).withValues(alpha: 0.2),
         thumbShape: GlowingThumbShape(),
         trackShape: _GlassTrackShape(showError: showError && _unanswered),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
@@ -371,13 +371,13 @@ class GlowingThumbShape extends SliderComponentShape {
 
     // Outer teal glow
     final glowPaint = Paint()
-      ..color = const Color(0xFF00897B).withOpacity(0.45)
+      ..color = const Color(0xFF00897B).withValues(alpha: 0.45)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
     canvas.drawCircle(center, 14, glowPaint);
 
     // Inner glow
     final innerGlowPaint = Paint()
-      ..color = const Color(0xFF4DB6AC).withOpacity(0.4)
+      ..color = const Color(0xFF4DB6AC).withValues(alpha: 0.4)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawCircle(center, 10, innerGlowPaint);
 
@@ -437,8 +437,8 @@ class _GlassTrackShape extends SliderTrackShape {
       canvas,
       trackRect,
       trackRadius,
-      showError ? Colors.red.withOpacity(0.35) : Colors.white.withOpacity(0.2),
-      showError ? Colors.red.withOpacity(0.15) : Colors.white.withOpacity(0.08),
+      showError ? Colors.red.withValues(alpha: 0.35) : Colors.white.withValues(alpha: 0.2),
+      showError ? Colors.red.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08),
     );
 
     // Active track — teal gradient (or red if error)
@@ -463,8 +463,8 @@ class _GlassTrackShape extends SliderTrackShape {
     // Track border
     final borderPaint = Paint()
       ..color = showError
-          ? Colors.red.withOpacity(0.4)
-          : Colors.white.withOpacity(0.25)
+          ? Colors.red.withValues(alpha: 0.4)
+          : Colors.white.withValues(alpha: 0.25)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -489,7 +489,7 @@ class _GlassTrackShape extends SliderTrackShape {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+        colors: [Colors.white.withValues(alpha: 0.2), Colors.transparent],
       ).createShader(innerRect);
     canvas.drawRRect(
       RRect.fromRectAndRadius(innerRect, innerRadius),

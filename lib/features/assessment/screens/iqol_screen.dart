@@ -46,17 +46,29 @@ class _IqolScreenState extends State<IqolScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    final notifier = context.read<IqolNotifier>();
+    final notifier = Provider.of<IqolNotifier>(context, listen: false);
+    final summaryNotifier = Provider.of<AssessmentSummaryNotifier>(
+      context,
+      listen: false,
+    );
+    final dashboardNotifier = Provider.of<DashboardNotifier>(
+      context,
+      listen: false,
+    );
+    final exerciseNotifier = Provider.of<ExerciseNotifier>(
+      context,
+      listen: false,
+    );
+    final router = GoRouter.of(context);
     if (!_isCurrentPageAnswered(notifier)) return;
 
-    final summary = context.read<AssessmentSummaryNotifier>();
-    summary.saveIqol(await notifier.submit());
+    final submittedModel = await notifier.submit();
+    summaryNotifier.saveIqol(submittedModel);
+    final summary = summaryNotifier;
+    dashboardNotifier.applyAssessmentSummary(summary);
+    exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
     if (!context.mounted) return;
-    context.read<DashboardNotifier>().applyAssessmentSummary(summary);
-    context.read<ExerciseNotifier>().loadRecommendedWeek(
-      summary.recommendedStartWeek,
-    );
-    context.go('/dashboard');
+    router.go('/dashboard');
   }
 
   void _goBack() {
@@ -111,7 +123,7 @@ class _IqolScreenState extends State<IqolScreen> {
                     value: (_page + 1) / 24,
                     minHeight: 6,
                     color: const Color(0xFF4DB6AC),
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -154,7 +166,7 @@ class _IqolScreenState extends State<IqolScreen> {
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: BorderSide(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -172,7 +184,7 @@ class _IqolScreenState extends State<IqolScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withOpacity(0.5),
+                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -288,9 +300,9 @@ class _QuestionPage extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       _currentLabel.isEmpty ? '--' : _currentLabel,
@@ -314,9 +326,9 @@ class _QuestionPage extends StatelessWidget {
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: const Color(0xFF4DB6AC),
-                  inactiveTrackColor: Colors.white.withOpacity(0.2),
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                   thumbColor: Colors.white,
-                  overlayColor: const Color(0xFF00897B).withOpacity(0.2),
+                  overlayColor: const Color(0xFF00897B).withValues(alpha: 0.2),
                   valueIndicatorColor: const Color(0xFF00897B),
                   valueIndicatorTextStyle: const TextStyle(color: Colors.white),
                   thumbShape: GlowingThumbShape(),
@@ -474,22 +486,22 @@ class _AboutPage extends StatelessWidget {
                   l10n.iqol_about_q4,
                   style: const TextStyle(color: Colors.white),
                 ),
-                activeColor: const Color(0xFF4DB6AC),
+                activeThumbColor: const Color(0xFF4DB6AC),
                 onChanged: (value) =>
                     notifier.updateBackground(stressLeak: value),
                 value: notifier.model.stressLeak,
-                activeTrackColor: const Color(0xFF00897B).withOpacity(0.5),
+                activeTrackColor: const Color(0xFF00897B).withValues(alpha: 0.5),
               ),
               SwitchListTile(
                 title: Text(
                   l10n.iqol_about_q5,
                   style: const TextStyle(color: Colors.white),
                 ),
-                activeColor: const Color(0xFF4DB6AC),
+                activeThumbColor: const Color(0xFF4DB6AC),
                 onChanged: (value) =>
                     notifier.updateBackground(urgeLeak: value),
                 value: notifier.model.urgeLeak,
-                activeTrackColor: const Color(0xFF00897B).withOpacity(0.5),
+                activeTrackColor: const Color(0xFF00897B).withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -540,7 +552,7 @@ class _IqolResultPage extends StatelessWidget {
           percent: score / 100,
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: const Color(0xFF4DB6AC),
-          backgroundColor: Colors.white.withOpacity(0.1),
+          backgroundColor: Colors.white.withValues(alpha: 0.1),
           center: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

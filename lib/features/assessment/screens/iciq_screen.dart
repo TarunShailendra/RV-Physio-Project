@@ -142,7 +142,7 @@ class _IciqScreenState extends State<IciqScreen> {
                     value: (_step + 1) / steps.length,
                     minHeight: 6,
                     color: const Color(0xFF4DB6AC),
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -169,7 +169,7 @@ class _IciqScreenState extends State<IciqScreen> {
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: BorderSide(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -190,7 +190,7 @@ class _IciqScreenState extends State<IciqScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withOpacity(0.5),
+                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -376,7 +376,7 @@ class _WhenLeaksStep extends StatelessWidget {
                   opacity: 0.06,
                   child: CheckboxListTile(
                     value: notifier.model.whenLeaks.contains(option),
-                    activeColor: const Color(0xFF4DB6AC),
+                    activeThumbColor: const Color(0xFF4DB6AC),
                     checkboxShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -470,10 +470,10 @@ class _ResultStep extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00897B).withOpacity(0.4),
+                  color: const Color(0xFF00897B).withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF4DB6AC).withOpacity(0.4),
+                    color: const Color(0xFF4DB6AC).withValues(alpha: 0.4),
                   ),
                 ),
                 child: Text(
