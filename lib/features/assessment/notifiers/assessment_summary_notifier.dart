@@ -122,6 +122,7 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
           .from('iciq_results')
           .select('id')
           .eq('user_id', userId)
+          .limit(1)
           .maybeSingle();
 
       if (iciqRow != null) {
@@ -138,6 +139,7 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
           .from('ipaq_results')
           .select('id')
           .eq('user_id', userId)
+          .limit(1)
           .maybeSingle();
 
       if (ipaqRow != null) {
@@ -149,6 +151,7 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
           .from('iqol_results')
           .select('id')
           .eq('user_id', userId)
+          .limit(1)
           .maybeSingle();
 
       if (iqolRow != null) {
