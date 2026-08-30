@@ -91,24 +91,20 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) return;
       await _client.from('ipaq_results').insert({
-        'user_id': userId,
-        'sitting_hours': value.sittingHours,
-        'sitting_mins': value.sittingMins,
-        'walk_days': value.walkDays,
-        'walk_hours': value.walkHours,
-        'walk_mins': value.walkMins,
-        'moderate_days': value.moderateDays,
-        'moderate_hours': value.moderateHours,
-        'moderate_mins': value.moderateMins,
-        'vigorous_days': value.vigorousDays,
-        'vigorous_hours': value.vigorousHours,
-        'vigorous_mins': value.vigorousMins,
-        'walk_met': value.walkingMetMinutes,
-        'moderate_met': value.moderateMetMinutes,
-        'vigorous_met': value.vigorousMetMinutes,
-        'total_met': value.totalMetMinutes,
-        'activity_level': value.activityLevel.name,
-      });
+  'user_id': userId,
+  'sitting_hours': value.sittingHours,
+  'sitting_mins': value.sittingMins,
+  'walk_days': value.walkDays,
+  'walk_hours': value.walkHours,
+  'walk_mins': value.walkMins,
+  'moderate_days': value.moderateDays,
+  'moderate_hours': value.moderateHours,
+  'moderate_mins': value.moderateMins,
+  'vigorous_days': value.vigorousDays,
+  'vigorous_hours': value.vigorousHours,
+  'vigorous_mins': value.vigorousMins,
+  // removed: activity_level
+});
       debugPrint('IPAQ saved successfully');
     } catch (e) {
       debugPrint('IPAQ save error: $e');
