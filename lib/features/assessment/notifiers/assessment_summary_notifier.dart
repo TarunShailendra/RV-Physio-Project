@@ -68,16 +68,16 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
         qMap['q${i + 1}'] = i < value.items.length ? value.items[i] : 0;
       }
       await _client.from('iqol_results').insert({
-        'user_id': userId,
-        ...qMap,
-        'duration_years': value.durationYears,
-        'duration_months': value.durationMonths,
-        'severity': value.severity,
-        'stress_leak': value.stressLeak,
-        'urge_leak': value.urgeLeak,
-        'freq_code': value.freqCode,
-        'iqol_score': value.score,
-      });
+  'user_id': userId,
+  ...qMap,
+  'duration_years': value.durationYears,
+  'duration_months': value.durationMonths,
+  'severity': value.severity,
+  'stress_leak': value.stressLeak,
+  'urge_leak': value.urgeLeak,
+  'freq_code': value.freqCode,
+  // removed: iqol_score
+});
       debugPrint('IQOL saved successfully');
     } catch (e) {
       debugPrint('IQOL save error: $e');
