@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'features/assessment/notifiers/assessment_summary_notifier.dart';
+import 'features/exercise/exercise_notifier.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/assessment/screens/assessment_screen.dart';
@@ -70,6 +73,52 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ProfileScreen(),
     ),
   ],
+  redirect: (context, state) {
+    try {
+      final summary = context.read<AssessmentSummaryNotifier>();
+      final exercise = context.read<ExerciseNotifier>();
+      final path = state.uri.toString();
+
+      // Public/auth routes always accessible
+      if (path == '/login' ||
+          path == '/signup' ||
+          path == '/profile-setup' ||
+          path == '/profile' ||
+          path == '/iciq' ||
+          path == '/assessment/iciq') {
+        return null;
+      }
+
+      // All other routes require ICIQ
+      if (summary.iciq == null) {
+        return '/iciq';
+      }
+
+      // IPAQ is accessible once ICIQ is done
+      if (path == '/ipaq' || path == '/assessment/ipaq') {
+        return null;
+      }
+
+      // All remaining routes require IPAQ
+      if (summary.ipaq == null) {
+        return '/ipaq';
+      }
+
+      // IQOL routes: only accessible after 7-day exercise protocol
+      if (path == '/iqol' || path == '/assessment/iqol') {
+        if (!exercise.isIqolAvailable) return '/exercise';
+        return null;
+      }
+
+      // Once IQOL is available, it becomes compulsory
+      if (exercise.isIqolAvailable && summary.iqol == null) {
+        return '/iqol';
+      }
+    } catch (e) {
+      // Providers not ready yet
+    }
+    return null;
+  },
 );
 
 class TelerehabApp extends StatelessWidget {

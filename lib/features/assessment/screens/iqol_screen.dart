@@ -46,29 +46,17 @@ class _IqolScreenState extends State<IqolScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    final notifier = Provider.of<IqolNotifier>(context, listen: false);
-    final summaryNotifier = Provider.of<AssessmentSummaryNotifier>(
-      context,
-      listen: false,
-    );
-    final dashboardNotifier = Provider.of<DashboardNotifier>(
-      context,
-      listen: false,
-    );
-    final exerciseNotifier = Provider.of<ExerciseNotifier>(
-      context,
-      listen: false,
-    );
-    final router = GoRouter.of(context);
+    final notifier = context.read<IqolNotifier>();
     if (!_isCurrentPageAnswered(notifier)) return;
 
-    final submittedModel = await notifier.submit();
-    summaryNotifier.saveIqol(submittedModel);
-    final summary = summaryNotifier;
+    final summary = context.read<AssessmentSummaryNotifier>();
+    final dashboardNotifier = context.read<DashboardNotifier>();
+    final exerciseNotifier = context.read<ExerciseNotifier>();
+    summary.saveIqol(await notifier.submit());
+    if (!mounted) return;
     dashboardNotifier.applyAssessmentSummary(summary);
     exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
-    if (!context.mounted) return;
-    router.go('/dashboard');
+    context.go('/dashboard');
   }
 
   void _goBack() {
@@ -102,7 +90,7 @@ class _IqolScreenState extends State<IqolScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.go('/dashboard'),
+          onPressed: () => context.pop(),
         ),
         title: Text(l10n.iqolTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -184,7 +172,9 @@ class _IqolScreenState extends State<IqolScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFF00897B,
+                              ).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -302,7 +292,9 @@ class _QuestionPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       _currentLabel.isEmpty ? '--' : _currentLabel,
@@ -490,7 +482,9 @@ class _AboutPage extends StatelessWidget {
                 onChanged: (value) =>
                     notifier.updateBackground(stressLeak: value),
                 value: notifier.model.stressLeak,
-                activeTrackColor: const Color(0xFF00897B).withValues(alpha: 0.5),
+                activeTrackColor: const Color(
+                  0xFF00897B,
+                ).withValues(alpha: 0.5),
               ),
               SwitchListTile(
                 title: Text(
@@ -501,7 +495,9 @@ class _AboutPage extends StatelessWidget {
                 onChanged: (value) =>
                     notifier.updateBackground(urgeLeak: value),
                 value: notifier.model.urgeLeak,
-                activeTrackColor: const Color(0xFF00897B).withValues(alpha: 0.5),
+                activeTrackColor: const Color(
+                  0xFF00897B,
+                ).withValues(alpha: 0.5),
               ),
             ],
           ),

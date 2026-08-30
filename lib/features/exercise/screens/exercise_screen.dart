@@ -228,9 +228,6 @@ class _ExerciseContent extends StatelessWidget {
                 ? null
                 : () {
                     notifier.completeSession(notifier.currentSessionIndex);
-                    if (plan.weekNumber == 1 && notifier.isWeekOneComplete) {
-                      context.go('/iqol');
-                    }
                   },
             child: Text(l10n.completeSession),
           ),

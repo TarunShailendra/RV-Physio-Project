@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.favorite, color: Colors.white, size: 48),
               const SizedBox(height: 12),
               Text(
-                'RV Physio', // Brand name â€“ can stay or be localized
+                'RV Physio', // Brand name – can stay or be localized
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -107,17 +107,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Icons.email_outlined,
                                   color: Colors.white70,
                                 ),
-                                validator: (value) {
-                                  final email = value?.trim() ?? '';
-                                  if (email.isEmpty) {
-                                    return l10n.enterYourEmail;
-                                  }
-                                  if (!email.contains('@') ||
-                                      !email.contains('.')) {
-                                    return l10n.enterValidEmail;
-                                  }
-                                  return null;
-                                },
+                                 validator: (value) {
+                                   final email = value?.trim() ?? '';
+                                   if (email.isEmpty) return null;
+                                   if (!email.contains('@') ||
+                                       !email.contains('.')) {
+                                     return l10n.enterValidEmail;
+                                   }
+                                   return null;
+                                 },
                               ),
                               const SizedBox(height: 16),
                               _glassTextField(

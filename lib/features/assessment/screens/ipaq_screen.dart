@@ -1,8 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../dashboard/dashboard_notifier.dart';
@@ -69,7 +68,8 @@ class _IpaqScreenState extends State<IpaqScreen> {
     final steps = [
       _SittingStep(notifier: notifier, showError: _triedToAdvance),
       _ActivityStep(
-        label: '${l10n.ipaq_q2}\nExamples: walking for transport, work, or recreation.',
+        label:
+            '${l10n.ipaq_q2}\nExamples: walking for transport, work, or recreation.',
         days: notifier.model.walkDays,
         hours: notifier.model.walkHours,
         mins: notifier.model.walkMins,
@@ -77,7 +77,8 @@ class _IpaqScreenState extends State<IpaqScreen> {
         onChanged: notifier.updateWalking,
       ),
       _ActivityStep(
-        label: '${l10n.ipaq_q3}\nExamples: brisk cycling, cleaning, gardening, or swimming.',
+        label:
+            '${l10n.ipaq_q3}\nExamples: brisk cycling, cleaning, gardening, or swimming.',
         days: notifier.model.moderateDays,
         hours: notifier.model.moderateHours,
         mins: notifier.model.moderateMins,
@@ -85,7 +86,8 @@ class _IpaqScreenState extends State<IpaqScreen> {
         onChanged: notifier.updateModerate,
       ),
       _ActivityStep(
-        label: '${l10n.ipaq_q4}\nExamples: running, aerobics, heavy lifting, or fast cycling.',
+        label:
+            '${l10n.ipaq_q4}\nExamples: running, aerobics, heavy lifting, or fast cycling.',
         days: notifier.model.vigorousDays,
         hours: notifier.model.vigorousHours,
         mins: notifier.model.vigorousMins,
@@ -99,7 +101,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.go('/dashboard'),
+          onPressed: () => context.pop(),
         ),
         title: Text(l10n.ipaqTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -156,7 +158,9 @@ class _IpaqScreenState extends State<IpaqScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFF00897B,
+                              ).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),

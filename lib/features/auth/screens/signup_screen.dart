@@ -109,19 +109,17 @@ class _SignupScreenState extends State<SignupScreen> {
                       onChanged: (_) {
                         if (_emailTaken) setState(() => _emailTaken = false);
                       },
-                      validator: (value) {
-                        final email = value?.trim() ?? '';
-                        if (email.isEmpty) {
-                          return l10n.enterYourEmail; // âœ… new key
-                        }
-                        if (!email.contains('@')) {
-                          return l10n.enterValidEmail; // âœ… new key
-                        }
-                        if (_emailTaken) {
-                          return 'This email is already registered';
-                        }
-                        return null;
-                      },
+                       validator: (value) {
+                         final email = value?.trim() ?? '';
+                         if (email.isEmpty) return null;
+                         if (!email.contains('@')) {
+                           return l10n.enterValidEmail;
+                         }
+                         if (_emailTaken) {
+                           return 'This email is already registered';
+                         }
+                         return null;
+                       },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -316,7 +314,9 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final email = _emailController.text.trim();
+    final email = _emailController.text.trim().isEmpty
+        ? '${_phoneController.text.trim()}@phone.local'
+        : _emailController.text.trim();
 
     final authNotifier = context.read<AuthNotifier>();
     await authNotifier.signup(

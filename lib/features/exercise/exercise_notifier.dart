@@ -7,6 +7,7 @@ import 'models/exercise_model.dart';
 class ExerciseNotifier extends ChangeNotifier {
   final Map<int, WeeklyPlan> _plans = {};
   final Set<int> _completedWeeks = {};
+  DateTime? _protocolStartDate;
 
   WeeklyPlan? currentPlan;
   int currentSessionIndex = 0;
@@ -24,8 +25,14 @@ class ExerciseNotifier extends ChangeNotifier {
   bool canAccessWeek(int week) => week >= 1 && week <= highestUnlockedWeek;
   bool get isWeekOneComplete => _completedWeeks.contains(1);
 
+  bool get isIqolAvailable {
+    if (_protocolStartDate == null) return false;
+    return DateTime.now().difference(_protocolStartDate!).inDays >= 7;
+  }
+
   void loadWeek(int week) {
     if (!canAccessWeek(week)) return;
+    _protocolStartDate ??= DateTime.now();
     currentPlan = _plans[week] ??= WeeklyPlan.getWeekPlan(week);
     currentSessionIndex = _firstIncompleteSession(currentPlan!);
     timerSecondsRemaining = _secondsForCurrentSession();
@@ -109,6 +116,7 @@ class ExerciseNotifier extends ChangeNotifier {
     _timer = null;
     _plans.clear();
     _completedWeeks.clear();
+    _protocolStartDate = null;
     currentPlan = null;
     currentSessionIndex = 0;
     isTimerRunning = false;

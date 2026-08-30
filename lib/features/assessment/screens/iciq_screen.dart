@@ -1,11 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/auth_notifier.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
 import '../notifiers/assessment_summary_notifier.dart';
@@ -121,7 +119,7 @@ class _IciqScreenState extends State<IciqScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.go('/dashboard'),
+          onPressed: () => context.pop(),
         ),
         title: Text(l10n.iciqTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -190,7 +188,9 @@ class _IciqScreenState extends State<IciqScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00897B).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFF00897B,
+                              ).withValues(alpha: 0.5),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -263,7 +263,7 @@ class _FrequencyStep extends StatelessWidget {
       l10n.severalTimesADay,
       l10n.allTheTime,
     ];
-    if (value >= 0 && value < labels.length) return '$value â€” ${labels[value]}';
+    if (value >= 0 && value < labels.length) return '$value — ${labels[value]}';
     return '';
   }
 }
@@ -296,9 +296,9 @@ class _AmountStep extends StatelessWidget {
   }
 
   String _amountLabel(int value, AppLocalizations l10n) {
-    if (value == 1) return '1 â€” ${l10n.none}';
-    if (value == 2) return '2 â€” ${l10n.smallAmount}';
-    if (value == 3) return '3 â€” ${l10n.moderateAmount}';
+    if (value == 1) return '1 — ${l10n.none}';
+    if (value == 2) return '2 — ${l10n.smallAmount}';
+    if (value == 3) return '3 — ${l10n.moderateAmount}';
     return '';
   }
 }
@@ -376,7 +376,7 @@ class _WhenLeaksStep extends StatelessWidget {
                   opacity: 0.06,
                   child: CheckboxListTile(
                     value: notifier.model.whenLeaks.contains(option),
-                    activeThumbColor: const Color(0xFF4DB6AC),
+                    activeColor: const Color(0xFF4DB6AC),
                     checkboxShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),

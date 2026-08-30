@@ -31,14 +31,8 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: textDark,
         ),
-        bodyMedium: GoogleFonts.poppins(
-          fontSize: 14,
-          color: textDark,
-        ),
-        bodySmall: GoogleFonts.poppins(
-          fontSize: 12,
-          color: textMuted,
-        ),
+        bodyMedium: GoogleFonts.poppins(fontSize: 14, color: textDark),
+        bodySmall: GoogleFonts.poppins(fontSize: 12, color: textMuted),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: primary,
@@ -55,9 +49,7 @@ class AppTheme {
         color: cardColor,
         elevation: 2,
         shadowColor: primary.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -90,7 +82,10 @@ class AppTheme {
           borderSide: const BorderSide(color: primary, width: 2),
         ),
         labelStyle: GoogleFonts.poppins(color: textMuted),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }

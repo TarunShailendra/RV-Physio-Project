@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -121,7 +121,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedIncontinenceTypeKey,
+                      initialValue: _selectedIncontinenceTypeKey,
                       decoration: InputDecoration(
                         labelText: l10n.incontinenceType,
                         border: const OutlineInputBorder(),
@@ -179,41 +179,124 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _maritalStatus,
-                      decoration: const InputDecoration(labelText: 'Marital status', border: OutlineInputBorder()),
-                      items: const ['Single', 'Married', 'Separated', 'Divorced', 'Widowed']
-                          .map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-                      onChanged: (value) => setState(() => _maritalStatus = value),
+                      initialValue: _maritalStatus,
+                      decoration: const InputDecoration(
+                        labelText: 'Marital status',
+                        border: OutlineInputBorder(),
+                      ),
+                      items:
+                          const [
+                                'Single',
+                                'Married',
+                                'Separated',
+                                'Divorced',
+                                'Widowed',
+                              ]
+                              .map(
+                                (value) => DropdownMenuItem(
+                                  value: value,
+                                  child: Text(value),
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (value) =>
+                          setState(() => _maritalStatus = value),
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
                       value: _hasChildren ?? false,
                       title: const Text('Do you have children?'),
-                      onChanged: (value) => setState(() => _hasChildren = value),
+                      onChanged: (value) =>
+                          setState(() => _hasChildren = value),
                     ),
-                    if (_hasChildren == true) ...[
-                      DropdownButtonFormField<String>(
-                        value: _deliveryType,
-                        decoration: const InputDecoration(labelText: 'Type of delivery', border: OutlineInputBorder()),
-                        items: const ['Vaginal delivery', 'Caesarean section', 'Assisted delivery', 'Other']
-                            .map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-                        onChanged: (value) => setState(() => _deliveryType = value),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(controller: _childrenAgesController, decoration: const InputDecoration(labelText: 'Age(s) of child / children', hintText: 'Example: 3, 7', border: OutlineInputBorder())),
-                      const SizedBox(height: 12),
-                      Text('Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10'),
-                      Slider(value: _childbirthPainLevel, min: 0, max: 10, divisions: 10, onChanged: (value) => setState(() => _childbirthPainLevel = value)),
-                    ],
+                     if (_hasChildren == true) ...[
+                       DropdownButtonFormField<String>(
+                         initialValue: _deliveryType,
+                         decoration: const InputDecoration(
+                           labelText: 'Type of delivery',
+                           border: OutlineInputBorder(),
+                         ),
+                         items:
+                             const [
+                                   'Vaginal delivery',
+                                   'Caesarean section',
+                                   'Assisted delivery',
+                                   'Other',
+                                 ]
+                                 .map(
+                                   (value) => DropdownMenuItem(
+                                     value: value,
+                                     child: Text(value),
+                                   ),
+                                 )
+                                 .toList(),
+                         onChanged: (value) =>
+                             setState(() => _deliveryType = value),
+                       ),
+                       const SizedBox(height: 16),
+                       TextFormField(
+                         controller: _childrenAgesController,
+                         decoration: const InputDecoration(
+                           labelText: 'Age(s) of child / children',
+                           hintText: 'Example: 3, 7',
+                           border: OutlineInputBorder(),
+                         ),
+                       ),
+                       if (_deliveryType != null &&
+                           _deliveryType != 'Vaginal delivery') ...[
+                         const SizedBox(height: 12),
+                         Text(
+                           'Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10',
+                         ),
+                         Slider(
+                           value: _childbirthPainLevel,
+                           min: 0,
+                           max: 10,
+                           divisions: 10,
+                           onChanged: (value) =>
+                               setState(() => _childbirthPainLevel = value),
+                         ),
+                       ],
+                     ],
                     const SizedBox(height: 16),
-                    Row(children: [
-                      Expanded(child: TextFormField(controller: _heightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Height (cm) — optional', border: OutlineInputBorder()))),
-                      const SizedBox(width: 12),
-                      Expanded(child: TextFormField(controller: _weightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Weight (kg) — optional', border: OutlineInputBorder()))),
-                    ]),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _heightController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Height (cm) — optional',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _weightController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Weight (kg) — optional',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    SwitchListTile(value: _hasDiabetes, title: const Text('Do you have diabetes?'), onChanged: (value) => setState(() => _hasDiabetes = value)),
-                    SwitchListTile(value: _hasHypertension, title: const Text('Do you have hypertension?'), onChanged: (value) => setState(() => _hasHypertension = value)),
+                    SwitchListTile(
+                      value: _hasDiabetes,
+                      title: const Text('Do you have diabetes?'),
+                      onChanged: (value) =>
+                          setState(() => _hasDiabetes = value),
+                    ),
+                    SwitchListTile(
+                      value: _hasHypertension,
+                      title: const Text('Do you have hypertension?'),
+                      onChanged: (value) =>
+                          setState(() => _hasHypertension = value),
+                    ),
                     const SizedBox(height: 24),
                     FilledButton(
                       style: FilledButton.styleFrom(
@@ -297,8 +380,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       maritalStatus: _maritalStatus,
       hasChildren: _hasChildren,
       deliveryType: _deliveryType,
-      childrenAges: _childrenAgesController.text.trim().isEmpty ? null : _childrenAgesController.text.trim(),
-      childbirthPainLevel: _hasChildren == true ? _childbirthPainLevel.round() : null,
+      childrenAges: _childrenAgesController.text.trim().isEmpty
+          ? null
+          : _childrenAgesController.text.trim(),
+      childbirthPainLevel: _hasChildren == true &&
+              _deliveryType != null &&
+              _deliveryType != 'Vaginal delivery'
+          ? _childbirthPainLevel.round()
+          : null,
       heightCm: double.tryParse(_heightController.text.trim()),
       weightKg: double.tryParse(_weightController.text.trim()),
       hasDiabetes: _hasDiabetes,
@@ -310,9 +399,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     if (mounted) {
       if (profileNotifier.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(profileNotifier.errorMessage!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(profileNotifier.errorMessage!)));
         return;
       }
       context.go('/iciq');
