@@ -24,12 +24,15 @@ void main() async {
   final dashboardNotifier = DashboardNotifier();
   final exerciseNotifier = ExerciseNotifier();
   final assessmentSummaryNotifier = AssessmentSummaryNotifier();
+  // populate completion status from Supabase on startup
+  await assessmentSummaryNotifier.checkCompletedAssessments();
+
   final iciqNotifier = IciqNotifier();
   final ipaqNotifier = IpaqNotifier();
   final iqolNotifier = IqolNotifier();
   final bladderDiaryNotifier = BladderDiaryNotifier();
 
-  final authNotifier = AuthNotifier();
+  final authNotifier = AuthNotifier(assessmentNotifier: assessmentSummaryNotifier);
 
   runApp(AppProviders(
     authNotifier: authNotifier,

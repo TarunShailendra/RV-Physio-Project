@@ -111,6 +111,58 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
     }
   }
 
+  Future<void> checkCompletedAssessments() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      bool changed = false;
+
+      final iciqRow = await _client
+          .from('iciq_results')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (iciqRow != null) {
+        // mark as completed with safe default values
+        iciq = const ICIQModel(
+          leakFrequency: 0,
+          leakAmount: 0,
+          lifeInterference: 0,
+        );
+        changed = true;
+      }
+
+      final ipaqRow = await _client
+          .from('ipaq_results')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (ipaqRow != null) {
+        ipaq = const IPAQModel();
+        changed = true;
+      }
+
+      final iqolRow = await _client
+          .from('iqol_results')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (iqolRow != null) {
+        // items filled with 1 mark the IQOL as complete (isComplete checks for 1..5)
+        iqol = IQOLModel(items: List<int>.filled(22, 1));
+        changed = true;
+      }
+
+      if (changed) notifyListeners();
+    } catch (e) {
+      debugPrint('checkCompletedAssessments error: $e');
+    }
+  }
+
   void reset() {
     iciq = null;
     iqol = null;

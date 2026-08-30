@@ -2,8 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/user_model.dart';
+import '../assessment/notifiers/assessment_summary_notifier.dart';
 
 class AuthNotifier extends ChangeNotifier {
+  AuthNotifier({AssessmentSummaryNotifier? assessmentNotifier}) : _assessmentNotifier = assessmentNotifier;
+
+  final AssessmentSummaryNotifier? _assessmentNotifier;
+
   SupabaseClient get _supabase => Supabase.instance.client;
 
   String? token;
@@ -42,6 +47,9 @@ class AuthNotifier extends ChangeNotifier {
           dateOfBirth: _parseDate(profileRow?['date_of_birth']),
           isProfileComplete: isProfileComplete,
         );
+
+        // Update assessment completion status from Supabase for this user
+        await _assessmentNotifier?.checkCompletedAssessments();
       }
     } catch (e) {
       errorMessage = e.toString();
@@ -100,6 +108,9 @@ class AuthNotifier extends ChangeNotifier {
           dob: dob,
           dateOfBirth: parsedDob,
         );
+
+        // Update assessment completion status from Supabase for this user
+        await _assessmentNotifier?.checkCompletedAssessments();
       }
     } catch (e) {
       errorMessage = e.toString();
