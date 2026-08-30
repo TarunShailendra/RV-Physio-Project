@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/app_localizations.dart';
 
@@ -496,8 +497,49 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     );
   }
 
-  void _submitDiary() {
+  Future<void> _submitDiary() async {
     final l10n = AppLocalizations.of(context)!;
+
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final diary = <String, dynamic>{};
+        for (var day = 0; day < 3; day++) {
+          final dayMap = <String, dynamic>{};
+          for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
+            final entry = _data[day][slot];
+            final isEmpty = entry.fluidAmount.isEmpty &&
+                entry.fluidType.isEmpty &&
+                entry.urineOutput.isEmpty &&
+                !entry.cantMeasure &&
+                entry.bladderSensation == null &&
+                !entry.pad;
+            if (isEmpty) continue;
+            dayMap[_timeSlotKeys[slot]] = {
+              'fluidAmount': entry.fluidAmount,
+              'fluidType': entry.fluidType,
+              'urineOutput': entry.urineOutput,
+              'cantMeasure': entry.cantMeasure,
+              'bladderSensation': entry.bladderSensation,
+              'pad': entry.pad,
+            };
+          }
+          if (dayMap.isNotEmpty) {
+            diary['day${day + 1}'] = dayMap;
+          }
+        }
+        await Supabase.instance.client.from('bladder_diaries').insert({
+          'user_id': userId,
+          'diary': diary,
+          'submitted_at': DateTime.now().toIso8601String(),
+        });
+        debugPrint('Bladder diary saved successfully');
+      }
+    } catch (e) {
+      debugPrint('Bladder diary save error: $e');
+    }
+
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
