@@ -226,8 +226,8 @@ class _ExerciseContent extends StatelessWidget {
             ),
             onPressed: currentSession.isCompleted
                 ? null
-                : () {
-                    notifier.completeSession(notifier.currentSessionIndex);
+                : () async {
+                    await notifier.completeSession(notifier.currentSessionIndex);
                   },
             child: Text(l10n.completeSession),
           ),

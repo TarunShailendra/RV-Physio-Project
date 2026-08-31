@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/exercise_model.dart';
 
@@ -67,7 +68,7 @@ class ExerciseNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void completeSession(int index) {
+  Future<void> completeSession(int index) async {
     final plan = currentPlan;
     if (plan == null || index < 0 || index >= plan.sessions.length) return;
     final sessions = [...plan.sessions];
@@ -90,6 +91,25 @@ class ExerciseNotifier extends ChangeNotifier {
     if (sessions.every((item) => item.isCompleted)) _completedWeeks.add(plan.weekNumber);
     currentSessionIndex = _firstIncompleteSession(currentPlan!);
     _resetTimer();
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        await Supabase.instance.client.from('exercise_logs').upsert({
+          'user_id': userId,
+          'week_number': session.week,
+          'day_number': session.day,
+          'exercise_name': session.exerciseName,
+          'reps': session.reps,
+          'hold_seconds': session.holdSeconds,
+          'rest_seconds': session.restSeconds,
+          'completed': true,
+          'duration_seconds': session.reps * (session.holdSeconds + session.restSeconds),
+          'completed_at': DateTime.now().toUtc().toIso8601String(),
+        }, onConflict: 'user_id,week_number,day_number');
+      }
+    } catch (e) {
+      debugPrint('exercise_logs insert failed: $e');
+    }
     notifyListeners();
   }
 
