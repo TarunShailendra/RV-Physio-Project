@@ -22,7 +22,7 @@ class ProfileNotifier extends ChangeNotifier {
       final row = await _supabase
           .from('profiles')
           .select(
-            'id, full_name, city, occupation, incontinence_type, symptom_duration_months, has_sought_treatment, date_of_birth, profile_completed_at, phone, email, marital_status, has_children, delivery_type, children_ages, childbirth_pain_level, height_cm, weight_kg, has_diabetes, has_hypertension',
+            'id, full_name, city, occupation, incontinence_type, symptom_duration_months, has_sought_treatment, date_of_birth, profile_completed_at, phone, email, marital_status, has_children, delivery_type, children_ages, childbirth_pain_level, height_cm, weight_kg, has_diabetes, has_hypertension, gender',
           )
           .eq('id', user.id)
           .maybeSingle();
@@ -63,6 +63,7 @@ class ProfileNotifier extends ChangeNotifier {
         'weight_kg': p.weightKg,
         'has_diabetes': p.hasDiabetes,
         'has_hypertension': p.hasHypertension,
+        'gender': p.gender,
       };
 
       await _supabase.from('profiles').upsert(row, onConflict: 'id');
@@ -88,6 +89,7 @@ class ProfileNotifier extends ChangeNotifier {
         weightKg: p.weightKg,
         hasDiabetes: p.hasDiabetes,
         hasHypertension: p.hasHypertension,
+        gender: p.gender,
       );
     } catch (e) {
       errorMessage = e.toString();

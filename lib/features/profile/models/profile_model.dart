@@ -21,6 +21,7 @@
     this.weightKg,
     this.hasDiabetes = false,
     this.hasHypertension = false,
+    this.gender,
   });
 
   final String userId;
@@ -44,6 +45,7 @@
   final double? weightKg;
   final bool hasDiabetes;
   final bool hasHypertension;
+  final String? gender;
 
   Map<String, dynamic> toJson() {
     return {
@@ -68,6 +70,7 @@
       'weightKg': weightKg,
       'hasDiabetes': hasDiabetes,
       'hasHypertension': hasHypertension,
+      'gender': gender,
     };
   }
 
@@ -103,6 +106,7 @@
       weightKg: (json['weight_kg'] as num?)?.toDouble(),
       hasDiabetes: json['has_diabetes'] as bool? ?? false,
       hasHypertension: json['has_hypertension'] as bool? ?? false,
+      gender: json['gender'] as String?,
       profileCompletedAt: _parseDate(
         json['profileCompletedAt'] ?? json['profile_completed_at'],
       ),
