@@ -38,6 +38,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   double _childbirthPainLevel = 0;
   bool _hasDiabetes = false;
   bool _hasHypertension = false;
+  String? _gender;
 
   @override
   void dispose() {
@@ -297,6 +298,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       onChanged: (value) =>
                           setState(() => _hasHypertension = value),
                     ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      initialValue: _gender,
+                      decoration: const InputDecoration(
+                        labelText: 'Gender',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const ['Female', 'Male', 'Non-binary', 'Prefer not to say']
+                          .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+                          .toList(),
+                      onChanged: (value) => setState(() => _gender = value),
+                    ),
                     const SizedBox(height: 24),
                     FilledButton(
                       style: FilledButton.styleFrom(
@@ -392,6 +405,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       weightKg: double.tryParse(_weightController.text.trim()),
       hasDiabetes: _hasDiabetes,
       hasHypertension: _hasHypertension,
+      gender: _gender,
     );
 
     final profileNotifier = context.read<ProfileNotifier>();

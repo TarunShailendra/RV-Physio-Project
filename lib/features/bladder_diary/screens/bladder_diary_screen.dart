@@ -45,12 +45,53 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     _data = List.generate(3, (_) =>
         List.generate(_timeSlotKeys.length, (_) => BladderDiaryEntry()));
     _markers = List.generate(3, (_) => {});
+    _loadPreviousEntry();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPreviousEntry() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final row = await Supabase.instance.client
+          .from('bladder_diaries')
+          .select('diary')
+          .eq('user_id', userId)
+          .order('submitted_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (row == null) return;
+      final diary = row['diary'] as Map<String, dynamic>?;
+      if (diary == null) return;
+
+      setState(() {
+        for (var day = 0; day < 3; day++) {
+          final dayKey = 'day${day + 1}';
+          final dayMap = diary[dayKey] as Map<String, dynamic>?;
+          if (dayMap == null) continue;
+          for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
+            final slotKey = _timeSlotKeys[slot];
+            final slotData = dayMap[slotKey] as Map<String, dynamic>?;
+            if (slotData == null) continue;
+            _data[day][slot].fluidAmount = slotData['fluidAmount'] as String? ?? '';
+            _data[day][slot].fluidType = slotData['fluidType'] as String? ?? '';
+            _data[day][slot].urineOutput = slotData['urineOutput'] as String? ?? '';
+            _data[day][slot].cantMeasure = slotData['cantMeasure'] as bool? ?? false;
+            _data[day][slot].bladderSensation = slotData['bladderSensation'] as int?;
+            _data[day][slot].pad = slotData['pad'] as bool? ?? false;
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('loadPreviousEntry error: $e');
+    }
   }
 
   Map<int, String> _getSensationLabels(AppLocalizations l10n) {

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -65,26 +65,27 @@ class _ExerciseContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final completedCount = plan.sessions
-        .where((session) => session.isCompleted)
-        .length;
-    if (plan.sessions.isEmpty) return const SizedBox.shrink();
-    final currentSession = plan.sessions[notifier.currentSessionIndex];
+    final currentDay = notifier.currentDay;
+    final currentSession = notifier.currentSession;
+
+    if (currentDay == null || currentSession == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Week selector
           SizedBox(
             height: 48,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: 8,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final week = index + 1;
                 final isSelected = week == plan.weekNumber;
-
                 return ChoiceChip(
                   label: Text(l10n.weekNumber(week)),
                   selected: isSelected,
@@ -106,33 +107,13 @@ class _ExerciseContent extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.weekProgress(plan.weekNumber, 8),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: plan.weekNumber / 8,
-                    minHeight: 8,
-                    backgroundColor: Colors.grey.shade200,
-                    color: AppTheme.primaryColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+
+          // Week progress card
           Card(
             color: AppTheme.primaryColor.withAlpha(26),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -140,22 +121,94 @@ class _ExerciseContent extends StatelessWidget {
                     l10n.weekDifficulty(plan.weekNumber, plan.difficultyLabel),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: completedCount / plan.sessions.length,
+                    value: plan.completedDays / 7,
                     minHeight: 8,
                     backgroundColor: AppTheme.primaryColor.withAlpha(41),
                     color: AppTheme.primaryColor,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
+                  Text('${plan.completedDays} of 7 days completed'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Day selector
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 7,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final day = plan.days[index];
+                final isSelected = index == notifier.currentDayIndex;
+                return ChoiceChip(
+                  label: Text('Day ${day.dayNumber}'),
+                  selected: isSelected,
+                  selectedColor: day.isCompleted
+                      ? Colors.green
+                      : AppTheme.primaryColor,
+                  backgroundColor: day.isCompleted
+                      ? Colors.green.shade100
+                      : Colors.grey.shade200,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  side: BorderSide(
+                    color: day.isCompleted
+                        ? Colors.green
+                        : isSelected
+                            ? AppTheme.primaryColor
+                            : Colors.grey.shade300,
+                  ),
+                  onSelected: (_) => notifier.selectDay(index),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Day progress
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    l10n.completedCount(completedCount, plan.sessions.length),
+                    'Day ${currentDay.dayNumber} — ${currentDay.completedCount} of 5 sessions',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (final session in currentDay.sessions)
+                        Container(
+                          width: 14,
+                          height: 14,
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: session.isCompleted
+                                ? AppTheme.primaryColor
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+
+          // Current session detail
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -163,27 +216,20 @@ class _ExerciseContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentSession.exerciseName,
+                    'Session ${currentSession.sessionNumber} — ${currentSession.exerciseName}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
-                  _SessionDetail(
-                    label: l10n.reps,
-                    value: currentSession.reps.toString(),
-                  ),
-                  _SessionDetail(
-                    label: l10n.hold,
-                    value: l10n.seconds(currentSession.holdSeconds),
-                  ),
-                  _SessionDetail(
-                    label: l10n.rest,
-                    value: l10n.seconds(currentSession.restSeconds),
-                  ),
+                  _SessionDetail(label: l10n.reps, value: currentSession.reps.toString()),
+                  _SessionDetail(label: l10n.hold, value: l10n.seconds(currentSession.holdSeconds)),
+                  _SessionDetail(label: l10n.rest, value: l10n.seconds(currentSession.restSeconds)),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
+
+          // Timer
           Center(
             child: Container(
               width: 200,
@@ -203,6 +249,8 @@ class _ExerciseContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+
+          // Start/pause
           Center(
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
@@ -212,13 +260,13 @@ class _ExerciseContent extends StatelessWidget {
               onPressed: notifier.isTimerRunning
                   ? notifier.pauseTimer
                   : notifier.startTimer,
-              icon: Icon(
-                notifier.isTimerRunning ? Icons.pause : Icons.play_arrow,
-              ),
+              icon: Icon(notifier.isTimerRunning ? Icons.pause : Icons.play_arrow),
               label: Text(notifier.isTimerRunning ? l10n.pause : l10n.start),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+
+          // Complete session button
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
@@ -227,28 +275,14 @@ class _ExerciseContent extends StatelessWidget {
             onPressed: currentSession.isCompleted
                 ? null
                 : () async {
-                    await notifier.completeSession(notifier.currentSessionIndex);
+                    await notifier.completeSession(
+                      notifier.currentDayIndex,
+                      notifier.currentSessionIndex,
+                    );
                   },
             child: Text(l10n.completeSession),
           ),
           const SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (final session in plan.sessions)
-                Container(
-                  width: 14,
-                  height: 14,
-                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: session.isCompleted
-                        ? AppTheme.primaryColor
-                        : Colors.grey.shade300,
-                  ),
-                ),
-            ],
-          ),
         ],
       ),
     );
@@ -257,9 +291,7 @@ class _ExerciseContent extends StatelessWidget {
   String _formatSeconds(int seconds, AppLocalizations l10n) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
-    if (minutes == 0) {
-      return l10n.seconds(remainingSeconds);
-    }
+    if (minutes == 0) return l10n.seconds(remainingSeconds);
     return l10n.minutesAndSeconds(minutes, remainingSeconds);
   }
 }

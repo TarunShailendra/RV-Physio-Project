@@ -26,6 +26,7 @@ void main() async {
   final assessmentSummaryNotifier = AssessmentSummaryNotifier();
   // populate completion status from Supabase on startup
   await assessmentSummaryNotifier.checkCompletedAssessments();
+  await exerciseNotifier.loadProgress(); // restore week unlock state from Supabase
 
   final iciqNotifier = IciqNotifier();
   final ipaqNotifier = IpaqNotifier();
