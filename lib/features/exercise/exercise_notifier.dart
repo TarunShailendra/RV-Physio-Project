@@ -27,10 +27,7 @@ class ExerciseNotifier extends ChangeNotifier {
   bool canAccessWeek(int week) => week >= 1 && week <= highestUnlockedWeek;
   bool get isWeekOneComplete => _completedWeeks.contains(1);
 
-  bool get isIqolAvailable {
-    if (_protocolStartDate == null) return false;
-    return DateTime.now().difference(_protocolStartDate!).inDays >= 7;
-  }
+  bool get isIqolAvailable => _completedWeeks.contains(1);
 
   DayPlan? get currentDay =>
       currentPlan != null && currentDayIndex < currentPlan!.days.length

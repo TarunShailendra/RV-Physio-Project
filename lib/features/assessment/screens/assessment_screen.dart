@@ -20,7 +20,7 @@ class AssessmentScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/dashboard'),
         ),
         title: Text(l10n.assessmentResult),
         backgroundColor: AppTheme.primaryColor,

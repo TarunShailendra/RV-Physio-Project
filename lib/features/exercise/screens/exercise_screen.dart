@@ -82,7 +82,7 @@ class _ExerciseContent extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: 8,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final week = index + 1;
                 final isSelected = week == plan.weekNumber;
@@ -142,7 +142,7 @@ class _ExerciseContent extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: 7,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final day = plan.days[index];
                 final isSelected = index == notifier.currentDayIndex;

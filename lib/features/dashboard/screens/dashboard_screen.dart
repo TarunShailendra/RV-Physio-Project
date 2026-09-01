@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../l10n/app_localizations.dart';

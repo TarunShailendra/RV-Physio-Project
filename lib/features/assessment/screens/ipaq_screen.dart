@@ -210,8 +210,7 @@ class _SittingStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Expanded(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _RequiredQuestionLabel(
@@ -257,7 +256,6 @@ class _SittingStep extends StatelessWidget {
               ),
             ),
         ],
-      ),
     );
   }
 }
@@ -284,8 +282,7 @@ class _ActivityStep extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final answered = days > 0;
 
-    return Expanded(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _RequiredQuestionLabel(
@@ -331,7 +328,6 @@ class _ActivityStep extends StatelessWidget {
               ),
             ),
         ],
-      ),
     );
   }
 }
@@ -411,8 +407,9 @@ class _IpaqResultStep extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+    ),
+  );
+
   }
 }
 
