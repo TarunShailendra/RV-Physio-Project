@@ -20,16 +20,19 @@ A Flutter-based telerehabilitation platform designed to support pelvic floor and
 
 ## Features
 
+- **Authenticated access** — Only the sign-in and sign-up screens are reachable without a session. Every other route, including all six questionnaire paths, requires a signed-in patient; the guard re-runs on sign-in, sign-out and protocol progress
 - **Clinically gated assessment flow** — Patients progress through a sequenced set of validated questionnaires, with each stage unlocking only upon completion of its prerequisite:
   - **ICIQ** (International Consultation on Incontinence Questionnaire) — entry point; always accessible
   - **IPAQ** (International Physical Activity Questionnaire) — unlocked after ICIQ completion
-  - **IQOL** (Incontinence Quality of Life) — unlocked after ICIQ + IPAQ and completion of the 7-day exercise protocol
-- **Exercise protocol tracking** — Records exercise logs to Supabase (`exercise_logs`), tracks protocol start date, monitors daily completion, and programmatically determines patient eligibility for reassessment
-- **Bladder diary** — Full save/load support with persistent Supabase-backed storage
-- **Route-level access control** — Dashboard, exercise, bladder diary, education, and reassessment routes are protected via `GoRouter` redirect guards; unauthorized access is redirected to the appropriate prerequisite
+  - **IQOL** (Incontinence Quality of Life) — unlocked after ICIQ + IPAQ, a completed exercise week, and seven elapsed days since the protocol began
+- **Exercise protocol tracking** — Records exercise logs to Supabase (`exercise_logs`), derives the protocol start date from the earliest completed session, cues each repetition's hold and rest, and gates I-QOL eligibility on both completion and elapsed time
+- **Assessment-driven start week** — ICIQ severity, IPAQ activity level and I-QOL score select the week a patient begins at, so a milder, more active patient skips the beginner weeks
+- **Bladder diary** — Three days of entries kept on the device as they are typed and restored on reopen, then submitted to Supabase. A failed submission says so and keeps the entries rather than reporting success
+- **Route-level access control** — A single policy in `lib/core/routing/redirect_policy.dart` decides every route, evaluated as authentication first and the assessment sequence second
 - **Session persistence** — Assessment results and exercise progress are restored from Supabase on startup and login, ensuring continuity across sessions
 - **Profile management** — Patient profiles are persisted to Supabase with conditional fields (e.g. pain-level input displayed only when clinically indicated)
-- **Flexible authentication** — Supports sign-up and login via phone number or email; email is treated as optional, with a generated placeholder used internally when omitted
+- **Authentication** — Email and password. A real address is required: password reset and confirmation depend on it
+- **Bilingual** — English and Kannada throughout, with an in-app language picker on the profile screen
 - **Education module** — In-app educational content gated to appropriately progressed patients
 
 ---
@@ -67,18 +70,33 @@ A Flutter-based telerehabilitation platform designed to support pelvic floor and
    ```
 
 3. **Configure Supabase credentials**
-   Add your Supabase project URL and anon key to your environment or configuration file as required by the project setup.
+   Credentials are supplied at build time and are not committed. Copy the
+   example file and fill it in:
+   ```bash
+   cp supabase.env.example.json supabase.env.json
+   ```
+   `supabase.env.json` is gitignored.
 
 4. **Apply database migrations**
    ```bash
    # Using the Supabase CLI
    supabase db push
    ```
-   Migration files are located in `supabase/migrations/`.
+   Migration files are located in `supabase/migrations/` and cover every table
+   the app reads or writes. They are idempotent, so they are safe to re-run.
+
+   Pushing to a project whose migration history predates these files may need
+   `supabase db push --include-all`, because `20260525082000_create_profiles.sql`
+   is dated before an existing migration that alters the table it creates.
 
 5. **Run the application**
    ```bash
-   flutter run
+   flutter run --dart-define-from-file=supabase.env.json
+   ```
+
+6. **Run the tests**
+   ```bash
+   flutter test
    ```
 
 ---
