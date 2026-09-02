@@ -41,6 +41,48 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? _gender;
 
   @override
+  void initState() {
+    super.initState();
+    // Without this the form opens blank and saveProfile upserts the full
+    // column set, so editing one field nulled out everything else.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadExisting());
+  }
+
+  Future<void> _loadExisting() async {
+    final notifier = context.read<ProfileNotifier>();
+    await notifier.loadProfile();
+    if (!mounted) return;
+    final p = notifier.profile;
+    if (p == null) return;
+
+    setState(() {
+      _cityController.text = p.city;
+      _occupationController.text = p.occupation;
+      _symptomDurationController.text = p.symptomDurationMonths.toString();
+      _selectedIncontinenceTypeKey = _keyForIncontinenceType(p.incontinenceType);
+      _hasSoughtTreatment = p.hasSoughtTreatment;
+      _maritalStatus = p.maritalStatus;
+      _hasChildren = p.hasChildren;
+      _deliveryType = p.deliveryType;
+      _childrenAgesController.text = p.childrenAges ?? '';
+      _childbirthPainLevel = (p.childbirthPainLevel ?? 0).clamp(0, 10).toDouble();
+      _heightController.text = p.heightCm?.toString() ?? '';
+      _weightController.text = p.weightKg?.toString() ?? '';
+      _hasDiabetes = p.hasDiabetes;
+      _hasHypertension = p.hasHypertension;
+      _gender = p.gender;
+    });
+  }
+
+  /// Inverse of [_getEnglishIncontinenceType]. Returns null for anything the
+  /// dropdown does not offer, so it cannot be handed a value it has no item
+  /// for.
+  String? _keyForIncontinenceType(String stored) {
+    final key = stored.trim().toLowerCase();
+    return _incontinenceTypeKeys.contains(key) ? key : null;
+  }
+
+  @override
   void dispose() {
     _cityController.dispose();
     _occupationController.dispose();
@@ -210,55 +252,55 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       onChanged: (value) =>
                           setState(() => _hasChildren = value),
                     ),
-                     if (_hasChildren == true) ...[
-                       DropdownButtonFormField<String>(
-                         initialValue: _deliveryType,
-                         decoration: const InputDecoration(
-                           labelText: 'Type of delivery',
-                           border: OutlineInputBorder(),
-                         ),
-                         items:
-                             const [
-                                   'Vaginal delivery',
-                                   'Caesarean section',
-                                   'Assisted delivery',
-                                   'Other',
-                                 ]
-                                 .map(
-                                   (value) => DropdownMenuItem(
-                                     value: value,
-                                     child: Text(value),
-                                   ),
-                                 )
-                                 .toList(),
-                         onChanged: (value) =>
-                             setState(() => _deliveryType = value),
-                       ),
-                       const SizedBox(height: 16),
-                       TextFormField(
-                         controller: _childrenAgesController,
-                         decoration: const InputDecoration(
-                           labelText: 'Age(s) of child / children',
-                           hintText: 'Example: 3, 7',
-                           border: OutlineInputBorder(),
-                         ),
-                       ),
-                       if (_deliveryType != null &&
-                           _deliveryType != 'Vaginal delivery') ...[
-                         const SizedBox(height: 12),
-                         Text(
-                           'Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10',
-                         ),
-                         Slider(
-                           value: _childbirthPainLevel,
-                           min: 0,
-                           max: 10,
-                           divisions: 10,
-                           onChanged: (value) =>
-                               setState(() => _childbirthPainLevel = value),
-                         ),
-                       ],
-                     ],
+                    if (_hasChildren == true) ...[
+                      DropdownButtonFormField<String>(
+                        initialValue: _deliveryType,
+                        decoration: const InputDecoration(
+                          labelText: 'Type of delivery',
+                          border: OutlineInputBorder(),
+                        ),
+                        items:
+                            const [
+                                  'Vaginal delivery',
+                                  'Caesarean section',
+                                  'Assisted delivery',
+                                  'Other',
+                                ]
+                                .map(
+                                  (value) => DropdownMenuItem(
+                                    value: value,
+                                    child: Text(value),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) =>
+                            setState(() => _deliveryType = value),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _childrenAgesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Age(s) of child / children',
+                          hintText: 'Example: 3, 7',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      if (_deliveryType != null &&
+                          _deliveryType != 'Vaginal delivery') ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10',
+                        ),
+                        Slider(
+                          value: _childbirthPainLevel,
+                          min: 0,
+                          max: 10,
+                          divisions: 10,
+                          onChanged: (value) =>
+                              setState(() => _childbirthPainLevel = value),
+                        ),
+                      ],
+                    ],
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -305,9 +347,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         labelText: 'Gender',
                         border: OutlineInputBorder(),
                       ),
-                      items: const ['Female', 'Male', 'Non-binary', 'Prefer not to say']
-                          .map((value) => DropdownMenuItem(value: value, child: Text(value)))
-                          .toList(),
+                      items:
+                          const [
+                                'Female',
+                                'Male',
+                                'Non-binary',
+                                'Prefer not to say',
+                              ]
+                              .map(
+                                (value) => DropdownMenuItem(
+                                  value: value,
+                                  child: Text(value),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (value) => setState(() => _gender = value),
                     ),
                     const SizedBox(height: 24),
@@ -396,7 +449,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       childrenAges: _childrenAgesController.text.trim().isEmpty
           ? null
           : _childrenAgesController.text.trim(),
-      childbirthPainLevel: _hasChildren == true &&
+      childbirthPainLevel:
+          _hasChildren == true &&
               _deliveryType != null &&
               _deliveryType != 'Vaginal delivery'
           ? _childbirthPainLevel.round()
