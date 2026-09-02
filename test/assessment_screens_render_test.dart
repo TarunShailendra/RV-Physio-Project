@@ -67,9 +67,7 @@ void main() {
 
     // Answer each step and advance, so the slider steps and the checkbox step
     // are all built. The first three used to be the broken ones.
-    final iciq = tester
-        .element(find.byType(IciqScreen))
-        .read<IciqNotifier>();
+    final iciq = tester.element(find.byType(IciqScreen)).read<IciqNotifier>();
 
     iciq.setLeakFrequency(3);
     await tester.pumpAndSettle();

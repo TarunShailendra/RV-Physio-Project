@@ -28,24 +28,27 @@ void main() {
       expect(model.severityBand, 'moderate');
     });
 
-    test('regression: the old placeholder scored 0 / mild for every patient', () {
-      const fabricated = ICIQModel(
-        leakFrequency: 0,
-        leakAmount: 0,
-        lifeInterference: 0,
-      );
-      expect(fabricated.iciqScore, 0);
-      expect(fabricated.severityBand, 'mild');
+    test(
+      'regression: the old placeholder scored 0 / mild for every patient',
+      () {
+        const fabricated = ICIQModel(
+          leakFrequency: 0,
+          leakAmount: 0,
+          lifeInterference: 0,
+        );
+        expect(fabricated.iciqScore, 0);
+        expect(fabricated.severityBand, 'mild');
 
-      final restored = ICIQModel.fromSupabaseRow({
-        'leak_frequency': 5,
-        'leak_amount': 3,
-        'life_interference': 9,
-        'when_leaks': <String>[],
-      });
-      expect(restored.iciqScore, 17);
-      expect(restored.severityBand, 'severe');
-    });
+        final restored = ICIQModel.fromSupabaseRow({
+          'leak_frequency': 5,
+          'leak_amount': 3,
+          'life_interference': 9,
+          'when_leaks': <String>[],
+        });
+        expect(restored.iciqScore, 17);
+        expect(restored.severityBand, 'severe');
+      },
+    );
 
     test('tolerates a null when_leaks column', () {
       final model = ICIQModel.fromSupabaseRow({
@@ -114,8 +117,9 @@ void main() {
     test('classifier matches the original IpaqNotifier rules', () {
       // vigorous >= 3 days and >= 1500 MET-min  -> high
       expect(
-        IPAQModel.fromSupabaseRow(row(vigorousDays: 3, vigorousMins: 63))
-            .activityLevel,
+        IPAQModel.fromSupabaseRow(
+          row(vigorousDays: 3, vigorousMins: 63),
+        ).activityLevel,
         IPAQActivityLevel.high,
       );
       // 7+ active days and >= 3000 MET-min      -> high
@@ -127,20 +131,19 @@ void main() {
       );
       // moderate >= 5 days and >= 30 min        -> moderate
       expect(
-        IPAQModel.fromSupabaseRow(row(moderateDays: 5, moderateMins: 30))
-            .activityLevel,
+        IPAQModel.fromSupabaseRow(
+          row(moderateDays: 5, moderateMins: 30),
+        ).activityLevel,
         IPAQActivityLevel.moderate,
       );
       // walking >= 5 days and >= 30 min         -> moderate
       expect(
-        IPAQModel.fromSupabaseRow(row(walkDays: 5, walkMins: 30))
-            .activityLevel,
+        IPAQModel.fromSupabaseRow(row(walkDays: 5, walkMins: 30)).activityLevel,
         IPAQActivityLevel.moderate,
       );
       // below every threshold                   -> low
       expect(
-        IPAQModel.fromSupabaseRow(row(walkDays: 2, walkMins: 10))
-            .activityLevel,
+        IPAQModel.fromSupabaseRow(row(walkDays: 2, walkMins: 10)).activityLevel,
         IPAQActivityLevel.low,
       );
     });

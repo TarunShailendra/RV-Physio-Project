@@ -101,7 +101,8 @@ void main() {
               physics: const NeverScrollableScrollPhysics(),
               onPageChanged: (value) => currentPage = value,
               itemCount: IQOLModel.itemCount + 2,
-              itemBuilder: (context, index) => Center(child: Text('page $index')),
+              itemBuilder: (context, index) =>
+                  Center(child: Text('page $index')),
             ),
           ),
         ),

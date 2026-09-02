@@ -39,7 +39,8 @@ void main() {
           expect(
             result,
             signedOutLanding,
-            reason: '$path must redirect a signed-out visitor to the login screen',
+            reason:
+                '$path must redirect a signed-out visitor to the login screen',
           );
         }
       }
@@ -105,11 +106,15 @@ void main() {
       // Signup and login each navigated here themselves, but the guard moves
       // a patient off the auth screen the instant sign-in completes, so that
       // navigation never ran and profile setup was unreachable.
-      expect(forPath('/dashboard', hasCompletedProfile: false),
-          profileSetupRoute);
+      expect(
+        forPath('/dashboard', hasCompletedProfile: false),
+        profileSetupRoute,
+      );
       expect(forPath('/iciq', hasCompletedProfile: false), profileSetupRoute);
-      expect(forPath('/exercise', hasCompletedProfile: false),
-          profileSetupRoute);
+      expect(
+        forPath('/exercise', hasCompletedProfile: false),
+        profileSetupRoute,
+      );
     });
 
     test('profile setup itself is reachable, so the chain settles', () {
@@ -178,12 +183,7 @@ void main() {
         reason: 'not yet available',
       );
       expect(
-        redirect(
-          '/iqol',
-          hasIciq: true,
-          hasIpaq: true,
-          isIqolAvailable: true,
-        ),
+        redirect('/iqol', hasIciq: true, hasIpaq: true, isIqolAvailable: true),
         isNull,
       );
     });
@@ -213,7 +213,10 @@ void main() {
     test('profile stays reachable at every step of the protocol', () {
       expect(redirect('/profile'), isNull);
       expect(redirect('/profile-setup'), isNull);
-      expect(redirect('/profile', hasIciq: true, isIqolAvailable: true), isNull);
+      expect(
+        redirect('/profile', hasIciq: true, isIqolAvailable: true),
+        isNull,
+      );
     });
   });
 

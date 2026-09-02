@@ -84,26 +84,27 @@ void main() {
   });
 
   group('C3 — a valid zero is not treated as unanswered', () {
-    Widget slider({required int value, required bool isAnswered}) => MaterialApp(
-      home: Scaffold(
-        body: SizedBox(
-          height: 400,
-          child: GlassLabeledSlider(
-            title: 'How often do you leak urine?',
-            value: value,
-            min: 0,
-            max: 5,
-            showError: true,
-            isAnswered: isAnswered,
-            errorMessage: 'Please answer all questions',
-            currentLabel: '0',
-            minLabel: 'Never',
-            maxLabel: 'All the time',
-            onChanged: (_) {},
+    Widget slider({required int value, required bool isAnswered}) =>
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 400,
+              child: GlassLabeledSlider(
+                title: 'How often do you leak urine?',
+                value: value,
+                min: 0,
+                max: 5,
+                showError: true,
+                isAnswered: isAnswered,
+                errorMessage: 'Please answer all questions',
+                currentLabel: '0',
+                minLabel: 'Never',
+                maxLabel: 'All the time',
+                onChanged: (_) {},
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
 
     testWidgets('selecting "Never" shows no error', (tester) async {
       await tester.pumpWidget(slider(value: 0, isAnswered: true));
@@ -135,10 +136,7 @@ void main() {
       const partial = ICIQModel(leakFrequency: 3);
       expect(partial.isComplete, isFalse);
 
-      expect(
-        await notifier.saveIciq(partial),
-        AssessmentSaveResult.incomplete,
-      );
+      expect(await notifier.saveIciq(partial), AssessmentSaveResult.incomplete);
       expect(
         notifier.iciq,
         isNull,
@@ -164,13 +162,18 @@ void main() {
       );
     });
 
-    test('seven elapsed days without a completed week is not enough either', () {
-      final notifier = ExerciseNotifier()
-        ..loadWeek(1)
-        ..protocolStartDate = DateTime.now().subtract(const Duration(days: 30));
+    test(
+      'seven elapsed days without a completed week is not enough either',
+      () {
+        final notifier = ExerciseNotifier()
+          ..loadWeek(1)
+          ..protocolStartDate = DateTime.now().subtract(
+            const Duration(days: 30),
+          );
 
-      expect(notifier.isIqolAvailable, isFalse);
-    });
+        expect(notifier.isIqolAvailable, isFalse);
+      },
+    );
   });
 
   group('E3 — adherence is averaged over the weeks reached', () {

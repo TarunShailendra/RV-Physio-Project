@@ -88,7 +88,13 @@ void main() {
       // Every request in this suite fails, so this exercises the generic
       // failure path rather than the duplicate one.
       final auth = AuthNotifier();
-      await auth.signup('Asha R', 'asha@example.com', 'Password!1', '9999999999', 34);
+      await auth.signup(
+        'Asha R',
+        'asha@example.com',
+        'Password!1',
+        '9999999999',
+        34,
+      );
 
       expect(
         auth.emailAlreadyRegistered,

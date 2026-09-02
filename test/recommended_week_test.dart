@@ -33,7 +33,11 @@ void main() {
     final plan = notifier.currentPlan!;
     expect(plan.weekNumber, week);
     for (var day = 0; day < plan.days.length; day++) {
-      for (var session = 0; session < plan.days[day].sessions.length; session++) {
+      for (
+        var session = 0;
+        session < plan.days[day].sessions.length;
+        session++
+      ) {
         await notifier.completeSession(day, session);
       }
     }
@@ -129,28 +133,30 @@ void main() {
       expect(notifier.canAccessWeek(4), isTrue);
     });
 
-    test('the I-QOL opens after the patient completes their own first week',
-        () async {
-      // This used to ask for week 1 specifically, so a patient starting at
-      // week 3 would finish their first week and still never be offered the
-      // questionnaire.
-      final notifier = ExerciseNotifier();
-      notifier.loadRecommendedWeek(3);
-      expect(notifier.isIqolAvailable, isFalse);
+    test(
+      'the I-QOL opens after the patient completes their own first week',
+      () async {
+        // This used to ask for week 1 specifically, so a patient starting at
+        // week 3 would finish their first week and still never be offered the
+        // questionnaire.
+        final notifier = ExerciseNotifier();
+        notifier.loadRecommendedWeek(3);
+        expect(notifier.isIqolAvailable, isFalse);
 
-      await completeWeek(notifier, 3);
+        await completeWeek(notifier, 3);
 
-      expect(
-        notifier.isIqolAvailable,
-        isTrue,
-        reason: 'a completed week of the protocol must unlock the I-QOL',
-      );
-      expect(
-        notifier.isWeekOneComplete,
-        isFalse,
-        reason: 'week 1 was never part of this patient protocol',
-      );
-    });
+        expect(
+          notifier.isIqolAvailable,
+          isTrue,
+          reason: 'a completed week of the protocol must unlock the I-QOL',
+        );
+        expect(
+          notifier.isWeekOneComplete,
+          isFalse,
+          reason: 'week 1 was never part of this patient protocol',
+        );
+      },
+    );
 
     test('a week-1 patient is unaffected', () async {
       final notifier = ExerciseNotifier();

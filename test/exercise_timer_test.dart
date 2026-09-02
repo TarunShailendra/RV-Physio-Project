@@ -52,7 +52,9 @@ void main() {
     notifier.startTimer();
 
     await tester.pump(
-      Duration(seconds: session.reps * (session.holdSeconds + session.restSeconds)),
+      Duration(
+        seconds: session.reps * (session.holdSeconds + session.restSeconds),
+      ),
     );
 
     expect(notifier.phase, ExercisePhase.finished);

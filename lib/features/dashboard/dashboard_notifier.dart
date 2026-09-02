@@ -32,7 +32,10 @@ class DashboardNotifier extends ChangeNotifier {
 
   int? _recommendedStartWeek;
 
-  Future<void> loadDashboard({int? recommendedStartWeek, int? iciqScorePre}) async {
+  Future<void> loadDashboard({
+    int? recommendedStartWeek,
+    int? iciqScorePre,
+  }) async {
     if (recommendedStartWeek != null) {
       _recommendedStartWeek = recommendedStartWeek;
     }
@@ -78,8 +81,7 @@ class DashboardNotifier extends ChangeNotifier {
       /// Days where every session is done. Counting a day as complete on a
       /// single session overstated adherence by up to five times.
       int fullyCompletedDays(int week) =>
-          (byWeek[week] ?? const <int, Set<int>>{})
-              .values
+          (byWeek[week] ?? const <int, Set<int>>{}).values
               .where((sessions) => sessions.length >= sessionsPerDay)
               .length;
 

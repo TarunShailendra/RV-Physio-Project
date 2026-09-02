@@ -131,7 +131,11 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       final days = draft['data'] as List<dynamic>? ?? const [];
       for (var day = 0; day < days.length && day < 3; day++) {
         final slots = days[day] as List<dynamic>? ?? const [];
-        for (var slot = 0; slot < slots.length && slot < _timeSlotKeys.length; slot++) {
+        for (
+          var slot = 0;
+          slot < slots.length && slot < _timeSlotKeys.length;
+          slot++
+        ) {
           final v = slots[slot] as Map<String, dynamic>? ?? const {};
           _data[day][slot]
             ..fluidAmount = v['fluidAmount'] as String? ?? ''

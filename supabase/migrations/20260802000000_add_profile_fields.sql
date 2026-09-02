@@ -1,4 +1,4 @@
-﻿alter table public.profiles
+alter table public.profiles
   add column if not exists marital_status text,
   add column if not exists has_children boolean,
   add column if not exists delivery_type text,

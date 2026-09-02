@@ -356,9 +356,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (authNotifier.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              authFailureMessage(authNotifier.failure, l10n),
-            ),
+            content: Text(authFailureMessage(authNotifier.failure, l10n)),
           ),
         );
         return;

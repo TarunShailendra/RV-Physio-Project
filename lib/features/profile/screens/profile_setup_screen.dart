@@ -112,13 +112,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _cityController.text = p.city;
       _occupationController.text = p.occupation;
       _symptomDurationController.text = p.symptomDurationMonths.toString();
-      _selectedIncontinenceTypeKey = _keyForIncontinenceType(p.incontinenceType);
+      _selectedIncontinenceTypeKey = _keyForIncontinenceType(
+        p.incontinenceType,
+      );
       _hasSoughtTreatment = p.hasSoughtTreatment;
       _maritalStatus = p.maritalStatus;
       _hasChildren = p.hasChildren;
       _deliveryType = p.deliveryType;
       _childrenAgesController.text = p.childrenAges ?? '';
-      _childbirthPainLevel = (p.childbirthPainLevel ?? 0).clamp(0, 10).toDouble();
+      _childbirthPainLevel = (p.childbirthPainLevel ?? 0)
+          .clamp(0, 10)
+          .toDouble();
       _heightController.text = p.heightCm?.toString() ?? '';
       _weightController.text = p.weightKg?.toString() ?? '';
       _hasDiabetes = p.hasDiabetes;
@@ -319,7 +323,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       if (_deliveryType != null &&
                           _deliveryType != 'Vaginal delivery') ...[
                         const SizedBox(height: 12),
-                        Text(l10n.childbirthPainLevel(_childbirthPainLevel.round())),
+                        Text(
+                          l10n.childbirthPainLevel(
+                            _childbirthPainLevel.round(),
+                          ),
+                        ),
                         Slider(
                           value: _childbirthPainLevel,
                           min: 0,

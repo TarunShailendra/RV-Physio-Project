@@ -121,10 +121,18 @@ void main() {
     expect(assessment.iciq, isNull, reason: 'ICIQ result must be cleared');
     expect(assessment.ipaq, isNull, reason: 'IPAQ result must be cleared');
     expect(assessment.iqol, isNull, reason: 'IQOL result must be cleared');
-    expect(exercise.currentPlan, isNull, reason: 'exercise plan must be cleared');
+    expect(
+      exercise.currentPlan,
+      isNull,
+      reason: 'exercise plan must be cleared',
+    );
     expect(dashboard.data, isNull, reason: 'dashboard must be cleared');
     expect(profile.profile, isNull, reason: 'profile must be cleared');
-    expect(iciq.model.leakFrequency, -1, reason: 'ICIQ answers must be cleared');
+    expect(
+      iciq.model.leakFrequency,
+      -1,
+      reason: 'ICIQ answers must be cleared',
+    );
     expect(ipaq.model.walkDays, 0, reason: 'IPAQ answers must be cleared');
     expect(iqol.model.items.first, 0, reason: 'IQOL answers must be cleared');
     expect(
@@ -156,7 +164,6 @@ void main() {
     await auth.signOut();
     expect(auth.currentUser, isNull);
   });
-
 }
 
 /// ExerciseNotifier.loadWeek() reads no Supabase state, so it can be driven
