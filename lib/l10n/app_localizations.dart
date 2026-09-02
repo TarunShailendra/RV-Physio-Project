@@ -1304,6 +1304,36 @@ abstract class AppLocalizations {
   /// **'Your 3-day bladder diary has been recorded successfully.'**
   String get diarySubmittedMessage;
 
+  /// No description provided for @diarySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your diary could not be saved. Please check your connection and try again.'**
+  String get diarySaveFailed;
+
+  /// No description provided for @assessmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers could not be saved. Please check your connection and try again.'**
+  String get assessmentSaveFailed;
+
+  /// No description provided for @assessmentSaveSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Sign in again to save your answers.'**
+  String get assessmentSaveSignedOut;
+
+  /// No description provided for @diarySaveSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Sign in again to save your diary.'**
+  String get diarySaveSignedOut;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
   /// No description provided for @submitDiary.
   ///
   /// In en, this message translates to:

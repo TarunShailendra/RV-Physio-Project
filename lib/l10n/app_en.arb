@@ -207,6 +207,11 @@
   "close": "Close",
   "diarySubmittedTitle": "Diary Submitted",
   "diarySubmittedMessage": "Your 3-day bladder diary has been recorded successfully.",
+  "diarySaveFailed": "Your diary could not be saved. Please check your connection and try again.",
+  "assessmentSaveFailed": "Your answers could not be saved. Please check your connection and try again.",
+  "assessmentSaveSignedOut": "Your session has ended. Sign in again to save your answers.",
+  "diarySaveSignedOut": "Your session has ended. Sign in again to save your diary.",
+  "retry": "Retry",
   "submitDiary": "Submit 3-Day Diary",
 
   "sensation0": "0 – No urge, social reason",

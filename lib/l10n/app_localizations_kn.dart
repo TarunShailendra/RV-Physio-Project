@@ -660,6 +660,25 @@ class AppLocalizationsKn extends AppLocalizations {
       'ನಿಮ್ಮ 3-ದಿನಗಳ ಮೂತ್ರಕೋಶ ಡೈರಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಿಸಲಾಗಿದೆ.';
 
   @override
+  String get diarySaveFailed =>
+      'ನಿಮ್ಮ ಡೈರಿಯನ್ನು ಉಳಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get assessmentSaveFailed =>
+      'ನಿಮ್ಮ ಉತ್ತರಗಳನ್ನು ಉಳಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get assessmentSaveSignedOut =>
+      'ನಿಮ್ಮ ಅವಧಿ ಮುಗಿದಿದೆ. ಉತ್ತರಗಳನ್ನು ಉಳಿಸಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.';
+
+  @override
+  String get diarySaveSignedOut =>
+      'ನಿಮ್ಮ ಅವಧಿ ಮುಗಿದಿದೆ. ಡೈರಿ ಉಳಿಸಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.';
+
+  @override
+  String get retry => 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ';
+
+  @override
   String get submitDiary => '3-ದಿನಗಳ ಡೈರಿ ಸಲ್ಲಿಸು';
 
   @override

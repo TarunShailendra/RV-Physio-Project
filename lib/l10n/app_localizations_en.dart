@@ -669,6 +669,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your 3-day bladder diary has been recorded successfully.';
 
   @override
+  String get diarySaveFailed =>
+      'Your diary could not be saved. Please check your connection and try again.';
+
+  @override
+  String get assessmentSaveFailed =>
+      'Your answers could not be saved. Please check your connection and try again.';
+
+  @override
+  String get assessmentSaveSignedOut =>
+      'Your session has ended. Sign in again to save your answers.';
+
+  @override
+  String get diarySaveSignedOut =>
+      'Your session has ended. Sign in again to save your diary.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get submitDiary => 'Submit 3-Day Diary';
 
   @override
