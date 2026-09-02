@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
 import '../notifiers/assessment_summary_notifier.dart';
+import '../save_feedback.dart';
 import '../models/iqol_model.dart';
 import '../notifiers/iqol_notifier.dart';
 
@@ -66,8 +67,9 @@ class _IqolScreenState extends State<IqolScreen> {
     final summary = context.read<AssessmentSummaryNotifier>();
     final dashboardNotifier = context.read<DashboardNotifier>();
     final exerciseNotifier = context.read<ExerciseNotifier>();
-    summary.saveIqol(await notifier.submit());
+    final saved = await summary.saveIqol(await notifier.submit());
     if (!mounted) return;
+    if (!reportAssessmentSave(context, saved)) return;
     dashboardNotifier.applyAssessmentSummary(summary);
     exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
     context.go('/dashboard');
@@ -84,9 +86,9 @@ class _IqolScreenState extends State<IqolScreen> {
       curve: Curves.easeOut,
     );
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.completeAllQuestions)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.completeAllQuestions)));
   }
 
   void _goBack() {
@@ -470,6 +472,7 @@ class _AboutPage extends StatelessWidget {
           min: 0,
           max: 80,
           showError: showError && !_answered,
+          isAnswered: notifier.model.durationYears > 0,
           currentLabel: notifier.model.durationYears == 0
               ? ''
               : '${notifier.model.durationYears}',
@@ -484,6 +487,7 @@ class _AboutPage extends StatelessWidget {
           min: 0,
           max: 11,
           showError: showError && !_answered,
+          isAnswered: notifier.model.durationMonths > 0,
           currentLabel: notifier.model.durationMonths == 0
               ? ''
               : '${notifier.model.durationMonths}',
@@ -498,6 +502,7 @@ class _AboutPage extends StatelessWidget {
           min: 0,
           max: 5,
           showError: false,
+          isAnswered: true,
           currentLabel: notifier.model.severity == 0
               ? ''
               : '${notifier.model.severity}',
@@ -547,6 +552,7 @@ class _AboutPage extends StatelessWidget {
           min: 0,
           max: 5,
           showError: false,
+          isAnswered: true,
           currentLabel: notifier.model.freqCode == 0
               ? ''
               : '${notifier.model.freqCode}',

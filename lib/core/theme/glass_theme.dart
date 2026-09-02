@@ -183,12 +183,14 @@ class GlassLabeledSlider extends StatelessWidget {
     required this.min,
     required this.max,
     required this.showError,
+    required this.isAnswered,
     required this.currentLabel,
     required this.minLabel,
     required this.maxLabel,
     required this.onChanged,
     this.isRequired = false,
     this.errorMessage = 'This question is required',
+    this.divisions,
   });
 
   final String title;
@@ -196,6 +198,16 @@ class GlassLabeledSlider extends StatelessWidget {
   final int min;
   final int max;
   final bool showError;
+
+  /// Whether the patient has actually responded to this question.
+  ///
+  /// Supplied by the caller rather than guessed from [value]. It used to be
+  /// inferred as `value == -1 || value == 0`, which is wrong wherever 0 is a
+  /// real answer — ICIQ "Never", ICIQ "Not at all", and every IPAQ
+  /// days-per-week scale. Choosing those turned the track red and showed
+  /// "Please answer all questions" while the Next button worked fine.
+  final bool isAnswered;
+
   final String currentLabel;
   final String minLabel;
   final String maxLabel;
@@ -203,9 +215,13 @@ class GlassLabeledSlider extends StatelessWidget {
   final bool isRequired;
   final String errorMessage;
 
-  int get _divisions => max - min;
+  /// Number of steps between [min] and [max]. Defaults to one per unit; set it
+  /// where a scale skips values, such as the ICIQ-SF leak amount (0/2/4/6).
+  final int? divisions;
 
-  bool get _unanswered => value == -1 || value == 0;
+  int get _divisions => divisions ?? (max - min);
+
+  bool get _unanswered => !isAnswered;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +288,10 @@ class GlassLabeledSlider extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           child: Text(
             displayText,
@@ -288,9 +307,9 @@ class GlassLabeledSlider extends StatelessWidget {
   }
 
   Widget _buildSlider(BuildContext context) {
-    final displayValue = value == -1 || value == 0
-        ? min.toDouble()
-        : value.toDouble();
+    // An unanswered question rests at the minimum. Clamped because the
+    // unanswered sentinel sits outside the scale.
+    final displayValue = (isAnswered ? value : min).clamp(min, max).toDouble();
 
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
@@ -443,8 +462,12 @@ class _GlassTrackShape extends SliderTrackShape {
       canvas,
       trackRect,
       trackRadius,
-      showError ? Colors.red.withValues(alpha: 0.35) : Colors.white.withValues(alpha: 0.2),
-      showError ? Colors.red.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08),
+      showError
+          ? Colors.red.withValues(alpha: 0.35)
+          : Colors.white.withValues(alpha: 0.2),
+      showError
+          ? Colors.red.withValues(alpha: 0.15)
+          : Colors.white.withValues(alpha: 0.08),
     );
 
     // Active track — teal gradient (or red if error)

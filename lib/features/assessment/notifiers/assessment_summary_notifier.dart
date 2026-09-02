@@ -4,12 +4,20 @@ import '../models/iciq_model.dart';
 import '../models/ipaq_model.dart';
 import '../models/iqol_model.dart';
 
+/// What happened to a save. The screens need to tell these apart: a rejected
+/// write is worth retrying, a lapsed session is not.
+enum AssessmentSaveResult { saved, notSignedIn, incomplete, failed }
+
 class AssessmentSummaryNotifier extends ChangeNotifier {
   ICIQModel? iciq;
   IQOLModel? iqol;
   IPAQModel? ipaq;
 
-  final _client = Supabase.instance.client;
+  // Resolved lazily. As an eager field initialiser this threw whenever the
+  // notifier was built before Supabase.initialize(), which made the class
+  // impossible to construct in a test and made AppProviders' own
+  // `?? AssessmentSummaryNotifier()` fallback unusable.
+  SupabaseClient get _client => Supabase.instance.client;
 
   int get recommendedStartWeek {
     final iciqScore = iciq?.iciqScore;
@@ -37,78 +45,97 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
     return 1;
   }
 
-  Future<void> saveIciq(ICIQModel value) async {
-    iciq = value;
-    notifyListeners();
+  /// Saves the ICIQ.
+  ///
+  /// The in-memory value is set only once the write lands. Setting it first
+  /// meant a failed save still left the app — and the route guard — believing
+  /// the questionnaire was done.
+  ///
+  /// Answers are sent as given. They used to be clamped with `< 0 ? 0 :`,
+  /// which stored an unanswered question as the mildest possible response,
+  /// indistinguishable in the database from a genuinely asymptomatic patient.
+  Future<AssessmentSaveResult> saveIciq(ICIQModel value) async {
+    if (!value.isComplete) return AssessmentSaveResult.incomplete;
+
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return AssessmentSaveResult.notSignedIn;
+
     try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) return;
       await _client.from('iciq_results').insert({
-  'user_id': userId,
-  'leak_frequency': value.leakFrequency < 0 ? 0 : value.leakFrequency,
-  'leak_amount': value.leakAmount < 0 ? 0 : value.leakAmount,
-  'life_interference': value.lifeInterference < 0 ? 0 : value.lifeInterference,
-  'when_leaks': value.whenLeaks,
-});
-      debugPrint('ICIQ saved successfully');
+        'user_id': userId,
+        'leak_frequency': value.leakFrequency,
+        'leak_amount': value.leakAmount,
+        'life_interference': value.lifeInterference,
+        'when_leaks': value.whenLeaks,
+      });
     } catch (e) {
       debugPrint('ICIQ save error: $e');
+      return AssessmentSaveResult.failed;
     }
+
+    iciq = value;
+    notifyListeners();
+    return AssessmentSaveResult.saved;
   }
 
-  Future<void> saveIqol(IQOLModel value) async {
-    iqol = value;
-    notifyListeners();
+  Future<AssessmentSaveResult> saveIqol(IQOLModel value) async {
+    if (!value.isComplete) return AssessmentSaveResult.incomplete;
+
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return AssessmentSaveResult.notSignedIn;
+
     try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) return;
-      // Build q1-q22 map from items list
-      final Map<String, dynamic> qMap = {};
-      for (int i = 0; i < 22; i++) {
-        qMap['q${i + 1}'] = i < value.items.length ? value.items[i] : 0;
-      }
+      final qMap = <String, dynamic>{
+        for (var i = 0; i < IQOLModel.itemColumns.length; i++)
+          IQOLModel.itemColumns[i]: value.items[i],
+      };
       await _client.from('iqol_results').insert({
-  'user_id': userId,
-  ...qMap,
-  'duration_years': value.durationYears,
-  'duration_months': value.durationMonths,
-  'severity': value.severity,
-  'stress_leak': value.stressLeak,
-  'urge_leak': value.urgeLeak,
-  'freq_code': value.freqCode,
-  // removed: iqol_score
-});
-      debugPrint('IQOL saved successfully');
+        'user_id': userId,
+        ...qMap,
+        'duration_years': value.durationYears,
+        'duration_months': value.durationMonths,
+        'severity': value.severity,
+        'stress_leak': value.stressLeak,
+        'urge_leak': value.urgeLeak,
+        'freq_code': value.freqCode,
+      });
     } catch (e) {
       debugPrint('IQOL save error: $e');
+      return AssessmentSaveResult.failed;
     }
+
+    iqol = value;
+    notifyListeners();
+    return AssessmentSaveResult.saved;
   }
 
-  Future<void> saveIpaq(IPAQModel value) async {
-    ipaq = value;
-    notifyListeners();
+  Future<AssessmentSaveResult> saveIpaq(IPAQModel value) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return AssessmentSaveResult.notSignedIn;
+
     try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) return;
       await _client.from('ipaq_results').insert({
-  'user_id': userId,
-  'sitting_hours': value.sittingHours,
-  'sitting_mins': value.sittingMins,
-  'walk_days': value.walkDays,
-  'walk_hours': value.walkHours,
-  'walk_mins': value.walkMins,
-  'moderate_days': value.moderateDays,
-  'moderate_hours': value.moderateHours,
-  'moderate_mins': value.moderateMins,
-  'vigorous_days': value.vigorousDays,
-  'vigorous_hours': value.vigorousHours,
-  'vigorous_mins': value.vigorousMins,
-  // removed: activity_level
-});
-      debugPrint('IPAQ saved successfully');
+        'user_id': userId,
+        'sitting_hours': value.sittingHours,
+        'sitting_mins': value.sittingMins,
+        'walk_days': value.walkDays,
+        'walk_hours': value.walkHours,
+        'walk_mins': value.walkMins,
+        'moderate_days': value.moderateDays,
+        'moderate_hours': value.moderateHours,
+        'moderate_mins': value.moderateMins,
+        'vigorous_days': value.vigorousDays,
+        'vigorous_hours': value.vigorousHours,
+        'vigorous_mins': value.vigorousMins,
+      });
     } catch (e) {
       debugPrint('IPAQ save error: $e');
+      return AssessmentSaveResult.failed;
     }
+
+    ipaq = value;
+    notifyListeners();
+    return AssessmentSaveResult.saved;
   }
 
   /// Restores each questionnaire's most recent submission from Supabase.

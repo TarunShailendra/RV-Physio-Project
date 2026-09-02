@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
 import '../notifiers/assessment_summary_notifier.dart';
+import '../save_feedback.dart';
 import '../notifiers/iciq_notifier.dart';
 
 class IciqScreen extends StatefulWidget {
@@ -56,8 +57,9 @@ class _IciqScreenState extends State<IciqScreen> {
     if (!_isCurrentStepAnswered(notifier)) return;
 
     final summary = context.read<AssessmentSummaryNotifier>();
-    summary.saveIciq(await notifier.submit());
+    final saved = await summary.saveIciq(await notifier.submit());
     if (!context.mounted) return;
+    if (!reportAssessmentSave(context, saved)) return;
 
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
     context.read<ExerciseNotifier>().loadRecommendedWeek(
@@ -159,7 +161,7 @@ class _IciqScreenState extends State<IciqScreen> {
                   ),
                 ),
               ),
-              Expanded(child: IntrinsicHeight(child: steps[_step])),
+              Expanded(child: steps[_step]),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -240,20 +242,19 @@ class _FrequencyStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Expanded(
-      child: GlassLabeledSlider(
-        title: l10n.iciq_q3,
-        value: notifier.model.leakFrequency,
-        min: 0,
-        max: 5,
-        showError: showError,
-        isRequired: true,
-        errorMessage: 'Please answer all questions',
-        currentLabel: _frequencyLabel(notifier.model.leakFrequency, l10n),
-        minLabel: l10n.never,
-        maxLabel: l10n.allTheTime,
-        onChanged: (value) => notifier.setLeakFrequency(value),
-      ),
+    return GlassLabeledSlider(
+      title: l10n.iciq_q3,
+      value: notifier.model.leakFrequency,
+      min: 0,
+      max: 5,
+      showError: showError,
+      isRequired: true,
+      errorMessage: 'Please answer all questions',
+      isAnswered: notifier.model.hasLeakFrequency,
+      currentLabel: _frequencyLabel(notifier.model.leakFrequency, l10n),
+      minLabel: l10n.never,
+      maxLabel: l10n.allTheTime,
+      onChanged: (value) => notifier.setLeakFrequency(value),
     );
   }
 
@@ -281,27 +282,30 @@ class _AmountStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Expanded(
-      child: GlassLabeledSlider(
-        title: l10n.iciq_q4,
-        value: notifier.model.leakAmount,
-        min: 1,
-        max: 3,
-        showError: showError,
-        isRequired: true,
-        errorMessage: 'Please answer all questions',
-        currentLabel: _amountLabel(notifier.model.leakAmount, l10n),
-        minLabel: l10n.none,
-        maxLabel: l10n.moderateAmount,
-        onChanged: (value) => notifier.setLeakAmount(value),
-      ),
+    return GlassLabeledSlider(
+      title: l10n.iciq_q4,
+      value: notifier.model.leakAmount,
+      // ICIQ-SF Q4 is scored 0 / 2 / 4 / 6, which is what puts the total on
+      // the published 0-21 range the severity bands below are defined against.
+      min: 0,
+      max: 6,
+      divisions: 3,
+      showError: showError,
+      isRequired: true,
+      errorMessage: 'Please answer all questions',
+      isAnswered: notifier.model.hasLeakAmount,
+      currentLabel: _amountLabel(notifier.model.leakAmount, l10n),
+      minLabel: l10n.none,
+      maxLabel: l10n.largeAmount,
+      onChanged: (value) => notifier.setLeakAmount(value),
     );
   }
 
   String _amountLabel(int value, AppLocalizations l10n) {
-    if (value == 1) return '1 — ${l10n.none}';
+    if (value == 0) return '0 — ${l10n.none}';
     if (value == 2) return '2 — ${l10n.smallAmount}';
-    if (value == 3) return '3 — ${l10n.moderateAmount}';
+    if (value == 4) return '4 — ${l10n.moderateAmount}';
+    if (value == 6) return '6 — ${l10n.largeAmount}';
     return '';
   }
 }
@@ -316,22 +320,21 @@ class _InterferenceStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Expanded(
-      child: GlassLabeledSlider(
-        title: l10n.iciq_q5,
-        value: notifier.model.lifeInterference,
-        min: 0,
-        max: 10,
-        showError: showError,
-        isRequired: true,
-        errorMessage: 'Please answer all questions',
-        currentLabel: notifier.model.hasLifeInterference
-            ? '${notifier.model.lifeInterference}'
-            : '',
-        minLabel: l10n.notAtAll,
-        maxLabel: l10n.aGreatDeal,
-        onChanged: (value) => notifier.setLifeInterference(value),
-      ),
+    return GlassLabeledSlider(
+      title: l10n.iciq_q5,
+      value: notifier.model.lifeInterference,
+      min: 0,
+      max: 10,
+      showError: showError,
+      isRequired: true,
+      errorMessage: 'Please answer all questions',
+      isAnswered: notifier.model.hasLifeInterference,
+      currentLabel: notifier.model.hasLifeInterference
+          ? '${notifier.model.lifeInterference}'
+          : '',
+      minLabel: l10n.notAtAll,
+      maxLabel: l10n.aGreatDeal,
+      onChanged: (value) => notifier.setLifeInterference(value),
     );
   }
 }

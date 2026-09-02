@@ -35,6 +35,11 @@ class ICIQModel {
   bool get isComplete =>
       hasLeakFrequency && hasLeakAmount && hasLifeInterference && hasWhenLeaks;
 
+  /// ICIQ-SF total, 0-21: frequency 0-5, amount 0/2/4/6, interference 0-10.
+  ///
+  /// Only meaningful once [isComplete] holds. Unanswered questions still read
+  /// as 0 here so the value can be displayed while the form is being filled
+  /// in, but they are no longer written to the database that way.
   int get iciqScore {
     final lf = leakFrequency < 0 ? 0 : leakFrequency;
     final la = leakAmount < 0 ? 0 : leakAmount;

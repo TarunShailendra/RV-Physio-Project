@@ -8,6 +8,7 @@ import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
 import '../models/ipaq_model.dart';
 import '../notifiers/assessment_summary_notifier.dart';
+import '../save_feedback.dart';
 import '../notifiers/ipaq_notifier.dart';
 
 class IpaqScreen extends StatefulWidget {
@@ -22,16 +23,16 @@ class _IpaqScreenState extends State<IpaqScreen> {
   bool _triedToAdvance = false;
 
   bool _isCurrentStepAnswered(IpaqNotifier notifier) {
+    // Answered, not non-zero. Zero days of activity is a valid response.
     switch (_step) {
       case 0:
-        return notifier.model.sittingHours > 0 ||
-            notifier.model.sittingMins > 0;
+        return notifier.isAnswered(IpaqQuestion.sitting);
       case 1:
-        return notifier.model.walkDays > 0;
+        return notifier.isAnswered(IpaqQuestion.walking);
       case 2:
-        return notifier.model.moderateDays > 0;
+        return notifier.isAnswered(IpaqQuestion.moderate);
       case 3:
-        return notifier.model.vigorousDays > 0;
+        return notifier.isAnswered(IpaqQuestion.vigorous);
       default:
         return true;
     }
@@ -52,8 +53,9 @@ class _IpaqScreenState extends State<IpaqScreen> {
     if (!_isCurrentStepAnswered(notifier)) return;
 
     final summary = context.read<AssessmentSummaryNotifier>();
-    summary.saveIpaq(notifier.model);
+    final saved = await summary.saveIpaq(notifier.model);
     if (!mounted) return;
+    if (!reportAssessmentSave(context, saved)) return;
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
     context.read<ExerciseNotifier>().loadRecommendedWeek(
       summary.recommendedStartWeek,
@@ -74,6 +76,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
         hours: notifier.model.walkHours,
         mins: notifier.model.walkMins,
         showError: _triedToAdvance,
+        answered: notifier.isAnswered(IpaqQuestion.walking),
         onChanged: notifier.updateWalking,
       ),
       _ActivityStep(
@@ -83,6 +86,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
         hours: notifier.model.moderateHours,
         mins: notifier.model.moderateMins,
         showError: _triedToAdvance,
+        answered: notifier.isAnswered(IpaqQuestion.moderate),
         onChanged: notifier.updateModerate,
       ),
       _ActivityStep(
@@ -92,6 +96,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
         hours: notifier.model.vigorousHours,
         mins: notifier.model.vigorousMins,
         showError: _triedToAdvance,
+        answered: notifier.isAnswered(IpaqQuestion.vigorous),
         onChanged: notifier.updateVigorous,
       ),
       _IpaqResultStep(notifier: notifier),
@@ -203,59 +208,60 @@ class _SittingStep extends StatelessWidget {
   final IpaqNotifier notifier;
   final bool showError;
 
-  bool get _answered =>
-      notifier.model.sittingHours > 0 || notifier.model.sittingMins > 0;
+  bool get _answered => notifier.isAnswered(IpaqQuestion.sitting);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          _RequiredQuestionLabel(
-            label: l10n.ipaq_q1,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 16),
-          GlassLabeledSlider(
-            title: l10n.hours,
-            value: notifier.model.sittingHours,
-            min: 0,
-            max: 24,
-            showError: showError && !_answered,
-            currentLabel: notifier.model.sittingHours == 0
-                ? ''
-                : '${notifier.model.sittingHours} ${l10n.hours}',
-            minLabel: '0 ${l10n.hours}',
-            maxLabel: '24 ${l10n.hours}',
-            onChanged: (value) => notifier.updateSitting(hours: value),
-          ),
-          const SizedBox(height: 20),
-          GlassLabeledSlider(
-            title: l10n.minutes,
-            value: notifier.model.sittingMins,
-            min: 0,
-            max: 59,
-            showError: showError && !_answered,
-            currentLabel: notifier.model.sittingMins == 0
-                ? ''
-                : '${notifier.model.sittingMins} ${l10n.minutes}',
-            minLabel: '0 ${l10n.minutes}',
-            maxLabel: '59 ${l10n.minutes}',
-            onChanged: (value) => notifier.updateSitting(mins: value),
-          ),
-          if (showError && !_answered)
-            const Padding(
-              padding: EdgeInsets.only(top: 12),
-              child: Text(
-                'Please answer all questions',
-                style: TextStyle(color: Colors.redAccent, fontSize: 12),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: [
+        _RequiredQuestionLabel(
+          label: l10n.ipaq_q1,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
+        const SizedBox(height: 16),
+        GlassLabeledSlider(
+          title: l10n.hours,
+          value: notifier.model.sittingHours,
+          min: 0,
+          max: 24,
+          showError: showError && !_answered,
+          isAnswered: _answered,
+          currentLabel: notifier.model.sittingHours == 0
+              ? ''
+              : '${notifier.model.sittingHours} ${l10n.hours}',
+          minLabel: '0 ${l10n.hours}',
+          maxLabel: '24 ${l10n.hours}',
+          onChanged: (value) => notifier.updateSitting(hours: value),
+        ),
+        const SizedBox(height: 20),
+        GlassLabeledSlider(
+          title: l10n.minutes,
+          value: notifier.model.sittingMins,
+          min: 0,
+          max: 59,
+          showError: showError && !_answered,
+          isAnswered: _answered,
+          currentLabel: notifier.model.sittingMins == 0
+              ? ''
+              : '${notifier.model.sittingMins} ${l10n.minutes}',
+          minLabel: '0 ${l10n.minutes}',
+          maxLabel: '59 ${l10n.minutes}',
+          onChanged: (value) => notifier.updateSitting(mins: value),
+        ),
+        if (showError && !_answered)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Please answer all questions',
+              style: TextStyle(color: Colors.redAccent, fontSize: 12),
             ),
-        ],
+          ),
+      ],
     );
   }
 }
@@ -267,10 +273,12 @@ class _ActivityStep extends StatelessWidget {
     required this.hours,
     required this.mins,
     required this.showError,
+    required this.answered,
     required this.onChanged,
   });
 
   final String label;
+  final bool answered;
   final int days;
   final int hours;
   final int mins;
@@ -280,54 +288,54 @@ class _ActivityStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final answered = days > 0;
 
     return ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          _RequiredQuestionLabel(
-            label: label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: [
+        _RequiredQuestionLabel(
+          label: label,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
+        const SizedBox(height: 16),
+        GlassLabeledSlider(
+          title: l10n.days,
+          value: days,
+          min: 0,
+          max: 7,
+          showError: showError && !answered,
+          isAnswered: answered,
+          currentLabel: days == 0 ? '' : '$days ${l10n.days}',
+          minLabel: l10n.noDays,
+          maxLabel: l10n.allSevenDays,
+          onChanged: (value) => onChanged(days: value),
+        ),
+        if (days > 0) ...[
+          const SizedBox(height: 20),
+          _NumberField(
+            label: l10n.hours,
+            initialValue: hours,
+            showError: false,
+            onChanged: (value) => onChanged(hours: value),
           ),
-          const SizedBox(height: 16),
-          GlassLabeledSlider(
-            title: l10n.days,
-            value: days,
-            min: 0,
-            max: 7,
-            showError: showError && !answered,
-            currentLabel: days == 0 ? '' : '$days ${l10n.days}',
-            minLabel: l10n.noDays,
-            maxLabel: l10n.allSevenDays,
-            onChanged: (value) => onChanged(days: value),
+          const SizedBox(height: 12),
+          _NumberField(
+            label: l10n.minutes,
+            initialValue: mins,
+            showError: false,
+            onChanged: (value) => onChanged(mins: value),
           ),
-          if (days > 0) ...[
-            const SizedBox(height: 20),
-            _NumberField(
-              label: l10n.hours,
-              initialValue: hours,
-              showError: false,
-              onChanged: (value) => onChanged(hours: value),
-            ),
-            const SizedBox(height: 12),
-            _NumberField(
-              label: l10n.minutes,
-              initialValue: mins,
-              showError: false,
-              onChanged: (value) => onChanged(mins: value),
-            ),
-          ],
-          if (showError && !answered)
-            const Padding(
-              padding: EdgeInsets.only(top: 12),
-              child: Text(
-                'Please answer all questions',
-                style: TextStyle(color: Colors.redAccent, fontSize: 12),
-              ),
-            ),
         ],
+        if (showError && !answered)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Please answer all questions',
+              style: TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -407,9 +415,8 @@ class _IpaqResultStep extends StatelessWidget {
             ),
           ],
         ),
-    ),
-  );
-
+      ),
+    );
   }
 }
 
