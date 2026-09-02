@@ -14,16 +14,19 @@ create table if not exists public.assessments (
 
 alter table public.assessments enable row level security;
 
+drop policy if exists "Users can read their own assessments" on public.assessments;
 create policy "Users can read their own assessments"
   on public.assessments
   for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own assessments" on public.assessments;
 create policy "Users can insert their own assessments"
   on public.assessments
   for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own assessments" on public.assessments;
 create policy "Users can update their own assessments"
   on public.assessments
   for update

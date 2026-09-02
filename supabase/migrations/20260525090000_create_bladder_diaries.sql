@@ -10,16 +10,19 @@ create table if not exists public.bladder_diaries (
 
 alter table public.bladder_diaries enable row level security;
 
+drop policy if exists "Users can read their own bladder diaries" on public.bladder_diaries;
 create policy "Users can read their own bladder diaries"
   on public.bladder_diaries
   for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own bladder diaries" on public.bladder_diaries;
 create policy "Users can insert their own bladder diaries"
   on public.bladder_diaries
   for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own bladder diaries" on public.bladder_diaries;
 create policy "Users can update their own bladder diaries"
   on public.bladder_diaries
   for update

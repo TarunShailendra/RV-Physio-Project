@@ -10,16 +10,19 @@ create table if not exists public.exercise_progress (
 
 alter table public.exercise_progress enable row level security;
 
+drop policy if exists "Users can read their own exercise progress" on public.exercise_progress;
 create policy "Users can read their own exercise progress"
   on public.exercise_progress
   for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own exercise progress" on public.exercise_progress;
 create policy "Users can insert their own exercise progress"
   on public.exercise_progress
   for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own exercise progress" on public.exercise_progress;
 create policy "Users can update their own exercise progress"
   on public.exercise_progress
   for update
