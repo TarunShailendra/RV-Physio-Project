@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../l10n/app_localizations.dart'; // âœ… added
+import '../../../core/utils/calendar.dart';
+import '../../../l10n/app_localizations.dart';
+import '../auth_feedback.dart';
 import '../auth_notifier.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -51,11 +53,11 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final authNotifier = context.watch<AuthNotifier>();
-    final l10n = AppLocalizations.of(context)!; // âœ…
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.signUp), // âœ…
+        title: Text(l10n.signUp),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -75,7 +77,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.createAccount, // âœ…
+                      l10n.createAccount,
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -85,12 +87,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.name],
                       decoration: InputDecoration(
-                        labelText: l10n.name, // âœ…
+                        labelText: l10n.name,
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if ((value?.trim() ?? '').isEmpty) {
-                          return l10n.enterYourName; // âœ… new key
+                          return l10n.enterYourName;
                         }
                         return null;
                       },
@@ -102,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                       decoration: InputDecoration(
-                        labelText: l10n.email, // âœ…
+                        labelText: l10n.email,
                         border: const OutlineInputBorder(),
                         errorStyle: const TextStyle(fontSize: 14),
                       ),
@@ -130,13 +132,13 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: l10n.password, // âœ…
+                        labelText: l10n.password,
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         final password = value ?? '';
                         if (password.isEmpty) {
-                          return l10n.enterPassword; // âœ… new key (or reuse)
+                          return l10n.enterPassword;
                         }
                         if (password.length < 8) {
                           return 'Password must be at least 8 characters';
@@ -156,16 +158,16 @@ class _SignupScreenState extends State<SignupScreen> {
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.telephoneNumber],
                       decoration: InputDecoration(
-                        labelText: l10n.phone, // âœ…
+                        labelText: l10n.phone,
                         border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         final phone = value?.trim() ?? '';
                         if (phone.isEmpty) {
-                          return l10n.enterPhoneNumber; // âœ… new key
+                          return l10n.enterPhoneNumber;
                         }
                         if (phone.length < 10) {
-                          return l10n.enterValidPhone; // âœ… new key
+                          return l10n.enterValidPhone;
                         }
                         return null;
                       },
@@ -177,6 +179,12 @@ class _SignupScreenState extends State<SignupScreen> {
                             _selectedMonth == null ||
                             _selectedYear == null) {
                           return l10n.selectDateOfBirth;
+                        }
+                        final dob = _selectedDob;
+                        if (dob != null && dob.isAfter(DateTime.now())) {
+                          // The year list starts at the current year, so a
+                          // later month in it produced a negative age.
+                          return l10n.dateOfBirthInFuture;
                         }
                         return null;
                       },
@@ -197,7 +205,15 @@ class _SignupScreenState extends State<SignupScreen> {
                                     hint: const Text('Day'),
                                     isExpanded: true,
                                     items: [
-                                      for (var day = 1; day <= 31; day++)
+                                      // Only the days the chosen month has.
+                                      // Offering 31 for every month let
+                                      // DateTime normalise 31 February into
+                                      // 3 March without telling anyone.
+                                      for (
+                                        var day = 1;
+                                        day <= _daysInSelectedMonth;
+                                        day++
+                                      )
                                         DropdownMenuItem<int>(
                                           value: day,
                                           child: Text(day.toString()),
@@ -292,14 +308,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : Text(l10n.signUp), // âœ…
+                          : Text(l10n.signUp),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: authNotifier.isLoading
                           ? null
                           : () => context.go('/login'),
-                      child: Text(l10n.backToLogin), // âœ…
+                      child: Text(l10n.backToLogin),
                     ),
                   ],
                 ),
@@ -331,6 +347,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       if (authNotifier.emailAlreadyRegistered) {
         setState(() => _emailTaken = true);
         _formKey.currentState!.validate();
@@ -340,8 +357,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              authNotifier.errorMessage ??
-                  'Unable to create your account. Please try again.',
+              authFailureMessage(authNotifier.failure, l10n),
             ),
           ),
         );
@@ -351,7 +367,21 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  /// Days in the chosen month, defaulting to 31 until one is picked.
+  int get _daysInSelectedMonth {
+    final month = _selectedMonth;
+    if (month == null) return 31;
+    // Default to a leap year so February still offers 29 before a year is
+    // chosen; picking the year re-runs this and drops it if it does not apply.
+    return daysInMonth(_selectedYear ?? 2024, month);
+  }
+
   void _updateSelectedDob() {
+    // Shortening the month can strand a day that no longer exists.
+    if (_selectedDay != null && _selectedDay! > _daysInSelectedMonth) {
+      _selectedDay = null;
+    }
+
     if (_selectedDay == null ||
         _selectedMonth == null ||
         _selectedYear == null) {

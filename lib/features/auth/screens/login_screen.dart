@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../auth_feedback.dart';
 import '../auth_notifier.dart';
-import '../../../l10n/app_localizations.dart'; // âœ… added
+import '../../../l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthNotifier>();
-    final l10n = AppLocalizations.of(context)!; // âœ… get localizations
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
@@ -55,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Text(
-                l10n.appTitle, // âœ… 'Telerehab App' / Kannada translation
+                l10n.appTitle,
                 style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
               ),
               const SizedBox(height: 40),
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.welcomeBack, // âœ…
+                                l10n.welcomeBack,
                                 style: GoogleFonts.poppins(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
@@ -93,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               Text(
-                                l10n.signInToContinue, // âœ…
+                                l10n.signInToContinue,
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: Colors.white70,
@@ -144,9 +145,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (password.isEmpty) {
                                     return l10n.enterPassword;
                                   }
-                                  if (password.length < 6) {
-                                    return l10n.passwordMinLength;
-                                  }
+                                  // Strength is enforced at signup. Re-checking
+                                  // it here would reject a password that
+                                  // predates the current rule.
                                   return null;
                                 },
                               ),
@@ -183,8 +184,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   ).showSnackBar(
                                                     SnackBar(
                                                       content: Text(
-                                                        auth.errorMessage ??
-                                                            'Unable to sign in. Please try again.',
+                                                        authFailureMessage(
+                                                          auth.failure,
+                                                          l10n,
+                                                        ),
                                                       ),
                                                     ),
                                                   );
@@ -221,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               strokeWidth: 2,
                                             ),
                                           )
-                                        : Text(l10n.login), // âœ…
+                                        : Text(l10n.login),
                                   ),
                                 ),
                               ),
@@ -234,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: const TextStyle(
                                       color: Colors.white70,
                                     ),
-                                  ), // âœ… (add this key)
+                                  ),
                                 ),
                               ),
                             ],

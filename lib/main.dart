@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
+import 'core/locale/locale_notifier.dart';
 import 'features/assessment/notifiers/assessment_summary_notifier.dart';
 import 'features/assessment/notifiers/iciq_notifier.dart';
 import 'features/assessment/notifiers/ipaq_notifier.dart';
 import 'features/assessment/notifiers/iqol_notifier.dart';
 import 'features/auth/auth_notifier.dart';
-import 'features/bladder_diary/bladder_diary_notifier.dart';
+import 'features/bladder_diary/diary_draft_store.dart';
 import 'features/dashboard/dashboard_notifier.dart';
 import 'features/exercise/exercise_notifier.dart';
 import 'features/profile/profile_notifier.dart';
@@ -30,6 +31,9 @@ void main() async {
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
+  final localeNotifier = LocaleNotifier();
+  await localeNotifier.load();
+
   final profileNotifier = ProfileNotifier();
   final dashboardNotifier = DashboardNotifier();
   final exerciseNotifier = ExerciseNotifier();
@@ -38,7 +42,6 @@ void main() async {
   final iciqNotifier = IciqNotifier();
   final ipaqNotifier = IpaqNotifier();
   final iqolNotifier = IqolNotifier();
-  final bladderDiaryNotifier = BladderDiaryNotifier();
 
   final authNotifier = AuthNotifier(
     // Pulled back from Supabase whenever a patient signs in, including the
@@ -55,7 +58,7 @@ void main() async {
       exerciseNotifier.reset,
       dashboardNotifier.reset,
       profileNotifier.reset,
-      bladderDiaryNotifier.reset,
+      DiaryDraftStore.clear,
       iciqNotifier.reset,
       ipaqNotifier.reset,
       iqolNotifier.reset,
@@ -69,6 +72,7 @@ void main() async {
 
   runApp(
     AppProviders(
+      localeNotifier: localeNotifier,
       authNotifier: authNotifier,
       profileNotifier: profileNotifier,
       dashboardNotifier: dashboardNotifier,
@@ -77,7 +81,6 @@ void main() async {
       iciqNotifier: iciqNotifier,
       ipaqNotifier: ipaqNotifier,
       iqolNotifier: iqolNotifier,
-      bladderDiaryNotifier: bladderDiaryNotifier,
       child: const TelerehabApp(),
     ),
   );
@@ -86,6 +89,7 @@ void main() async {
 class AppProviders extends StatelessWidget {
   const AppProviders({
     required this.child,
+    this.localeNotifier,
     this.authNotifier,
     this.profileNotifier,
     this.dashboardNotifier,
@@ -94,10 +98,10 @@ class AppProviders extends StatelessWidget {
     this.iciqNotifier,
     this.ipaqNotifier,
     this.iqolNotifier,
-    this.bladderDiaryNotifier,
     super.key,
   });
   final Widget child;
+  final LocaleNotifier? localeNotifier;
   final AuthNotifier? authNotifier;
   final ProfileNotifier? profileNotifier;
   final DashboardNotifier? dashboardNotifier;
@@ -106,12 +110,14 @@ class AppProviders extends StatelessWidget {
   final IciqNotifier? iciqNotifier;
   final IpaqNotifier? ipaqNotifier;
   final IqolNotifier? iqolNotifier;
-  final BladderDiaryNotifier? bladderDiaryNotifier;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => localeNotifier ?? LocaleNotifier(),
+        ),
         ChangeNotifierProvider(create: (_) => authNotifier ?? AuthNotifier()),
         ChangeNotifierProvider(
           create: (_) => profileNotifier ?? ProfileNotifier(),
@@ -129,9 +135,6 @@ class AppProviders extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => iciqNotifier ?? IciqNotifier()),
         ChangeNotifierProvider(create: (_) => ipaqNotifier ?? IpaqNotifier()),
         ChangeNotifierProvider(create: (_) => iqolNotifier ?? IqolNotifier()),
-        ChangeNotifierProvider(
-          create: (_) => bladderDiaryNotifier ?? BladderDiaryNotifier(),
-        ),
       ],
       child: child,
     );

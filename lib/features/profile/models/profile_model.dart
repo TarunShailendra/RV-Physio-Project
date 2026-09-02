@@ -1,7 +1,6 @@
-﻿class ProfileModel {
+class ProfileModel {
   const ProfileModel({
     required this.userId,
-    required this.age,
     required this.city,
     required this.occupation,
     required this.incontinenceType,
@@ -25,7 +24,6 @@
   });
 
   final String userId;
-  final int age;
   final String city;
   final String occupation;
   final String incontinenceType;
@@ -50,7 +48,6 @@
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
-      'age': age,
       'city': city,
       'occupation': occupation,
       'incontinenceType': incontinenceType,
@@ -77,7 +74,9 @@
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       userId: (json['userId'] ?? json['id']) as String,
-      age: json['age'] as int? ?? 0,
+      // No age field: it was never written by saveProfile and never selected
+      // by loadProfile, so it always read back as 0. Age is derived from
+      // dateOfBirth where it is displayed.
       city: json['city'] as String? ?? '',
       occupation: json['occupation'] as String? ?? '',
       incontinenceType:

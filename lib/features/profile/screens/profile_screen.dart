@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../core/locale/locale_notifier.dart';
 import '../../auth/auth_notifier.dart';
+import '../../dashboard/dashboard_notifier.dart';
 import '../profile_notifier.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -33,6 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? profileName!
         : currentUser?.name ?? l10n.user;
     final displayAge = _ageFromDateOfBirth(profile?.dateOfBirth);
+    // Real figures, or nothing. These three were hardcoded to 1, 0% and 0
+    // regardless of what the patient had actually done.
+    final dashboard = context.watch<DashboardNotifier>().data;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9F8),
@@ -83,7 +88,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     Text(
-                      profile?.city ?? l10n.bengaluru,
+                      // Showed "Bengaluru" as though the patient had entered it.
+                      (profile?.city.isNotEmpty ?? false) ? profile!.city : '',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: Colors.white70,
@@ -103,11 +109,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Stats row
                   Row(
                     children: [
-                      _StatCard(label: l10n.weekLabel, value: '1'), // ✅ fixed
+                      _StatCard(
+                        label: l10n.weekLabel,
+                        value: dashboard == null
+                            ? '--'
+                            : '${dashboard.currentWeek}',
+                      ),
                       const SizedBox(width: 12),
-                      _StatCard(label: l10n.adherence, value: '0%'),
+                      _StatCard(
+                        label: l10n.adherence,
+                        value: dashboard == null
+                            ? '--'
+                            : '${dashboard.adherencePercentage.toStringAsFixed(0)}%',
+                      ),
                       const SizedBox(width: 12),
-                      _StatCard(label: l10n.exercises, value: '0'),
+                      _StatCard(
+                        label: l10n.exercises,
+                        value: dashboard == null
+                            ? '--'
+                            : '${dashboard.exercisesCompletedThisWeek}',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -176,6 +197,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Language
+                  Text(
+                    l10n.language,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1A2E2B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const _LanguagePicker(),
+                  const SizedBox(height: 24),
+
                   // Edit button
                   SizedBox(
                     width: double.infinity,
@@ -234,6 +268,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
       age--;
     }
     return age < 0 ? null : age;
+  }
+}
+
+/// Lets the patient choose the app language.
+///
+/// The Kannada translation shipped complete and unreachable: MaterialApp set
+/// no locale, so it appeared only if the whole device was in Kannada.
+class _LanguagePicker extends StatelessWidget {
+  const _LanguagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final notifier = context.watch<LocaleNotifier>();
+    final current = notifier.locale?.languageCode;
+
+    return RadioGroup<String?>(
+      groupValue: current,
+      onChanged: (value) =>
+          notifier.setLocale(value == null ? null : Locale(value)),
+      child: _InfoCard(
+        children: [
+          for (final option in <(String?, String)>[
+            (null, l10n.languageSystem),
+            ('en', l10n.languageEnglish),
+            ('kn', l10n.languageKannada),
+          ])
+            RadioListTile<String?>(
+              value: option.$1,
+              activeColor: const Color(0xFF00897B),
+              contentPadding: EdgeInsets.zero,
+              title: Text(option.$2, style: GoogleFonts.poppins(fontSize: 13)),
+            ),
+        ],
+      ),
+    );
   }
 }
 

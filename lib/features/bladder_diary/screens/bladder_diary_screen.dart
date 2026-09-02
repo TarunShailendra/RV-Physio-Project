@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../diary_draft_store.dart';
 
 class BladderDiaryScreen extends StatefulWidget {
   const BladderDiaryScreen({super.key});
@@ -74,13 +77,81 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       (_) => List.generate(_timeSlotKeys.length, (_) => BladderDiaryEntry()),
     );
     _markers = List.generate(3, (_) => {});
-    _loadPreviousEntry();
+    _restoreDraft();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Applies [fn] and writes the diary to device storage.
+  ///
+  /// Three days of entries lived only in memory, so backgrounding the app or
+  /// leaving the screen discarded the lot. shared_preferences was already a
+  /// dependency and had no imports anywhere in lib/.
+  void _edit(VoidCallback fn) {
+    setState(fn);
+    unawaited(DiaryDraftStore.save(_draftJson()));
+  }
+
+  Map<String, dynamic> _draftJson() => {
+    'data': [
+      for (var day = 0; day < 3; day++)
+        [
+          for (var slot = 0; slot < _timeSlotKeys.length; slot++)
+            {
+              'fluidAmount': _data[day][slot].fluidAmount,
+              'fluidType': _data[day][slot].fluidType,
+              'urineOutput': _data[day][slot].urineOutput,
+              'cantMeasure': _data[day][slot].cantMeasure,
+              'bladderSensation': _data[day][slot].bladderSensation,
+              'pad': _data[day][slot].pad,
+            },
+        ],
+    ],
+    'markers': [
+      for (var day = 0; day < 3; day++)
+        _markers[day].map((slot, marker) => MapEntry('$slot', marker)),
+    ],
+  };
+
+  /// Restores the diary in progress, falling back to the last submitted one.
+  Future<void> _restoreDraft() async {
+    final draft = await DiaryDraftStore.load();
+
+    if (draft == null) {
+      await _loadPreviousEntry();
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      final days = draft['data'] as List<dynamic>? ?? const [];
+      for (var day = 0; day < days.length && day < 3; day++) {
+        final slots = days[day] as List<dynamic>? ?? const [];
+        for (var slot = 0; slot < slots.length && slot < _timeSlotKeys.length; slot++) {
+          final v = slots[slot] as Map<String, dynamic>? ?? const {};
+          _data[day][slot]
+            ..fluidAmount = v['fluidAmount'] as String? ?? ''
+            ..fluidType = v['fluidType'] as String? ?? ''
+            ..urineOutput = v['urineOutput'] as String? ?? ''
+            ..cantMeasure = v['cantMeasure'] as bool? ?? false
+            ..bladderSensation = v['bladderSensation'] as int?
+            ..pad = v['pad'] as bool? ?? false;
+        }
+      }
+      final markers = draft['markers'] as List<dynamic>? ?? const [];
+      for (var day = 0; day < markers.length && day < 3; day++) {
+        final m = markers[day] as Map<String, dynamic>? ?? const {};
+        m.forEach((slot, marker) {
+          final index = int.tryParse(slot);
+          if (index != null && marker is String) _markers[day][index] = marker;
+        });
+      }
+      _loadRevision++;
+    });
   }
 
   Future<void> _loadPreviousEntry() async {
@@ -226,7 +297,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
               final isSelected = _data[day][slot].bladderSensation == i;
               return GestureDetector(
                 onTap: () {
-                  setState(() => _data[day][slot].bladderSensation = i);
+                  _edit(() => _data[day][slot].bladderSensation = i);
                   Navigator.pop(context);
                 },
                 child: Container(
@@ -268,7 +339,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
   }
 
   void _toggleMarker(int day, int slot, String marker) {
-    setState(() {
+    _edit(() {
       if (_markers[day][slot] == marker) {
         _markers[day].remove(slot);
       } else {
@@ -358,7 +429,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       fieldKey: 'amountMlCups-\$day-\$slot',
                       label: l10n.amountMlCups,
                       value: entry.fluidAmount,
-                      onChanged: (v) => setState(() => entry.fluidAmount = v),
+                      onChanged: (v) => _edit(() => entry.fluidAmount = v),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -367,7 +438,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       fieldKey: 'fluidType-\$day-\$slot',
                       label: l10n.fluidType,
                       value: entry.fluidType,
-                      onChanged: (v) => setState(() => entry.fluidType = v),
+                      onChanged: (v) => _edit(() => entry.fluidType = v),
                     ),
                   ),
                 ],
@@ -392,13 +463,13 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       label: l10n.mlOrLeak,
                       value: entry.urineOutput,
                       enabled: !entry.cantMeasure,
-                      onChanged: (v) => setState(() => entry.urineOutput = v),
+                      onChanged: (v) => _edit(() => entry.urineOutput = v),
                     ),
                   ),
                   const SizedBox(width: 8),
                   // Can't measure tick
                   GestureDetector(
-                    onTap: () => setState(() {
+                    onTap: () => _edit(() {
                       entry.cantMeasure = !entry.cantMeasure;
                       if (entry.cantMeasure) {
                         entry.urineOutput = '';
@@ -498,7 +569,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       ),
                       const SizedBox(height: 8),
                       GestureDetector(
-                        onTap: () => setState(() => entry.pad = !entry.pad),
+                        onTap: () => _edit(() => entry.pad = !entry.pad),
                         child: _checkbox(entry.pad, size: 28),
                       ),
                     ],
@@ -702,6 +773,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
           'submitted_at': DateTime.now().toIso8601String(),
         });
         debugPrint('Bladder diary saved successfully');
+        await DiaryDraftStore.clear();
       }
     } catch (e) {
       debugPrint('Bladder diary save error: $e');

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'core/locale/locale_notifier.dart';
 import 'core/routing/redirect_policy.dart';
 import 'features/assessment/notifiers/assessment_summary_notifier.dart';
 import 'features/auth/auth_notifier.dart';
@@ -110,7 +111,10 @@ class _TelerehabAppState extends State<TelerehabApp> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleNotifier>().locale;
+
     return MaterialApp.router(
+      locale: locale,
       // ✅ Use onGenerateTitle for localized title
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: AppTheme.lightTheme,

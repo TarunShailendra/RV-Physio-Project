@@ -23,6 +23,50 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     'unknown',
   ];
 
+  /// Stored values stay English so the database keeps one vocabulary; only
+  /// the labels are translated. Mirrors _incontinenceTypeKeys above.
+  static const List<String> _maritalStatuses = [
+    'Single',
+    'Married',
+    'Separated',
+    'Divorced',
+    'Widowed',
+  ];
+  static const List<String> _deliveryTypes = [
+    'Vaginal delivery',
+    'Caesarean section',
+    'Assisted delivery',
+    'Other',
+  ];
+  static const List<String> _genders = [
+    'Female',
+    'Male',
+    'Non-binary',
+    'Prefer not to say',
+  ];
+
+  String _maritalLabel(String value, AppLocalizations l10n) => switch (value) {
+    'Single' => l10n.maritalSingle,
+    'Married' => l10n.maritalMarried,
+    'Separated' => l10n.maritalSeparated,
+    'Divorced' => l10n.maritalDivorced,
+    _ => l10n.maritalWidowed,
+  };
+
+  String _deliveryLabel(String value, AppLocalizations l10n) => switch (value) {
+    'Vaginal delivery' => l10n.deliveryVaginal,
+    'Caesarean section' => l10n.deliveryCaesarean,
+    'Assisted delivery' => l10n.deliveryAssisted,
+    _ => l10n.deliveryOther,
+  };
+
+  String _genderLabel(String value, AppLocalizations l10n) => switch (value) {
+    'Female' => l10n.female,
+    'Male' => l10n.male,
+    'Non-binary' => l10n.genderNonBinary,
+    _ => l10n.genderPreferNotToSay,
+  };
+
   final _formKey = GlobalKey<FormState>();
   final _cityController = TextEditingController();
   final _occupationController = TextEditingController();
@@ -40,6 +84,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _hasHypertension = false;
   String? _gender;
 
+  /// True when the screen opened onto an existing profile, i.e. the patient
+  /// came from Edit Profile rather than from signup.
+  bool _isEditing = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +104,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (p == null) return;
 
     setState(() {
+      _isEditing = true;
       _cityController.text = p.city;
       _occupationController.text = p.occupation;
       _symptomDurationController.text = p.symptomDurationMonths.toString();
@@ -102,7 +151,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
+          onPressed: () => context.go(_isEditing ? '/profile' : '/login'),
         ),
         title: Text(l10n.profileSetup),
         backgroundColor: AppTheme.primaryColor,
@@ -120,17 +169,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.profileStep1,
+                      l10n.profileSetup,
                       style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: 1 / 3,
-                      minHeight: 6,
-                      backgroundColor: AppTheme.primaryColor.withValues(
-                        alpha: 0.12,
-                      ),
-                      color: AppTheme.primaryColor,
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
@@ -223,74 +263,59 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: _maritalStatus,
-                      decoration: const InputDecoration(
-                        labelText: 'Marital status',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.maritalStatus,
+                        border: const OutlineInputBorder(),
                       ),
-                      items:
-                          const [
-                                'Single',
-                                'Married',
-                                'Separated',
-                                'Divorced',
-                                'Widowed',
-                              ]
-                              .map(
-                                (value) => DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                ),
-                              )
-                              .toList(),
+                      items: _maritalStatuses
+                          .map(
+                            (value) => DropdownMenuItem(
+                              value: value,
+                              child: Text(_maritalLabel(value, l10n)),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (value) =>
                           setState(() => _maritalStatus = value),
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
                       value: _hasChildren ?? false,
-                      title: const Text('Do you have children?'),
+                      title: Text(l10n.haveChildren),
                       onChanged: (value) =>
                           setState(() => _hasChildren = value),
                     ),
                     if (_hasChildren == true) ...[
                       DropdownButtonFormField<String>(
                         initialValue: _deliveryType,
-                        decoration: const InputDecoration(
-                          labelText: 'Type of delivery',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.deliveryTypeLabel,
+                          border: const OutlineInputBorder(),
                         ),
-                        items:
-                            const [
-                                  'Vaginal delivery',
-                                  'Caesarean section',
-                                  'Assisted delivery',
-                                  'Other',
-                                ]
-                                .map(
-                                  (value) => DropdownMenuItem(
-                                    value: value,
-                                    child: Text(value),
-                                  ),
-                                )
-                                .toList(),
+                        items: _deliveryTypes
+                            .map(
+                              (value) => DropdownMenuItem(
+                                value: value,
+                                child: Text(_deliveryLabel(value, l10n)),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (value) =>
                             setState(() => _deliveryType = value),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _childrenAgesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Age(s) of child / children',
-                          hintText: 'Example: 3, 7',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.childrenAgesLabel,
+                          hintText: l10n.childrenAgesHint,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       if (_deliveryType != null &&
                           _deliveryType != 'Vaginal delivery') ...[
                         const SizedBox(height: 12),
-                        Text(
-                          'Childbirth-related pain level: ${_childbirthPainLevel.round()} / 10',
-                        ),
+                        Text(l10n.childbirthPainLevel(_childbirthPainLevel.round())),
                         Slider(
                           value: _childbirthPainLevel,
                           min: 0,
@@ -308,9 +333,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           child: TextFormField(
                             controller: _heightController,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Height (cm) — optional',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.heightCmOptional,
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -319,9 +344,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           child: TextFormField(
                             controller: _weightController,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Weight (kg) — optional',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.weightKgOptional,
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -330,37 +355,31 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     const SizedBox(height: 12),
                     SwitchListTile(
                       value: _hasDiabetes,
-                      title: const Text('Do you have diabetes?'),
+                      title: Text(l10n.haveDiabetes),
                       onChanged: (value) =>
                           setState(() => _hasDiabetes = value),
                     ),
                     SwitchListTile(
                       value: _hasHypertension,
-                      title: const Text('Do you have hypertension?'),
+                      title: Text(l10n.haveHypertension),
                       onChanged: (value) =>
                           setState(() => _hasHypertension = value),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: _gender,
-                      decoration: const InputDecoration(
-                        labelText: 'Gender',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.gender,
+                        border: const OutlineInputBorder(),
                       ),
-                      items:
-                          const [
-                                'Female',
-                                'Male',
-                                'Non-binary',
-                                'Prefer not to say',
-                              ]
-                              .map(
-                                (value) => DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                ),
-                              )
-                              .toList(),
+                      items: _genders
+                          .map(
+                            (value) => DropdownMenuItem(
+                              value: value,
+                              child: Text(_genderLabel(value, l10n)),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (value) => setState(() => _gender = value),
                     ),
                     const SizedBox(height: 24),
@@ -433,7 +452,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     final profile = ProfileModel(
       userId: currentUser.id,
-      age: currentUser.age,
       city: _cityController.text.trim(),
       occupation: _occupationController.text.trim(),
       incontinenceType: incontinenceTypeValue,
@@ -472,7 +490,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ).showSnackBar(SnackBar(content: Text(profileNotifier.errorMessage!)));
         return;
       }
-      context.go('/iciq');
+      // Signup continues into the assessment; an edit goes back where it
+      // came from. This always went to the ICIQ.
+      context.go(_isEditing ? '/profile' : '/iciq');
     }
   }
 

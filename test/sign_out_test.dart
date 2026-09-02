@@ -10,8 +10,7 @@ import 'package:telerehab_app/features/assessment/notifiers/ipaq_notifier.dart';
 import 'package:telerehab_app/features/assessment/notifiers/iqol_notifier.dart';
 import 'package:telerehab_app/features/auth/auth_notifier.dart';
 import 'package:telerehab_app/features/auth/models/user_model.dart';
-import 'package:telerehab_app/features/bladder_diary/bladder_diary_notifier.dart';
-import 'package:telerehab_app/features/bladder_diary/models/diary_entry.dart';
+import 'package:telerehab_app/features/bladder_diary/diary_draft_store.dart';
 import 'package:telerehab_app/features/dashboard/dashboard_notifier.dart';
 import 'package:telerehab_app/features/dashboard/models/dashboard_model.dart';
 import 'package:telerehab_app/features/exercise/exercise_notifier.dart';
@@ -69,7 +68,6 @@ void main() {
     final profile = ProfileNotifier()
       ..profile = const ProfileModel(
         userId: 'u1',
-        age: 34,
         city: 'Bengaluru',
         occupation: 'Teacher',
         incontinenceType: 'Stress',
@@ -78,17 +76,9 @@ void main() {
         fullName: 'Asha R',
       );
 
-    final diary = BladderDiaryNotifier()
-      ..addEntry(
-        DiaryEntry(
-          time: DateTime(2026, 9, 2, 7),
-          fluidType: 'Tea',
-          fluidAmountMl: 200,
-          hadUrgency: true,
-          hadLeakage: false,
-          padUsage: 'none',
-        ),
-      );
+    // The diary now lives on the device rather than in a notifier.
+    await DiaryDraftStore.save({'data': [], 'markers': []});
+    expect(await DiaryDraftStore.load(), isNotNull);
 
     final iciq = IciqNotifier()..setLeakFrequency(4);
     final ipaq = IpaqNotifier()..updateWalking(days: 5, hours: 0, mins: 40);
@@ -100,7 +90,7 @@ void main() {
         exercise.reset,
         dashboard.reset,
         profile.reset,
-        diary.reset,
+        DiaryDraftStore.clear,
         iciq.reset,
         ipaq.reset,
         iqol.reset,
@@ -120,7 +110,6 @@ void main() {
     expect(exercise.currentPlan, isNotNull);
     expect(dashboard.data, isNotNull);
     expect(profile.profile, isNotNull);
-    expect(diary.days, isNotEmpty);
     expect(iciq.model.leakFrequency, 4);
     expect(ipaq.model.walkDays, 5);
     expect(iqol.model.items.first, 3);
@@ -135,10 +124,14 @@ void main() {
     expect(exercise.currentPlan, isNull, reason: 'exercise plan must be cleared');
     expect(dashboard.data, isNull, reason: 'dashboard must be cleared');
     expect(profile.profile, isNull, reason: 'profile must be cleared');
-    expect(diary.days, isEmpty, reason: 'diary entries must be cleared');
     expect(iciq.model.leakFrequency, -1, reason: 'ICIQ answers must be cleared');
     expect(ipaq.model.walkDays, 0, reason: 'IPAQ answers must be cleared');
     expect(iqol.model.items.first, 0, reason: 'IQOL answers must be cleared');
+    expect(
+      await DiaryDraftStore.load(),
+      isNull,
+      reason: 'the diary kept on the device must be cleared too',
+    );
   });
 
   test('signOut notifies listeners so guarded screens rebuild', () async {

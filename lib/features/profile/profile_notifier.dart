@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/profile_model.dart';
@@ -78,7 +78,6 @@ class ProfileNotifier extends ChangeNotifier {
       await _supabase.from('profiles').upsert(row, onConflict: 'id');
       profile = ProfileModel(
         userId: p.userId,
-        age: p.age,
         city: p.city,
         occupation: p.occupation,
         incontinenceType: p.incontinenceType,
