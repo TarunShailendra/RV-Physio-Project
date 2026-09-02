@@ -673,6 +673,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your diary could not be saved. Please check your connection and try again.';
 
   @override
+  String get invalidCredentials =>
+      'That email and password do not match an account.';
+
+  @override
+  String get networkUnavailable =>
+      'Cannot reach the server. Please check your connection.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong. Please try again.';
+
+  @override
+  String get dateOfBirthInFuture => 'Date of birth cannot be in the future';
+
+  @override
+  String get dashboardLoadFailed =>
+      'Could not load your dashboard. Please check your connection and try again.';
+
+  @override
+  String get dashboardNoData =>
+      'Your progress will appear here once you start the exercises.';
+
+  @override
   String get assessmentSaveFailed =>
       'Your answers could not be saved. Please check your connection and try again.';
 
@@ -972,4 +994,104 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get iciqOfferExercisesMessage =>
       'Would you like to continue with the physical activity assessment?';
+
+  @override
+  String get maritalStatus => 'Marital status';
+
+  @override
+  String get maritalSingle => 'Single';
+
+  @override
+  String get maritalMarried => 'Married';
+
+  @override
+  String get maritalSeparated => 'Separated';
+
+  @override
+  String get maritalDivorced => 'Divorced';
+
+  @override
+  String get maritalWidowed => 'Widowed';
+
+  @override
+  String get haveChildren => 'Do you have children?';
+
+  @override
+  String get deliveryTypeLabel => 'Type of delivery';
+
+  @override
+  String get deliveryVaginal => 'Vaginal delivery';
+
+  @override
+  String get deliveryCaesarean => 'Caesarean section';
+
+  @override
+  String get deliveryAssisted => 'Assisted delivery';
+
+  @override
+  String get deliveryOther => 'Other';
+
+  @override
+  String get childrenAgesLabel => 'Age(s) of child / children';
+
+  @override
+  String get childrenAgesHint => 'Example: 3, 7';
+
+  @override
+  String childbirthPainLevel(Object level) {
+    return 'Childbirth-related pain level: $level / 10';
+  }
+
+  @override
+  String get heightCmOptional => 'Height (cm) — optional';
+
+  @override
+  String get weightKgOptional => 'Weight (kg) — optional';
+
+  @override
+  String get haveDiabetes => 'Do you have diabetes?';
+
+  @override
+  String get haveHypertension => 'Do you have hypertension?';
+
+  @override
+  String get genderNonBinary => 'Non-binary';
+
+  @override
+  String get genderPreferNotToSay => 'Prefer not to say';
+
+  @override
+  String get sessionExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get dayLabel => 'Day';
+
+  @override
+  String get monthLabel => 'Month';
+
+  @override
+  String get yearLabel => 'Year';
+
+  @override
+  String get passwordMinEight => 'Password must be at least 8 characters';
+
+  @override
+  String get passwordNeedsSpecial =>
+      'Password must contain at least one special character';
+
+  @override
+  String get emailAlreadyRegistered => 'This email is already registered';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageKannada => 'Kannada';
+
+  @override
+  String get languageSystem => 'Use device language';
 }

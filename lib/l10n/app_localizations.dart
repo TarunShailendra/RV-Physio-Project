@@ -1310,6 +1310,42 @@ abstract class AppLocalizations {
   /// **'Your diary could not be saved. Please check your connection and try again.'**
   String get diarySaveFailed;
 
+  /// No description provided for @invalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'That email and password do not match an account.'**
+  String get invalidCredentials;
+
+  /// No description provided for @networkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the server. Please check your connection.'**
+  String get networkUnavailable;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get somethingWentWrong;
+
+  /// No description provided for @dateOfBirthInFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth cannot be in the future'**
+  String get dateOfBirthInFuture;
+
+  /// No description provided for @dashboardLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your dashboard. Please check your connection and try again.'**
+  String get dashboardLoadFailed;
+
+  /// No description provided for @dashboardNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress will appear here once you start the exercises.'**
+  String get dashboardNoData;
+
   /// No description provided for @assessmentSaveFailed.
   ///
   /// In en, this message translates to:
@@ -1891,6 +1927,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Would you like to continue with the physical activity assessment?'**
   String get iciqOfferExercisesMessage;
+
+  /// No description provided for @maritalStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Marital status'**
+  String get maritalStatus;
+
+  /// No description provided for @maritalSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get maritalSingle;
+
+  /// No description provided for @maritalMarried.
+  ///
+  /// In en, this message translates to:
+  /// **'Married'**
+  String get maritalMarried;
+
+  /// No description provided for @maritalSeparated.
+  ///
+  /// In en, this message translates to:
+  /// **'Separated'**
+  String get maritalSeparated;
+
+  /// No description provided for @maritalDivorced.
+  ///
+  /// In en, this message translates to:
+  /// **'Divorced'**
+  String get maritalDivorced;
+
+  /// No description provided for @maritalWidowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Widowed'**
+  String get maritalWidowed;
+
+  /// No description provided for @haveChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you have children?'**
+  String get haveChildren;
+
+  /// No description provided for @deliveryTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of delivery'**
+  String get deliveryTypeLabel;
+
+  /// No description provided for @deliveryVaginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaginal delivery'**
+  String get deliveryVaginal;
+
+  /// No description provided for @deliveryCaesarean.
+  ///
+  /// In en, this message translates to:
+  /// **'Caesarean section'**
+  String get deliveryCaesarean;
+
+  /// No description provided for @deliveryAssisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Assisted delivery'**
+  String get deliveryAssisted;
+
+  /// No description provided for @deliveryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get deliveryOther;
+
+  /// No description provided for @childrenAgesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age(s) of child / children'**
+  String get childrenAgesLabel;
+
+  /// No description provided for @childrenAgesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: 3, 7'**
+  String get childrenAgesHint;
+
+  /// No description provided for @childbirthPainLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Childbirth-related pain level: {level} / 10'**
+  String childbirthPainLevel(Object level);
+
+  /// No description provided for @heightCmOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm) — optional'**
+  String get heightCmOptional;
+
+  /// No description provided for @weightKgOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg) — optional'**
+  String get weightKgOptional;
+
+  /// No description provided for @haveDiabetes.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you have diabetes?'**
+  String get haveDiabetes;
+
+  /// No description provided for @haveHypertension.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you have hypertension?'**
+  String get haveHypertension;
+
+  /// No description provided for @genderNonBinary.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-binary'**
+  String get genderNonBinary;
+
+  /// No description provided for @genderPreferNotToSay.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get genderPreferNotToSay;
+
+  /// No description provided for @sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get sessionExpired;
+
+  /// No description provided for @dayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get dayLabel;
+
+  /// No description provided for @monthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get monthLabel;
+
+  /// No description provided for @yearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get yearLabel;
+
+  /// No description provided for @passwordMinEight.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get passwordMinEight;
+
+  /// No description provided for @passwordNeedsSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must contain at least one special character'**
+  String get passwordNeedsSpecial;
+
+  /// No description provided for @emailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered'**
+  String get emailAlreadyRegistered;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageKannada.
+  ///
+  /// In en, this message translates to:
+  /// **'Kannada'**
+  String get languageKannada;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get languageSystem;
 }
 
 class _AppLocalizationsDelegate

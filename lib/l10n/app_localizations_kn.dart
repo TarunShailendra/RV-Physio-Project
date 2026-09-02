@@ -664,6 +664,28 @@ class AppLocalizationsKn extends AppLocalizations {
       'ನಿಮ್ಮ ಡೈರಿಯನ್ನು ಉಳಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 
   @override
+  String get invalidCredentials =>
+      'ಆ ಇಮೇಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಯಾವುದೇ ಖಾತೆಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.';
+
+  @override
+  String get networkUnavailable =>
+      'ಸರ್ವರ್ ತಲುಪಲಾಗುತ್ತಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ.';
+
+  @override
+  String get somethingWentWrong => 'ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get dateOfBirthInFuture => 'ಜನ್ಮ ದಿನಾಂಕ ಭವಿಷ್ಯದಲ್ಲಿ ಇರಲಾಗದು';
+
+  @override
+  String get dashboardLoadFailed =>
+      'ನಿಮ್ಮ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
+
+  @override
+  String get dashboardNoData =>
+      'ನೀವು ವ್ಯಾಯಾಮಗಳನ್ನು ಪ್ರಾರಂಭಿಸಿದ ನಂತರ ನಿಮ್ಮ ಪ್ರಗತಿ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.';
+
+  @override
   String get assessmentSaveFailed =>
       'ನಿಮ್ಮ ಉತ್ತರಗಳನ್ನು ಉಳಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 
@@ -964,4 +986,104 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get iciqOfferExercisesMessage =>
       'ನೀವು ಭೌತಿಕ ಚಟುವಟಿಕೆ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಮುಂದುವರಿಯಲು ಬಯಸುವಿರಾ?';
+
+  @override
+  String get maritalStatus => 'ವೈವಾಹಿಕ ಸ್ಥಿತಿ';
+
+  @override
+  String get maritalSingle => 'ಅವಿವಾಹಿತ';
+
+  @override
+  String get maritalMarried => 'ವಿವಾಹಿತ';
+
+  @override
+  String get maritalSeparated => 'ಬೇರ್ಪಟ್ಟಿದ್ದಾರೆ';
+
+  @override
+  String get maritalDivorced => 'ವಿಚ್ಛೇದಿತ';
+
+  @override
+  String get maritalWidowed => 'ವಿಧವೆ';
+
+  @override
+  String get haveChildren => 'ನಿಮಗೆ ಮಕ್ಕಳಿದ್ದಾರೆಯೇ?';
+
+  @override
+  String get deliveryTypeLabel => 'ಹೆರಿಗೆಯ ಪ್ರಕಾರ';
+
+  @override
+  String get deliveryVaginal => 'ಸಾಮಾನ್ಯ ಹೆರಿಗೆ';
+
+  @override
+  String get deliveryCaesarean => 'ಸಿಸೇರಿಯನ್ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ';
+
+  @override
+  String get deliveryAssisted => 'ಸಹಾಯದಿಂದ ಹೆರಿಗೆ';
+
+  @override
+  String get deliveryOther => 'ಇತರೆ';
+
+  @override
+  String get childrenAgesLabel => 'ಮಕ್ಕಳ ವಯಸ್ಸು';
+
+  @override
+  String get childrenAgesHint => 'ಉದಾಹರಣೆ: 3, 7';
+
+  @override
+  String childbirthPainLevel(Object level) {
+    return 'ಹೆರಿಗೆ ಸಂಬಂಧಿತ ನೋವಿನ ಮಟ್ಟ: $level / 10';
+  }
+
+  @override
+  String get heightCmOptional => 'ಎತ್ತರ (ಸೆಂ.ಮೀ) — ಐಚ್ಛಿಕ';
+
+  @override
+  String get weightKgOptional => 'ತೂಕ (ಕೆ.ಜಿ) — ಐಚ್ಛಿಕ';
+
+  @override
+  String get haveDiabetes => 'ನಿಮಗೆ ಮಧುಮೇಹ ಇದೆಯೇ?';
+
+  @override
+  String get haveHypertension => 'ನಿಮಗೆ ಅಧಿಕ ರಕ್ತದೊತ್ತಡ ಇದೆಯೇ?';
+
+  @override
+  String get genderNonBinary => 'ನಾನ್-ಬೈನರಿ';
+
+  @override
+  String get genderPreferNotToSay => 'ಹೇಳಲು ಬಯಸುವುದಿಲ್ಲ';
+
+  @override
+  String get sessionExpired =>
+      'ನಿಮ್ಮ ಅವಧಿ ಮುಗಿದಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.';
+
+  @override
+  String get dayLabel => 'ದಿನ';
+
+  @override
+  String get monthLabel => 'ತಿಂಗಳು';
+
+  @override
+  String get yearLabel => 'ವರ್ಷ';
+
+  @override
+  String get passwordMinEight => 'ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 8 ಅಕ್ಷರಗಳಿರಬೇಕು';
+
+  @override
+  String get passwordNeedsSpecial =>
+      'ಪಾಸ್‌ವರ್ಡ್‌ನಲ್ಲಿ ಕನಿಷ್ಠ ಒಂದು ವಿಶೇಷ ಅಕ್ಷರ ಇರಬೇಕು';
+
+  @override
+  String get emailAlreadyRegistered => 'ಈ ಇಮೇಲ್ ಈಗಾಗಲೇ ನೋಂದಾಯಿಸಲಾಗಿದೆ';
+
+  @override
+  String get language => 'ಭಾಷೆ';
+
+  @override
+  String get languageEnglish => 'ಇಂಗ್ಲಿಷ್';
+
+  @override
+  String get languageKannada => 'ಕನ್ನಡ';
+
+  @override
+  String get languageSystem => 'ಸಾಧನದ ಭಾಷೆ ಬಳಸಿ';
 }
