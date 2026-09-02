@@ -1,0 +1,201 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:telerehab_app/core/theme/glass_theme.dart';
+import 'package:telerehab_app/features/assessment/models/iciq_model.dart';
+import 'package:telerehab_app/features/assessment/notifiers/assessment_summary_notifier.dart';
+import 'package:telerehab_app/features/assessment/notifiers/ipaq_notifier.dart';
+import 'package:telerehab_app/features/dashboard/dashboard_notifier.dart';
+import 'package:telerehab_app/features/exercise/exercise_notifier.dart';
+
+void main() {
+  group('C5 — the ICIQ total matches the ICIQ-SF instrument', () {
+    test('the scale now reaches the published maximum of 21', () {
+      // Frequency 0-5, amount 0/2/4/6, interference 0-10.
+      const worst = ICIQModel(
+        leakFrequency: 5,
+        leakAmount: 6,
+        lifeInterference: 10,
+        whenLeaks: ['all the time'],
+      );
+      expect(worst.iciqScore, 21);
+      expect(worst.severityBand, 'severe');
+    });
+
+    test('an asymptomatic patient scores zero', () {
+      const none = ICIQModel(
+        leakFrequency: 0,
+        leakAmount: 0,
+        lifeInterference: 0,
+        whenLeaks: ['never'],
+      );
+      expect(none.iciqScore, 0);
+      expect(none.severityBand, 'mild');
+      expect(none.isComplete, isTrue);
+    });
+
+    test('the severity bands line up with the 0-21 range', () {
+      ICIQModel at(int amount, int interference) => ICIQModel(
+        leakFrequency: 1,
+        leakAmount: amount,
+        lifeInterference: interference,
+        whenLeaks: const ['x'],
+      );
+      expect(at(2, 4).iciqScore, 7);
+      expect(at(2, 4).severityBand, 'mild');
+      expect(at(2, 5).severityBand, 'moderate');
+      expect(at(4, 9).iciqScore, 14);
+      expect(at(4, 9).severityBand, 'moderate');
+      expect(at(4, 10).severityBand, 'severe');
+    });
+  });
+
+  group('C4 — a sedentary patient can complete the IPAQ', () {
+    test('zero days counts as an answer', () {
+      final notifier = IpaqNotifier();
+      expect(notifier.isAnswered(IpaqQuestion.vigorous), isFalse);
+
+      notifier.updateVigorous(days: 0);
+
+      expect(
+        notifier.isAnswered(IpaqQuestion.vigorous),
+        isTrue,
+        reason: 'no vigorous activity is a real response, not a missing one',
+      );
+      expect(notifier.model.vigorousDays, 0);
+    });
+
+    test('every question tracks its own answered state', () {
+      final notifier = IpaqNotifier();
+      notifier.updateSitting(hours: 0, mins: 0);
+      notifier.updateWalking(days: 0);
+
+      expect(notifier.isAnswered(IpaqQuestion.sitting), isTrue);
+      expect(notifier.isAnswered(IpaqQuestion.walking), isTrue);
+      expect(notifier.isAnswered(IpaqQuestion.moderate), isFalse);
+      expect(notifier.isAnswered(IpaqQuestion.vigorous), isFalse);
+    });
+
+    test('reset clears the answered questions', () {
+      final notifier = IpaqNotifier();
+      notifier.updateWalking(days: 0);
+      notifier.reset();
+      expect(notifier.isAnswered(IpaqQuestion.walking), isFalse);
+    });
+  });
+
+  group('C3 — a valid zero is not treated as unanswered', () {
+    Widget slider({required int value, required bool isAnswered}) => MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          height: 400,
+          child: GlassLabeledSlider(
+            title: 'How often do you leak urine?',
+            value: value,
+            min: 0,
+            max: 5,
+            showError: true,
+            isAnswered: isAnswered,
+            errorMessage: 'Please answer all questions',
+            currentLabel: '0',
+            minLabel: 'Never',
+            maxLabel: 'All the time',
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('selecting "Never" shows no error', (tester) async {
+      await tester.pumpWidget(slider(value: 0, isAnswered: true));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Please answer all questions'),
+        findsNothing,
+        reason: '0 is the lowest valid answer, not a missing one',
+      );
+    });
+
+    testWidgets('a genuinely unanswered question still shows the error', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        slider(value: ICIQModel.unanswered, isAnswered: false),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Please answer all questions'), findsOneWidget);
+    });
+  });
+
+  group('B2/C6 — saving reports what happened', () {
+    test('an incomplete ICIQ is refused rather than stored as zeros', () async {
+      final notifier = AssessmentSummaryNotifier();
+
+      // Answers used to be clamped with `< 0 ? 0 :` on the way out, storing an
+      // unanswered question as the mildest possible response.
+      const partial = ICIQModel(leakFrequency: 3);
+      expect(partial.isComplete, isFalse);
+
+      expect(
+        await notifier.saveIciq(partial),
+        AssessmentSaveResult.incomplete,
+      );
+      expect(
+        notifier.iciq,
+        isNull,
+        reason: 'a refused save must not mark the questionnaire as done',
+      );
+    });
+  });
+
+  group('E2 — the protocol is measured in days', () {
+    test('a completed week alone does not open the I-QOL', () {
+      final notifier = ExerciseNotifier()
+        ..loadWeek(1)
+        ..protocolStartDate = DateTime.now();
+
+      expect(
+        notifier.daysSinceProtocolStart,
+        lessThan(ExerciseNotifier.protocolDurationDays),
+      );
+      expect(
+        notifier.isIqolAvailable,
+        isFalse,
+        reason: '35 sessions tapped through in minutes is not a week',
+      );
+    });
+
+    test('seven elapsed days without a completed week is not enough either', () {
+      final notifier = ExerciseNotifier()
+        ..loadWeek(1)
+        ..protocolStartDate = DateTime.now().subtract(const Duration(days: 30));
+
+      expect(notifier.isIqolAvailable, isFalse);
+    });
+  });
+
+  group('E3 — adherence is averaged over the weeks reached', () {
+    test('a perfect first week reads as 100%, not 13%', () {
+      final weekly = <double>[100, 0, 0, 0, 0, 0, 0, 0];
+      expect(averageAdherence(weekly, 1), 100.0);
+      expect(
+        weekly.reduce((a, b) => a + b) / 8,
+        12.5,
+        reason: 'what the old calculation produced',
+      );
+    });
+
+    test('later weeks average only what has been reached', () {
+      expect(averageAdherence(<double>[100, 50, 0, 0, 0, 0, 0, 0], 2), 75.0);
+      expect(averageAdherence(<double>[90, 60, 30, 0, 0, 0, 0, 0], 3), 60.0);
+    });
+
+    test('a finished protocol still averages all eight weeks', () {
+      expect(averageAdherence(List<double>.filled(8, 80), 8), 80.0);
+    });
+
+    test('degenerate inputs do not divide by zero', () {
+      expect(averageAdherence([], 3), 0);
+      expect(averageAdherence(<double>[50], 0), 50.0);
+    });
+  });
+}
