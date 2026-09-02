@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^2.0.0
+  # Asset-only: ships the Cupertino icon font. Nothing imports it, so an
+  # import grep says it is unused, but the icon tree-shaker still expects it.
+  cupertino_icons: ^1.0.8
   flutter_localizations:
     sdk: flutter
 
