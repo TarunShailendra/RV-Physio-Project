@@ -119,9 +119,9 @@ class IQOLModel {
 
   /// Rebuilds the questionnaire from a row of `public.iqol_results`.
   ///
-  /// `iqol_score` is not stored (it is dropped from the insert payload in
-  /// AssessmentSummaryNotifier.saveIqol), but it does not need to be — [score]
-  /// is derived from the items restored here.
+  /// `iqol_score` is a generated column: Postgres derives it and rejects any
+  /// insert that supplies one, so saveIqol omits it. It is not read back
+  /// either — [score] is derived from the items restored here.
   factory IQOLModel.fromSupabaseRow(Map<String, dynamic> row) {
     return IQOLModel(
       items: [for (final column in itemColumns) asInt(row[column]) ?? 0],
