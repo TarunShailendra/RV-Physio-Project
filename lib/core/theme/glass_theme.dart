@@ -308,6 +308,12 @@ class GlassLabeledSlider extends StatelessWidget {
         max: max.toDouble(),
         divisions: _divisions == 0 ? 1 : _divisions,
         value: displayValue,
+        // Commit on tap-down as well as on drag. A Slider fires onChanged only
+        // when the value actually moves, so without this the value the thumb
+        // rests at while a question is unanswered — the minimum — could never
+        // be chosen: tapping it does nothing, and the patient has to drag away
+        // and back. That makes the lowest option on each scale unreachable.
+        onChangeStart: (v) => onChanged(v.round()),
         onChanged: (v) => onChanged(v.round()),
       ),
     );

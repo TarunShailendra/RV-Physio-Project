@@ -2,21 +2,38 @@ import '../../../core/utils/supabase_row.dart';
 
 class ICIQModel {
   const ICIQModel({
-    this.leakFrequency = -1,
-    this.leakAmount = 1,
-    this.lifeInterference = -1,
+    this.leakFrequency = unanswered,
+    this.leakAmount = unanswered,
+    this.lifeInterference = unanswered,
     this.whenLeaks = const [],
     this.dob,
     this.gender,
   });
 
-  // -1 = not yet answered by the user; valid scale answers start at 0
+  /// Marks a question the patient has not answered yet. Valid scale answers
+  /// start at 0, so this cannot collide with a real response.
+  ///
+  /// leakAmount used to default to 1 instead, which meant "has this been
+  /// answered?" was always true for it: the question could be tapped straight
+  /// past and was then recorded as "1 - none".
+  static const int unanswered = -1;
+
   final int leakFrequency;
   final int leakAmount;
   final int lifeInterference;
   final List<String> whenLeaks;
   final DateTime? dob;
   final String? gender;
+
+  bool get hasLeakFrequency => leakFrequency != unanswered;
+  bool get hasLeakAmount => leakAmount != unanswered;
+  bool get hasLifeInterference => lifeInterference != unanswered;
+  bool get hasWhenLeaks => whenLeaks.isNotEmpty;
+
+  /// Every required question has a response. The questionnaire should not be
+  /// scored or saved before this holds.
+  bool get isComplete =>
+      hasLeakFrequency && hasLeakAmount && hasLifeInterference && hasWhenLeaks;
 
   int get iciqScore {
     final lf = leakFrequency < 0 ? 0 : leakFrequency;
@@ -68,18 +85,18 @@ class ICIQModel {
   /// the camelCase shape produced by [toJson].
   factory ICIQModel.fromSupabaseRow(Map<String, dynamic> row) {
     return ICIQModel(
-      leakFrequency: asInt(row['leak_frequency']) ?? -1,
-      leakAmount: asInt(row['leak_amount']) ?? -1,
-      lifeInterference: asInt(row['life_interference']) ?? -1,
+      leakFrequency: asInt(row['leak_frequency']) ?? unanswered,
+      leakAmount: asInt(row['leak_amount']) ?? unanswered,
+      lifeInterference: asInt(row['life_interference']) ?? unanswered,
       whenLeaks: asStringList(row['when_leaks']),
     );
   }
 
   factory ICIQModel.fromJson(Map<String, dynamic> json) {
     return ICIQModel(
-      leakFrequency: json['leakFrequency'] as int? ?? -1,
-      leakAmount: json['leakAmount'] as int? ?? -1,
-      lifeInterference: json['lifeInterference'] as int? ?? -1,
+      leakFrequency: json['leakFrequency'] as int? ?? unanswered,
+      leakAmount: json['leakAmount'] as int? ?? unanswered,
+      lifeInterference: json['lifeInterference'] as int? ?? unanswered,
       whenLeaks: List<String>.from(json['whenLeaks'] as List? ?? const []),
       dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
       gender: json['gender'] as String?,

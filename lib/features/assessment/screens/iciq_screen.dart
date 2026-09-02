@@ -21,15 +21,18 @@ class _IciqScreenState extends State<IciqScreen> {
   bool _triedToAdvance = false;
 
   bool _isCurrentStepAnswered(IciqNotifier notifier) {
+    // Delegated to the model so the "answered" rule lives with the sentinel it
+    // depends on, rather than being restated here against a literal -1.
+    final model = notifier.model;
     switch (_step) {
       case 0:
-        return notifier.model.leakFrequency != -1;
+        return model.hasLeakFrequency;
       case 1:
-        return notifier.model.leakAmount != -1;
+        return model.hasLeakAmount;
       case 2:
-        return notifier.model.lifeInterference != -1;
+        return model.hasLifeInterference;
       case 3:
-        return notifier.model.whenLeaks.isNotEmpty;
+        return model.hasWhenLeaks;
       default:
         return true;
     }
@@ -322,9 +325,9 @@ class _InterferenceStep extends StatelessWidget {
         showError: showError,
         isRequired: true,
         errorMessage: 'Please answer all questions',
-        currentLabel: notifier.model.lifeInterference == -1
-            ? ''
-            : '${notifier.model.lifeInterference}',
+        currentLabel: notifier.model.hasLifeInterference
+            ? '${notifier.model.lifeInterference}'
+            : '',
         minLabel: l10n.notAtAll,
         maxLabel: l10n.aGreatDeal,
         onChanged: (value) => notifier.setLifeInterference(value),
