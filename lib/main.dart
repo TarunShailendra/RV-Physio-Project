@@ -49,6 +49,11 @@ void main() async {
     ],
   );
 
+  // Adopt any session Supabase restored from storage, so a returning patient
+  // is signed in before the first frame rather than being told their session
+  // expired.
+  await authNotifier.initialize();
+
   runApp(AppProviders(
     authNotifier: authNotifier,
     profileNotifier: profileNotifier,

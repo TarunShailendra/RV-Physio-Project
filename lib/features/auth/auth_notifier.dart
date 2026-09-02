@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,12 +20,61 @@ class AuthNotifier extends ChangeNotifier {
   /// this has to be kept in step.
   final List<VoidCallback> _onSessionEnded;
 
+  StreamSubscription<AuthState>? _authSubscription;
+
   SupabaseClient get _supabase => Supabase.instance.client;
 
   String? token;
   UserModel? currentUser;
   bool isLoading = false;
   String? errorMessage;
+
+  /// Adopts a session that Supabase restored from storage, and keeps
+  /// [currentUser] in step with sign-in and sign-out from then on.
+  ///
+  /// Call once, after `Supabase.initialize()`. This is deliberately not done in
+  /// the constructor: touching `Supabase.instance` there would make the class
+  /// impossible to build before Supabase is initialised, which is the defect
+  /// that currently makes AssessmentSummaryNotifier untestable.
+  Future<void> initialize() async {
+    _authSubscription ??= _supabase.auth.onAuthStateChange.listen(
+      _handleAuthStateChange,
+    );
+
+    final user = _supabase.auth.currentUser;
+    if (user != null && currentUser == null) {
+      currentUser = await _buildUserFromProfile(user);
+      notifyListeners();
+    }
+  }
+
+  void _handleAuthStateChange(AuthState state) {
+    switch (state.event) {
+      case AuthChangeEvent.signedOut:
+        _clearSession();
+        break;
+      case AuthChangeEvent.signedIn:
+      case AuthChangeEvent.userUpdated:
+        final user = state.session?.user;
+        if (user != null) {
+          unawaited(_refreshCurrentUser(user));
+        }
+        break;
+      // initialSession is covered by initialize(), so that startup is
+      // deterministic rather than dependent on stream timing. tokenRefreshed
+      // and passwordRecovery do not change who is signed in.
+      default:
+        break;
+    }
+  }
+
+  Future<void> _refreshCurrentUser(User user) async {
+    final refreshed = await _buildUserFromProfile(user);
+    // The session can end while the profile is loading.
+    if (_supabase.auth.currentUser == null) return;
+    currentUser = refreshed;
+    notifyListeners();
+  }
 
   /// Ends the session on this device and clears every trace of the patient.
   Future<void> signOut() async {
@@ -66,24 +117,9 @@ class AuthNotifier extends ChangeNotifier {
       );
       final user = response.user;
       if (user != null) {
-        final profileRow = await _supabase
-            .from('profiles')
-            .select('full_name, city, date_of_birth, phone, email')
-            .eq('id', user.id)
-            .maybeSingle();
-
-        final fullName = profileRow?['full_name']?.toString().trim() ?? '';
-        final city = profileRow?['city']?.toString().trim() ?? '';
-        final isProfileComplete = fullName.isNotEmpty && city.isNotEmpty;
-
-        currentUser = UserModel(
-          id: user.id,
-          name: fullName.isNotEmpty ? fullName : user.email ?? email.trim(),
-          email: profileRow?['email']?.toString() ?? user.email ?? email.trim(),
-          phone: profileRow?['phone']?.toString() ?? '',
-          age: 0,
-          dateOfBirth: _parseDate(profileRow?['date_of_birth']),
-          isProfileComplete: isProfileComplete,
+        currentUser = await _buildUserFromProfile(
+          user,
+          fallbackEmail: email.trim(),
         );
 
         // Update assessment completion status from Supabase for this user
@@ -158,6 +194,42 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  /// Builds the in-memory user from the auth record plus the patient's
+  /// profile row. Shared by sign-in and by session restore so both produce
+  /// the same [UserModel] for the same account.
+  Future<UserModel> _buildUserFromProfile(
+    User user, {
+    String? fallbackEmail,
+  }) async {
+    Map<String, dynamic>? profileRow;
+    try {
+      profileRow = await _supabase
+          .from('profiles')
+          .select('full_name, city, date_of_birth, phone, email')
+          .eq('id', user.id)
+          .maybeSingle();
+    } catch (e) {
+      // A readable session with an unreadable profile is still a signed-in
+      // patient — fall back to the auth record rather than reporting no user.
+      debugPrint('profile lookup failed during session restore: $e');
+    }
+
+    final fullName = profileRow?['full_name']?.toString().trim() ?? '';
+    final city = profileRow?['city']?.toString().trim() ?? '';
+    final resolvedEmail =
+        profileRow?['email']?.toString() ?? user.email ?? fallbackEmail ?? '';
+
+    return UserModel(
+      id: user.id,
+      name: fullName.isNotEmpty ? fullName : resolvedEmail,
+      email: resolvedEmail,
+      phone: profileRow?['phone']?.toString() ?? '',
+      age: 0,
+      dateOfBirth: _parseDate(profileRow?['date_of_birth']),
+      isProfileComplete: fullName.isNotEmpty && city.isNotEmpty,
+    );
+  }
+
   DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
     if (value is DateTime) return value;
@@ -165,5 +237,11 @@ class AuthNotifier extends ChangeNotifier {
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }
