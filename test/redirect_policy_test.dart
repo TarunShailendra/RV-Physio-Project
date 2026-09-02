@@ -16,6 +16,7 @@ void main() {
       resolveRedirect(
         path: path,
         isSignedIn: isSignedIn,
+        hasCompletedProfile: true,
         hasIciq: true,
         hasIpaq: true,
         hasIqol: true,
@@ -88,6 +89,54 @@ void main() {
     });
   });
 
+  group('details are collected before the questionnaires', () {
+    String? forPath(String path, {required bool hasCompletedProfile}) =>
+        resolveRedirect(
+          path: path,
+          isSignedIn: true,
+          hasCompletedProfile: hasCompletedProfile,
+          hasIciq: false,
+          hasIpaq: false,
+          hasIqol: false,
+          isIqolAvailable: false,
+        );
+
+    test('a patient who has just signed up is sent to profile setup', () {
+      // Signup and login each navigated here themselves, but the guard moves
+      // a patient off the auth screen the instant sign-in completes, so that
+      // navigation never ran and profile setup was unreachable.
+      expect(forPath('/dashboard', hasCompletedProfile: false),
+          profileSetupRoute);
+      expect(forPath('/iciq', hasCompletedProfile: false), profileSetupRoute);
+      expect(forPath('/exercise', hasCompletedProfile: false),
+          profileSetupRoute);
+    });
+
+    test('profile setup itself is reachable, so the chain settles', () {
+      expect(forPath(profileSetupRoute, hasCompletedProfile: false), isNull);
+    });
+
+    test('once the details are in, the assessment sequence takes over', () {
+      expect(forPath('/dashboard', hasCompletedProfile: true), '/iciq');
+    });
+
+    test('a signed-out visitor is still stopped first', () {
+      expect(
+        resolveRedirect(
+          path: '/dashboard',
+          isSignedIn: false,
+          hasCompletedProfile: false,
+          hasIciq: false,
+          hasIpaq: false,
+          hasIqol: false,
+          isIqolAvailable: false,
+        ),
+        signedOutLanding,
+        reason: 'authentication comes before profile completeness',
+      );
+    });
+  });
+
   group('assessment sequence, for signed-in patients', () {
     String? redirect(
       String path, {
@@ -98,6 +147,7 @@ void main() {
     }) => resolveRedirect(
       path: path,
       isSignedIn: true,
+      hasCompletedProfile: true,
       hasIciq: hasIciq,
       hasIpaq: hasIpaq,
       hasIqol: hasIqol,
@@ -179,6 +229,7 @@ void main() {
             final next = resolveRedirect(
               path: path,
               isSignedIn: signedIn,
+              hasCompletedProfile: false,
               hasIciq: false,
               hasIpaq: false,
               hasIqol: false,

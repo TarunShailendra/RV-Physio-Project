@@ -84,6 +84,8 @@ GoRouter createAppRouter(
       return resolveRedirect(
         path: path,
         isSignedIn: authNotifier.currentUser != null,
+        hasCompletedProfile:
+            authNotifier.currentUser?.isProfileComplete ?? false,
         hasIciq: summaryNotifier.iciq != null,
         hasIpaq: summaryNotifier.ipaq != null,
         hasIqol: summaryNotifier.iqol != null,

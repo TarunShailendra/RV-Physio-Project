@@ -27,8 +27,11 @@ const Set<String> assessmentExemptRoutes = {
 const String signedOutLanding = '/login';
 
 /// Where a signed-in patient is sent when they land on an auth screen. The
-/// assessment rules below then place them at the right step.
+/// rules below then place them at the right step.
 const String signedInLanding = '/dashboard';
+
+/// Where a patient completes their details, before any questionnaire.
+const String profileSetupRoute = '/profile-setup';
 
 /// Returns the path to redirect to, or null to allow [path].
 ///
@@ -37,6 +40,7 @@ const String signedInLanding = '/dashboard';
 String? resolveRedirect({
   required String path,
   required bool isSignedIn,
+  required bool hasCompletedProfile,
   required bool hasIciq,
   required bool hasIpaq,
   required bool hasIqol,
@@ -50,7 +54,18 @@ String? resolveRedirect({
   // 2. A signed-in patient has no reason to sit on login or signup.
   if (publicRoutes.contains(path)) return signedInLanding;
 
-  // 3. Assessment sequence, unchanged in behaviour for signed-in patients.
+  // 3. Details before questionnaires.
+  //
+  // This has to live here rather than in the screens. The login and signup
+  // screens each navigated to profile setup themselves, but rule 2 combined
+  // with the router's refreshListenable moves a patient off the auth screen
+  // the instant sign-in completes — before that navigation runs — so the
+  // screen was unmounted and profile setup was never reached.
+  if (!hasCompletedProfile) {
+    return path == profileSetupRoute ? null : profileSetupRoute;
+  }
+
+  // 4. Assessment sequence, unchanged in behaviour for signed-in patients.
   if (assessmentExemptRoutes.contains(path)) return null;
 
   if (!hasIciq) return '/iciq';

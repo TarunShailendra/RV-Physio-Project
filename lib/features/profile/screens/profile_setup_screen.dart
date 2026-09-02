@@ -487,6 +487,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final profileNotifier = context.read<ProfileNotifier>();
     await profileNotifier.saveProfile(profile);
 
+    // Refresh before navigating, so the guard sees the completed profile.
+    await context.read<AuthNotifier>().refreshProfile();
+
     if (mounted) {
       if (profileNotifier.errorMessage != null) {
         ScaffoldMessenger.of(

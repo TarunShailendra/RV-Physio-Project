@@ -116,6 +116,15 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  /// Re-reads the patient's profile, so isProfileComplete reflects a save
+  /// that just happened. Without this the route guard sends them back to the
+  /// form they have only now finished.
+  Future<void> refreshProfile() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    await _refreshCurrentUser(user);
+  }
+
   Future<void> _refreshCurrentUser(User user) async {
     final refreshed = await _buildUserFromProfile(user);
     // The session can end while the profile is loading.
