@@ -4,6 +4,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../assessment/notifiers/assessment_summary_notifier.dart';
 import 'models/dashboard_model.dart';
 
+/// Mean adherence across the weeks the patient has actually reached.
+///
+/// This used to divide by all eight weeks regardless of progress, so a patient
+/// in week 1 with perfect adherence was shown 13% — the most demotivating
+/// number the app could put in front of them.
+double averageAdherence(List<double> weekly, int currentWeek) {
+  if (weekly.isEmpty) return 0;
+  final weeksReached = currentWeek.clamp(1, weekly.length);
+  final reached = weekly.take(weeksReached);
+  return reached.reduce((a, b) => a + b) / weeksReached;
+}
+
 class DashboardNotifier extends ChangeNotifier {
   DashboardNotifier();
 
@@ -56,8 +68,10 @@ class DashboardNotifier extends ChangeNotifier {
             .map((r) => r['day_number'] as int)
             .toSet()
             .length;
-        weeklyAdherence[weekIndex] =
-            ((distinctDays / daysPerWeek) * 100).clamp(0.0, 100.0);
+        weeklyAdherence[weekIndex] = ((distinctDays / daysPerWeek) * 100).clamp(
+          0.0,
+          100.0,
+        );
       }
 
       // Current week = highest week with any activity, or 1
@@ -78,9 +92,7 @@ class DashboardNotifier extends ChangeNotifier {
           .toSet()
           .length;
 
-      // Overall adherence = average across all 8 weeks
-      final double adherence =
-          weeklyAdherence.reduce((a, b) => a + b) / 8.0; // already 0–100
+      final double adherence = averageAdherence(weeklyAdherence, currentWeek);
 
       data = DashboardModel(
         currentWeek: currentWeek,

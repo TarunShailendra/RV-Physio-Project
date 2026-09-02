@@ -52,13 +52,22 @@ final Map<String, WidgetBuilder> appRouteBuilders = {
 /// dependable source for who is signed in, and so the router can refresh on
 /// sign-in and sign-out.
 ///
-/// Only the auth notifier drives [GoRouter.refreshListenable]. Merging the
-/// assessment and exercise notifiers in would also re-run the guard on every
-/// tick of the exercise countdown, which notifies once a second.
-GoRouter createAppRouter(AuthNotifier authNotifier) {
+/// The guard re-runs on sign-in and sign-out, on assessment completion, and
+/// when the protocol changes shape. It listens to [ExerciseNotifier.protocolRevision]
+/// rather than the notifier itself, which also notifies once a second while
+/// the exercise countdown is running.
+GoRouter createAppRouter(
+  AuthNotifier authNotifier,
+  AssessmentSummaryNotifier summaryNotifier,
+  ExerciseNotifier exerciseNotifier,
+) {
   return GoRouter(
     initialLocation: '/login',
-    refreshListenable: authNotifier,
+    refreshListenable: Listenable.merge([
+      authNotifier,
+      summaryNotifier,
+      exerciseNotifier.protocolRevision,
+    ]),
     routes: [
       for (final entry in appRouteBuilders.entries)
         GoRoute(
@@ -71,31 +80,13 @@ GoRouter createAppRouter(AuthNotifier authNotifier) {
       // a known route fail to match and fall through the guard.
       final path = state.uri.path;
 
-      var hasIciq = false;
-      var hasIpaq = false;
-      var hasIqol = false;
-      var isIqolAvailable = false;
-
-      try {
-        final summary = context.read<AssessmentSummaryNotifier>();
-        final exercise = context.read<ExerciseNotifier>();
-        hasIciq = summary.iciq != null;
-        hasIpaq = summary.ipaq != null;
-        hasIqol = summary.iqol != null;
-        isIqolAvailable = exercise.isIqolAvailable;
-      } catch (e) {
-        // Providers not ready yet. The authentication gate below does not
-        // depend on them, so an unauthenticated visitor is still stopped.
-        debugPrint('router redirect: assessment providers unavailable ($e)');
-      }
-
       return resolveRedirect(
         path: path,
         isSignedIn: authNotifier.currentUser != null,
-        hasIciq: hasIciq,
-        hasIpaq: hasIpaq,
-        hasIqol: hasIqol,
-        isIqolAvailable: isIqolAvailable,
+        hasIciq: summaryNotifier.iciq != null,
+        hasIpaq: summaryNotifier.ipaq != null,
+        hasIqol: summaryNotifier.iqol != null,
+        isIqolAvailable: exerciseNotifier.isIqolAvailable,
       );
     },
   );
@@ -111,7 +102,11 @@ class TelerehabApp extends StatefulWidget {
 class _TelerehabAppState extends State<TelerehabApp> {
   // Built once: a GoRouter recreated on rebuild would reset the navigation
   // stack. Read lazily so the constructor stays const-friendly.
-  late final GoRouter _router = createAppRouter(context.read<AuthNotifier>());
+  late final GoRouter _router = createAppRouter(
+    context.read<AuthNotifier>(),
+    context.read<AssessmentSummaryNotifier>(),
+    context.read<ExerciseNotifier>(),
+  );
 
   @override
   Widget build(BuildContext context) {
