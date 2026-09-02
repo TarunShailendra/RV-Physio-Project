@@ -104,7 +104,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (p == null) return;
 
     setState(() {
-      _isEditing = true;
+      // A row alone does not mean the patient has filled this in: signup
+      // creates a stub holding only name, phone and email. Treat it as an
+      // edit only once the form has actually been completed, otherwise a new
+      // patient is sent to their profile instead of on to the assessment.
+      _isEditing = p.city.trim().isNotEmpty;
       _cityController.text = p.city;
       _occupationController.text = p.occupation;
       _symptomDurationController.text = p.symptomDurationMonths.toString();
