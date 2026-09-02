@@ -91,8 +91,19 @@ A Flutter-based telerehabilitation platform designed to support pelvic floor and
 
 5. **Run the application**
    ```bash
-   flutter run --dart-define-from-file=supabase.env.json
+   ./run.sh          # macOS / Linux, defaults to Chrome
+   .un.ps1         # Windows PowerShell
    ```
+   Any extra arguments pass straight through, so `./run.sh -d windows` works.
+
+   These wrappers exist because the credentials must be supplied at build
+   time. A bare `flutter run` starts without them and `main.dart` throws
+   `Bad state: Missing Supabase credentials` — the same trap catches everyone
+   once. To run Flutter directly, pass the flag yourself:
+   ```bash
+   flutter run -d chrome --dart-define-from-file=supabase.env.json
+   ```
+   VS Code users can also press F5; `.vscode/launch.json` passes the flag.
 
 6. **Run the tests**
    ```bash
