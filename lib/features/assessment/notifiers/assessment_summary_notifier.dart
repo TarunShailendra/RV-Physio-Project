@@ -111,59 +111,92 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
     }
   }
 
+  /// Restores each questionnaire's most recent submission from Supabase.
+  ///
+  /// A questionnaire with no stored row is reset to null rather than left as
+  /// it was, so this is authoritative: signing in as a different patient
+  /// cannot leave the previous one's results in memory.
+  ///
+  /// Each questionnaire is loaded in its own try/catch so that one unreadable
+  /// table does not discard the other two. On failure the in-memory value is
+  /// left untouched, so a transient network error does not wipe results that
+  /// were already loaded.
   Future<void> checkCompletedAssessments() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+
     try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      bool changed = false;
-
-      final iciqRow = await _client
-          .from('iciq_results')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1)
-          .maybeSingle();
-
-      if (iciqRow != null) {
-        // mark as completed with safe default values
-        iciq = const ICIQModel(
-          leakFrequency: 0,
-          leakAmount: 0,
-          lifeInterference: 0,
-        );
-        changed = true;
-      }
-
-      final ipaqRow = await _client
-          .from('ipaq_results')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1)
-          .maybeSingle();
-
-      if (ipaqRow != null) {
-        ipaq = const IPAQModel();
-        changed = true;
-      }
-
-      final iqolRow = await _client
-          .from('iqol_results')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1)
-          .maybeSingle();
-
-      if (iqolRow != null) {
-        // items filled with 1 mark the IQOL as complete (isComplete checks for 1..5)
-        iqol = IQOLModel(items: List<int>.filled(22, 1));
-        changed = true;
-      }
-
-      if (changed) notifyListeners();
+      iciq = await _fetchIciq(userId);
     } catch (e) {
-      debugPrint('checkCompletedAssessments error: $e');
+      debugPrint('ICIQ restore failed: $e');
     }
+
+    try {
+      ipaq = await _fetchIpaq(userId);
+    } catch (e) {
+      debugPrint('IPAQ restore failed: $e');
+    }
+
+    try {
+      iqol = await _fetchIqol(userId);
+    } catch (e) {
+      debugPrint('IQOL restore failed: $e');
+    }
+
+    notifyListeners();
+  }
+
+  // Assessments are inserted rather than upserted, so a patient who retakes
+  // one has several rows. Newest wins.
+  Future<ICIQModel?> _fetchIciq(String userId) async {
+    final row = await _client
+        .from('iciq_results')
+        .select('leak_frequency, leak_amount, life_interference, when_leaks')
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    return row == null ? null : ICIQModel.fromSupabaseRow(row);
+  }
+
+  Future<IPAQModel?> _fetchIpaq(String userId) async {
+    final row = await _client
+        .from('ipaq_results')
+        .select(
+          'sitting_hours, sitting_mins, '
+          'walk_days, walk_hours, walk_mins, '
+          'moderate_days, moderate_hours, moderate_mins, '
+          'vigorous_days, vigorous_hours, vigorous_mins',
+        )
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    return row == null ? null : IPAQModel.fromSupabaseRow(row);
+  }
+
+  Future<IQOLModel?> _fetchIqol(String userId) async {
+    final columns = [
+      ...IQOLModel.itemColumns,
+      'duration_years',
+      'duration_months',
+      'severity',
+      'stress_leak',
+      'urge_leak',
+      'freq_code',
+    ].join(', ');
+
+    final row = await _client
+        .from('iqol_results')
+        .select(columns)
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    return row == null ? null : IQOLModel.fromSupabaseRow(row);
   }
 
   void reset() {

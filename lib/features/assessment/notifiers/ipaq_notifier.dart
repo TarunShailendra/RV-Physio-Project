@@ -35,33 +35,12 @@ class IpaqNotifier extends ChangeNotifier {
   }
 
   IPAQActivityLevel computeActivityLevel() {
-    final level = _classifyActivity();
+    // Classification lives on IPAQModel so that a questionnaire restored from
+    // Supabase is scored by exactly the same rules as one filled in here.
+    final level = model.computedActivityLevel;
     model = model.copyWith(activityLevel: level);
     notifyListeners();
     return level;
-  }
-
-  IPAQActivityLevel _classifyActivity() {
-    final activeDays = model.walkDays + model.moderateDays + model.vigorousDays;
-    if (model.vigorousDays >= 3 && model.totalMetMinutes >= 1500) {
-      return IPAQActivityLevel.high;
-    }
-    if (activeDays >= 7 && model.totalMetMinutes >= 3000) {
-      return IPAQActivityLevel.high;
-    }
-    if (model.vigorousDays >= 3 && model.totalVigorousMins >= 20) {
-      return IPAQActivityLevel.moderate;
-    }
-    if (model.moderateDays >= 5 && model.totalModerateMins >= 30) {
-      return IPAQActivityLevel.moderate;
-    }
-    if (model.walkDays >= 5 && model.totalWalkMins >= 30) {
-      return IPAQActivityLevel.moderate;
-    }
-    if (activeDays >= 5 && model.totalMetMinutes >= 600) {
-      return IPAQActivityLevel.moderate;
-    }
-    return IPAQActivityLevel.low;
   }
 
   Future<IPAQModel> submit() async {

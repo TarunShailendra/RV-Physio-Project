@@ -1,3 +1,5 @@
+import '../../../core/utils/supabase_row.dart';
+
 class ICIQModel {
   const ICIQModel({
     this.leakFrequency = -1,
@@ -58,6 +60,19 @@ class ICIQModel {
       'gender': gender,
       'iciqScore': iciqScore,
     };
+  }
+
+  /// Rebuilds the questionnaire from a row of `public.iciq_results`.
+  ///
+  /// Column names are snake_case here, unlike [ICIQModel.fromJson], which reads
+  /// the camelCase shape produced by [toJson].
+  factory ICIQModel.fromSupabaseRow(Map<String, dynamic> row) {
+    return ICIQModel(
+      leakFrequency: asInt(row['leak_frequency']) ?? -1,
+      leakAmount: asInt(row['leak_amount']) ?? -1,
+      lifeInterference: asInt(row['life_interference']) ?? -1,
+      whenLeaks: asStringList(row['when_leaks']),
+    );
   }
 
   factory ICIQModel.fromJson(Map<String, dynamic> json) {
