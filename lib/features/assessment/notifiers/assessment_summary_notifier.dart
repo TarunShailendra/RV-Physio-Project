@@ -98,6 +98,9 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
         'stress_leak': value.stressLeak,
         'urge_leak': value.urgeLeak,
         'freq_code': value.freqCode,
+        // Derivable from the items, but stored so outcome queries do not have
+        // to reimplement the scoring.
+        'iqol_score': value.score,
       });
     } catch (e) {
       debugPrint('IQOL save error: $e');
@@ -127,6 +130,10 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
         'vigorous_days': value.vigorousDays,
         'vigorous_hours': value.vigorousHours,
         'vigorous_mins': value.vigorousMins,
+        // Recomputed rather than read from the model, so a stale field cannot
+        // be stored. The classification is a twenty-line rule worth keeping
+        // next to the answers it came from.
+        'activity_level': value.computedActivityLevel.name,
       });
     } catch (e) {
       debugPrint('IPAQ save error: $e');

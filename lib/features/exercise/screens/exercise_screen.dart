@@ -22,10 +22,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
+        final exercise = context.read<ExerciseNotifier>();
+        // Only place the patient if no week is open. This ran unconditionally,
+        // so navigating to the dashboard and back always jumped to the highest
+        // unlocked week and discarded their position.
+        if (exercise.currentPlan != null) return;
         final summary = context.read<AssessmentSummaryNotifier>();
-        context.read<ExerciseNotifier>().loadRecommendedWeek(
-          summary.recommendedStartWeek,
-        );
+        exercise.loadRecommendedWeek(summary.recommendedStartWeek);
       } catch (e) {
         debugPrint('Exercise init error: $e');
       }
@@ -248,12 +251,32 @@ class _ExerciseContent extends StatelessWidget {
                 border: Border.all(color: AppTheme.primaryColor, width: 10),
               ),
               alignment: Alignment.center,
-              child: Text(
-                _formatSeconds(notifier.timerSecondsRemaining, l10n),
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _phaseLabel(notifier.phase, l10n),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  // Only this rebuilds on each tick.
+                  ValueListenableBuilder<int>(
+                    valueListenable: notifier.secondsRemaining,
+                    builder: (context, seconds, _) => Text(
+                      _formatSeconds(seconds, l10n),
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (notifier.currentRep > 0)
+                    Text(
+                      '${notifier.currentRep} / ${currentSession.reps}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
               ),
             ),
           ),
@@ -298,6 +321,14 @@ class _ExerciseContent extends StatelessWidget {
       ),
     );
   }
+
+  String _phaseLabel(ExercisePhase phase, AppLocalizations l10n) =>
+      switch (phase) {
+        ExercisePhase.hold => l10n.hold,
+        ExercisePhase.rest => l10n.rest,
+        ExercisePhase.finished => l10n.completeSession,
+        ExercisePhase.ready => l10n.start,
+      };
 
   String _formatSeconds(int seconds, AppLocalizations l10n) {
     final minutes = seconds ~/ 60;

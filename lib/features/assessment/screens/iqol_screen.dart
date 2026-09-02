@@ -25,6 +25,11 @@ class _IqolScreenState extends State<IqolScreen> {
   int _page = 0;
   bool _triedToAdvance = false;
 
+  /// Guards the submit. Assessments are inserted rather than upserted, by
+  /// design — the protocol keeps a history and the restore takes the newest —
+  /// so a double tap would otherwise store the same answers twice.
+  bool _isSubmitting = false;
+
   /// Page index of the background questions, after the 22 Likert items.
   static const int _backgroundPage = IQOLModel.itemCount;
 
@@ -63,12 +68,15 @@ class _IqolScreenState extends State<IqolScreen> {
       _goToFirstGap(notifier.model);
       return;
     }
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
 
     final summary = context.read<AssessmentSummaryNotifier>();
     final dashboardNotifier = context.read<DashboardNotifier>();
     final exerciseNotifier = context.read<ExerciseNotifier>();
     final saved = await summary.saveIqol(await notifier.submit());
     if (!mounted) return;
+    setState(() => _isSubmitting = false);
     if (!reportAssessmentSave(context, saved)) return;
     dashboardNotifier.applyAssessmentSummary(summary);
     exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
@@ -122,7 +130,10 @@ class _IqolScreenState extends State<IqolScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
+          // Usually entered by a redirect or a context.go(), both of
+          // which replace the stack, so there is often nothing to pop.
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/assessment'),
         ),
         title: Text(l10n.iqolTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -227,7 +238,9 @@ class _IqolScreenState extends State<IqolScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: _page == _resultPage
+                          onPressed: _isSubmitting
+                              ? null
+                              : _page == _resultPage
                               ? _handleSubmit
                               : () => _handleNext(notifier),
                           child: Text(
@@ -370,6 +383,11 @@ class _QuestionPage extends StatelessWidget {
                   max: 5,
                   divisions: 4,
                   value: _displayValue.toDouble(),
+                  // An unanswered item rests the thumb on 1. A Slider fires
+                  // onChanged only when the value moves, so without committing
+                  // on tap-down a patient whose answer really is 1 had to drag
+                  // away and back to register it.
+                  onChangeStart: (v) => onChanged(v.round()),
                   onChanged: (v) => onChanged(v.round()),
                 ),
               ),

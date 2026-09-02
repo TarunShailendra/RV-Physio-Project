@@ -22,6 +22,11 @@ class _IpaqScreenState extends State<IpaqScreen> {
   int _step = 0;
   bool _triedToAdvance = false;
 
+  /// Guards the submit. Assessments are inserted rather than upserted, by
+  /// design — the protocol keeps a history and the restore takes the newest —
+  /// so a double tap would otherwise store the same answers twice.
+  bool _isSubmitting = false;
+
   bool _isCurrentStepAnswered(IpaqNotifier notifier) {
     // Answered, not non-zero. Zero days of activity is a valid response.
     switch (_step) {
@@ -51,10 +56,13 @@ class _IpaqScreenState extends State<IpaqScreen> {
   void _handleSubmit() async {
     final notifier = context.read<IpaqNotifier>();
     if (!_isCurrentStepAnswered(notifier)) return;
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
 
     final summary = context.read<AssessmentSummaryNotifier>();
     final saved = await summary.saveIpaq(notifier.model);
     if (!mounted) return;
+    setState(() => _isSubmitting = false);
     if (!reportAssessmentSave(context, saved)) return;
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
     context.read<ExerciseNotifier>().loadRecommendedWeek(
@@ -106,7 +114,10 @@ class _IpaqScreenState extends State<IpaqScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
+          // Usually entered by a redirect or a context.go(), both of
+          // which replace the stack, so there is often nothing to pop.
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/assessment'),
         ),
         title: Text(l10n.ipaqTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -180,7 +191,9 @@ class _IpaqScreenState extends State<IpaqScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: _step == steps.length - 1
+                          onPressed: _isSubmitting
+                              ? null
+                              : _step == steps.length - 1
                               ? _handleSubmit
                               : () => _handleNext(notifier),
                           child: Text(

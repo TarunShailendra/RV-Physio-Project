@@ -21,6 +21,11 @@ class _IciqScreenState extends State<IciqScreen> {
   int _step = 0;
   bool _triedToAdvance = false;
 
+  /// Guards the submit. Assessments are inserted rather than upserted, by
+  /// design — the protocol keeps a history and the restore takes the newest —
+  /// so a double tap would otherwise store the same answers twice.
+  bool _isSubmitting = false;
+
   bool _isCurrentStepAnswered(IciqNotifier notifier) {
     // Delegated to the model so the "answered" rule lives with the sentinel it
     // depends on, rather than being restated here against a literal -1.
@@ -55,10 +60,13 @@ class _IciqScreenState extends State<IciqScreen> {
   ) async {
     setState(() => _triedToAdvance = true);
     if (!_isCurrentStepAnswered(notifier)) return;
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
 
     final summary = context.read<AssessmentSummaryNotifier>();
     final saved = await summary.saveIciq(await notifier.submit());
     if (!context.mounted) return;
+    setState(() => _isSubmitting = false);
     if (!reportAssessmentSave(context, saved)) return;
 
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
@@ -86,19 +94,20 @@ class _IciqScreenState extends State<IciqScreen> {
       if (!context.mounted) return;
       context.go('/ipaq');
     } else {
-      await showDialog<bool>(
+      // Presented as a Yes/No, but both answers ran the same navigation and
+      // the result was never read. The sequence requires the IPAQ next either
+      // way, so the choice could not be honoured; it is stated rather than
+      // asked. Making it a real choice means letting the gating accept a
+      // decline, which is a product decision.
+      await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(AppLocalizations.of(ctx)!.iciqOfferExercisesTitle),
           content: Text(AppLocalizations.of(ctx)!.iciqOfferExercisesMessage),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(AppLocalizations.of(ctx)!.no),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text(AppLocalizations.of(ctx)!.yes),
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(AppLocalizations.of(ctx)!.ok),
             ),
           ],
         ),
@@ -124,7 +133,10 @@ class _IciqScreenState extends State<IciqScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
+          // Usually entered by a redirect or a context.go(), both of
+          // which replace the stack, so there is often nothing to pop.
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/assessment'),
         ),
         title: Text(l10n.iciqTitle),
         backgroundColor: const Color(0xFF00897B),
@@ -210,7 +222,9 @@ class _IciqScreenState extends State<IciqScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: _step == steps.length - 1
+                          onPressed: _isSubmitting
+                              ? null
+                              : _step == steps.length - 1
                               ? () => _handleIciqComplete(context, notifier)
                               : () => _handleNext(notifier),
                           child: Text(
@@ -348,15 +362,19 @@ class _WhenLeaksStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final options = [
-      l10n.iciqWhenLeaksNever,
-      l10n.iciqWhenLeaksBeforeToilet,
-      l10n.iciqWhenLeaksCoughSneeze,
-      l10n.iciqWhenLeaksAsleep,
-      l10n.iciqWhenLeaksActivity,
-      l10n.iciqWhenLeaksAfterUrination,
-      l10n.iciqWhenLeaksNoReason,
-      l10n.iciqWhenLeaksAllTime,
+    // Stable keys, not labels. This stored whichever translation the patient
+    // happened to be reading, so two patients in different languages produced
+    // values that could not be compared — and the language picker makes that
+    // far more likely than a device-wide setting did.
+    const keys = [
+      'never',
+      'beforeToilet',
+      'coughSneeze',
+      'asleep',
+      'activity',
+      'afterUrination',
+      'noReason',
+      'allTime',
     ];
 
     return ListView(
@@ -375,22 +393,22 @@ class _WhenLeaksStep extends StatelessWidget {
           opacity: 0.12,
           child: Column(
             children: [
-              for (final option in options)
+              for (final key in keys)
                 GlassCard(
                   borderRadius: 12,
                   padding: EdgeInsets.zero,
                   opacity: 0.06,
                   child: CheckboxListTile(
-                    value: notifier.model.whenLeaks.contains(option),
+                    value: notifier.model.whenLeaks.contains(key),
                     activeColor: const Color(0xFF4DB6AC),
                     checkboxShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
                     title: Text(
-                      option,
+                      _whenLeakLabel(key, l10n),
                       style: const TextStyle(color: Colors.white),
                     ),
-                    onChanged: (_) => notifier.toggleWhenLeak(option),
+                    onChanged: (_) => notifier.toggleWhenLeak(key),
                   ),
                 ),
             ],
@@ -408,6 +426,18 @@ class _WhenLeaksStep extends StatelessWidget {
     );
   }
 }
+
+/// Display text for a stored when-leaks key.
+String _whenLeakLabel(String key, AppLocalizations l10n) => switch (key) {
+  'never' => l10n.iciqWhenLeaksNever,
+  'beforeToilet' => l10n.iciqWhenLeaksBeforeToilet,
+  'coughSneeze' => l10n.iciqWhenLeaksCoughSneeze,
+  'asleep' => l10n.iciqWhenLeaksAsleep,
+  'activity' => l10n.iciqWhenLeaksActivity,
+  'afterUrination' => l10n.iciqWhenLeaksAfterUrination,
+  'noReason' => l10n.iciqWhenLeaksNoReason,
+  _ => l10n.iciqWhenLeaksAllTime,
+};
 
 class _RequiredQuestionLabel extends StatelessWidget {
   const _RequiredQuestionLabel({required this.label, this.style});

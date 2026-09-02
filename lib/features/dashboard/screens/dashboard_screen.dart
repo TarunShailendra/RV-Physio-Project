@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/glass_theme.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../assessment/notifiers/assessment_summary_notifier.dart';
 import '../dashboard_notifier.dart';
 import '../models/dashboard_model.dart';
 
@@ -21,7 +22,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardNotifier>().loadDashboard();
+      // Hand the recommendation and the intake score straight in. Every
+      // assessment screen calls applyAssessmentSummary before this notifier
+      // has any data, so passing them here is what actually makes them land.
+      final summary = context.read<AssessmentSummaryNotifier>();
+      context.read<DashboardNotifier>().loadDashboard(
+        recommendedStartWeek: summary.recommendedStartWeek,
+        iciqScorePre: summary.iciq?.iciqScore,
+      );
     });
   }
 
@@ -72,7 +80,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 16),
                     _WeeklyAdherenceChart(data: data, l10n: l10n),
-                    if (data.iciqScorePre > 0) ...[
+                    // Both scores, or there is nothing to compare. The post
+                    // score is only set by a reassessment, which does not exist
+                    // yet, so this card used to read "pre -> 0" with a
+                    // downward arrow implying improvement.
+                    if (data.iciqScorePre > 0 && data.iciqScorePost > 0) ...[
                       const SizedBox(height: 16),
                       _IciqComparison(data: data, l10n: l10n),
                     ],
@@ -384,7 +396,16 @@ class _IciqComparison extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(color: Colors.white),
             ),
           ),
-          const Icon(Icons.arrow_downward, color: Color(0xFF80CBC4)),
+          Icon(
+            // Lower ICIQ is better, so a fall is an improvement. This arrow
+            // used to point down unconditionally.
+            data.iciqScorePost < data.iciqScorePre
+                ? Icons.arrow_downward
+                : Icons.arrow_upward,
+            color: data.iciqScorePost < data.iciqScorePre
+                ? const Color(0xFF80CBC4)
+                : Colors.orangeAccent,
+          ),
         ],
       ),
     );

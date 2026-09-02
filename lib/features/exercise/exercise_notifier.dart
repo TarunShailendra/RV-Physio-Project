@@ -5,6 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/exercise_model.dart';
 
+/// What the patient should be doing right now.
+enum ExercisePhase { ready, hold, rest, finished }
+
 class ExerciseNotifier extends ChangeNotifier {
   final Map<int, WeeklyPlan> _plans = {};
   final Set<int> _completedWeeks = {};
@@ -22,7 +25,23 @@ class ExerciseNotifier extends ChangeNotifier {
   int currentDayIndex = 0;
   int currentSessionIndex = 0;
   bool isTimerRunning = false;
-  int timerSecondsRemaining = 0;
+
+  /// Seconds left in the current phase.
+  ///
+  /// Exposed as a ValueNotifier so the countdown does not go through
+  /// notifyListeners: it ticks once a second, and every widget watching this
+  /// notifier — both chip rows and all four cards — used to rebuild each time
+  /// to update one line of text.
+  final ValueNotifier<int> secondsRemaining = ValueNotifier<int>(0);
+
+  int get timerSecondsRemaining => secondsRemaining.value;
+
+  /// Which part of the rep the patient is in.
+  ExercisePhase phase = ExercisePhase.ready;
+
+  /// 1-based rep the patient is on, out of the session's reps.
+  int currentRep = 0;
+
   Timer? _timer;
 
   /// Week the patient's protocol begins at, from
@@ -90,9 +109,7 @@ class ExerciseNotifier extends ChangeNotifier {
     currentPlan = _plans[week] ??= WeeklyPlan.getWeekPlan(week);
     currentDayIndex = _firstIncompleteDay(currentPlan!);
     currentSessionIndex = _firstIncompleteSession();
-    timerSecondsRemaining = _secondsForCurrentSession();
-    isTimerRunning = false;
-    _timer?.cancel();
+    _resetTimer();
     notifyListeners();
   }
 
@@ -121,9 +138,7 @@ class ExerciseNotifier extends ChangeNotifier {
     if (currentPlan == null) return;
     currentDayIndex = dayIndex;
     currentSessionIndex = _firstIncompleteSession();
-    timerSecondsRemaining = _secondsForCurrentSession();
-    isTimerRunning = false;
-    _timer?.cancel();
+    _resetTimer();
     notifyListeners();
   }
 
@@ -186,6 +201,18 @@ class ExerciseNotifier extends ChangeNotifier {
         _plans[weekNum] = plan;
       }
 
+      // The cache was just rebuilt, so any plan on screen is a stale object
+      // no longer in it. Re-resolve it, keeping the week the patient was on.
+      final openWeek = currentPlan?.weekNumber;
+      if (openWeek != null) {
+        currentPlan = _plans[openWeek];
+        if (currentPlan != null) {
+          currentDayIndex = _firstIncompleteDay(currentPlan!);
+          currentSessionIndex = _firstIncompleteSession();
+          secondsRemaining.value = _secondsForCurrentSession();
+        }
+      }
+
       protocolRevision.value++;
 
       // The protocol started when the patient first exercised, not when this
@@ -206,21 +233,53 @@ class ExerciseNotifier extends ChangeNotifier {
 
   void startTimer() {
     if (isTimerRunning || currentPlan == null) return;
-    if (timerSecondsRemaining <= 0) {
-      timerSecondsRemaining = _secondsForCurrentSession();
+    final session = currentSession;
+    if (session == null || session.isCompleted) return;
+
+    if (phase == ExercisePhase.ready || phase == ExercisePhase.finished) {
+      currentRep = 1;
+      phase = ExercisePhase.hold;
+      secondsRemaining.value = session.holdSeconds;
     }
+
     isTimerRunning = true;
     notifyListeners();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (timerSecondsRemaining <= 1) {
-        timerSecondsRemaining = 0;
-        isTimerRunning = false;
-        timer.cancel();
-      } else {
-        timerSecondsRemaining--;
+      if (secondsRemaining.value > 1) {
+        secondsRemaining.value--;
+        return;
       }
-      notifyListeners();
+      _advancePhase(session);
     });
+  }
+
+  /// Moves to the next part of the rep, or ends the session.
+  ///
+  /// The timer used to be one flat countdown of reps x (hold + rest) that did
+  /// nothing on reaching zero — no cue for when to contract or release, which
+  /// is the whole point of a pelvic floor protocol.
+  void _advancePhase(ExerciseSession session) {
+    if (phase == ExercisePhase.hold) {
+      phase = ExercisePhase.rest;
+      secondsRemaining.value = session.restSeconds;
+      notifyListeners();
+      return;
+    }
+
+    if (currentRep < session.reps) {
+      currentRep++;
+      phase = ExercisePhase.hold;
+      secondsRemaining.value = session.holdSeconds;
+      notifyListeners();
+      return;
+    }
+
+    _timer?.cancel();
+    isTimerRunning = false;
+    phase = ExercisePhase.finished;
+    secondsRemaining.value = 0;
+    notifyListeners();
   }
 
   void pauseTimer() {
@@ -324,7 +383,9 @@ class ExerciseNotifier extends ChangeNotifier {
   void _resetTimer() {
     _timer?.cancel();
     isTimerRunning = false;
-    timerSecondsRemaining = _secondsForCurrentSession();
+    phase = ExercisePhase.ready;
+    currentRep = 0;
+    secondsRemaining.value = _secondsForCurrentSession();
   }
 
   void reset() {
@@ -338,7 +399,9 @@ class ExerciseNotifier extends ChangeNotifier {
     currentDayIndex = 0;
     currentSessionIndex = 0;
     isTimerRunning = false;
-    timerSecondsRemaining = 0;
+    phase = ExercisePhase.ready;
+    currentRep = 0;
+    secondsRemaining.value = 0;
     protocolRevision.value++;
     notifyListeners();
   }
@@ -346,6 +409,7 @@ class ExerciseNotifier extends ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    secondsRemaining.dispose();
     protocolRevision.dispose();
     super.dispose();
   }

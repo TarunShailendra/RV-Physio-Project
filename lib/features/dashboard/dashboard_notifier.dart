@@ -22,99 +22,105 @@ class DashboardNotifier extends ChangeNotifier {
   DashboardModel? data;
   bool isLoading = false;
 
-  Future<void> loadDashboard() async {
-    try {
-      isLoading = true;
-      notifyListeners();
+  /// True when the last load failed, as opposed to finding nothing to show.
+  /// The screen needs to tell those apart: one is worth retrying.
+  bool loadFailed = false;
 
+  /// Sessions in a day, and days in a week, of the protocol.
+  static const int sessionsPerDay = 5;
+  static const int daysPerWeek = 7;
+
+  int? _recommendedStartWeek;
+
+  Future<void> loadDashboard({int? recommendedStartWeek, int? iciqScorePre}) async {
+    if (recommendedStartWeek != null) {
+      _recommendedStartWeek = recommendedStartWeek;
+    }
+
+    isLoading = true;
+    loadFailed = false;
+    notifyListeners();
+
+    try {
       final client = Supabase.instance.client;
       final userId = client.auth.currentUser?.id;
 
       if (userId == null) {
+        data = null;
         isLoading = false;
         notifyListeners();
         return;
       }
 
-      // Fetch all completed exercise logs for this user
+      // One query. This used to fetch the same column again per active week,
+      // plus once more for the current week — up to ten round trips for data
+      // already in hand.
       final rows = await client
           .from('exercise_logs')
-          .select('week_number, day_number, completed')
+          .select('week_number, day_number, session_number')
           .eq('user_id', userId)
           .eq('completed', true);
 
-      // Weekly adherence — 8 weeks, 5 sessions each
-      const int daysPerWeek = 7;
-      final List<double> weeklyAdherence = List.filled(8, 0.0);
-      final Map<int, int> completedByWeek = {};
-
+      // week -> day -> completed session numbers
+      final byWeek = <int, Map<int, Set<int>>>{};
       for (final row in rows) {
-        final week = row['week_number'] as int;
-        if (week >= 1 && week <= 8) {
-          completedByWeek[week] = (completedByWeek[week] ?? 0) + 1;
-        }
+        final week = row['week_number'] as int?;
+        final day = row['day_number'] as int?;
+        final session = row['session_number'] as int?;
+        if (week == null || day == null || session == null) continue;
+        if (week < 1 || week > 8) continue;
+        byWeek
+            .putIfAbsent(week, () => <int, Set<int>>{})
+            .putIfAbsent(day, () => <int>{})
+            .add(session);
       }
 
-      for (final entry in completedByWeek.entries) {
-        final weekIndex = entry.key - 1;
-        // count distinct completed days for this week
-        final completedDays = await client
-            .from('exercise_logs')
-            .select('day_number')
-            .eq('user_id', userId)
-            .eq('week_number', entry.key)
-            .eq('completed', true);
-        final distinctDays = completedDays
-            .map((r) => r['day_number'] as int)
-            .toSet()
-            .length;
-        weeklyAdherence[weekIndex] = ((distinctDays / daysPerWeek) * 100).clamp(
-          0.0,
-          100.0,
-        );
-      }
+      /// Days where every session is done. Counting a day as complete on a
+      /// single session overstated adherence by up to five times.
+      int fullyCompletedDays(int week) =>
+          (byWeek[week] ?? const <int, Set<int>>{})
+              .values
+              .where((sessions) => sessions.length >= sessionsPerDay)
+              .length;
 
-      // Current week = highest week with any activity, or 1
-      int currentWeek = 1;
-      if (completedByWeek.isNotEmpty) {
-        currentWeek = completedByWeek.keys.reduce((a, b) => a > b ? a : b);
-      }
+      final weeklyAdherence = <double>[
+        for (var week = 1; week <= 8; week++)
+          ((fullyCompletedDays(week) / daysPerWeek) * 100).clamp(0.0, 100.0),
+      ];
 
-      // This week's completed sessions
-      final thisWeekDays = await client
-          .from('exercise_logs')
-          .select('day_number')
-          .eq('user_id', userId)
-          .eq('week_number', currentWeek)
-          .eq('completed', true);
-      final completedThisWeek = thisWeekDays
-          .map((r) => r['day_number'] as int)
-          .toSet()
-          .length;
-
-      final double adherence = averageAdherence(weeklyAdherence, currentWeek);
+      // The week with activity, or the one the assessments recommended for a
+      // patient who has not started yet.
+      final active = byWeek.keys.toList()..sort();
+      final currentWeek = active.isNotEmpty
+          ? active.last
+          : (_recommendedStartWeek ?? 1);
 
       data = DashboardModel(
         currentWeek: currentWeek,
         totalWeeks: 8,
-        exercisesCompletedThisWeek: completedThisWeek,
+        exercisesCompletedThisWeek: fullyCompletedDays(currentWeek),
         exercisesTargetThisWeek: daysPerWeek,
-        adherencePercentage: adherence,
-        iciqScorePre: data?.iciqScorePre ?? 0,
+        adherencePercentage: averageAdherence(weeklyAdherence, currentWeek),
+        iciqScorePre: iciqScorePre ?? data?.iciqScorePre ?? 0,
         iciqScorePost: data?.iciqScorePost ?? 0,
         weeklyAdherence: weeklyAdherence,
       );
-
-      isLoading = false;
-      notifyListeners();
     } catch (e) {
       debugPrint('[loadDashboard] error: $e');
+      loadFailed = true;
+      data = null;
+    } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
   void applyAssessmentSummary(AssessmentSummaryNotifier summary) {
+    // Held even when there is no dashboard yet. Every assessment screen calls
+    // this before loadDashboard has ever run, so the recommendation used to be
+    // dropped on the floor and then overwritten by "highest week with activity".
+    _recommendedStartWeek = summary.recommendedStartWeek;
+
     final current = data;
     if (current == null) return;
 
@@ -127,6 +133,8 @@ class DashboardNotifier extends ChangeNotifier {
 
   void reset() {
     data = null;
+    loadFailed = false;
+    _recommendedStartWeek = null;
     notifyListeners();
   }
 }
