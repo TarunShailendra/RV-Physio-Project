@@ -33,7 +33,21 @@ void main() async {
   final iqolNotifier = IqolNotifier();
   final bladderDiaryNotifier = BladderDiaryNotifier();
 
-  final authNotifier = AuthNotifier(assessmentNotifier: assessmentSummaryNotifier);
+  final authNotifier = AuthNotifier(
+    assessmentNotifier: assessmentSummaryNotifier,
+    // Everything holding patient data, cleared when the session ends. Any
+    // notifier added to the provider list below belongs here too.
+    onSessionEnded: [
+      assessmentSummaryNotifier.reset,
+      exerciseNotifier.reset,
+      dashboardNotifier.reset,
+      profileNotifier.reset,
+      bladderDiaryNotifier.reset,
+      iciqNotifier.reset,
+      ipaqNotifier.reset,
+      iqolNotifier.reset,
+    ],
+  );
 
   runApp(AppProviders(
     authNotifier: authNotifier,

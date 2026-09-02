@@ -43,6 +43,12 @@ class IpaqNotifier extends ChangeNotifier {
     return level;
   }
 
+  /// Clears the in-progress questionnaire when the session ends.
+  void reset() {
+    model = const IPAQModel();
+    notifyListeners();
+  }
+
   Future<IPAQModel> submit() async {
     if (Supabase.instance.client.auth.currentUser == null) return model;
     return model;

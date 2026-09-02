@@ -41,6 +41,12 @@ class IciqNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears the in-progress questionnaire when the session ends.
+  void reset() {
+    model = const ICIQModel();
+    notifyListeners();
+  }
+
   Future<ICIQModel> submit() async {
     if (Supabase.instance.client.auth.currentUser == null) return model;
     return model;

@@ -35,6 +35,12 @@ class IqolNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears the in-progress questionnaire when the session ends.
+  void reset() {
+    model = IQOLModel(items: List<int>.filled(22, 0));
+    notifyListeners();
+  }
+
   Future<IQOLModel> submit() async {
     if (Supabase.instance.client.auth.currentUser == null) return model;
     return model;

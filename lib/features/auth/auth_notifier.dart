@@ -5,9 +5,18 @@ import 'models/user_model.dart';
 import '../assessment/notifiers/assessment_summary_notifier.dart';
 
 class AuthNotifier extends ChangeNotifier {
-  AuthNotifier({AssessmentSummaryNotifier? assessmentNotifier}) : _assessmentNotifier = assessmentNotifier;
+  AuthNotifier({
+    AssessmentSummaryNotifier? assessmentNotifier,
+    List<VoidCallback> onSessionEnded = const [],
+  }) : _assessmentNotifier = assessmentNotifier,
+       _onSessionEnded = onSessionEnded;
 
   final AssessmentSummaryNotifier? _assessmentNotifier;
+
+  /// Run when the session ends, to clear every notifier holding patient data.
+  /// Registered in main.dart so that the provider list is the single place
+  /// this has to be kept in step.
+  final List<VoidCallback> _onSessionEnded;
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
@@ -15,6 +24,35 @@ class AuthNotifier extends ChangeNotifier {
   UserModel? currentUser;
   bool isLoading = false;
   String? errorMessage;
+
+  /// Ends the session on this device and clears every trace of the patient.
+  Future<void> signOut() async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _supabase.auth.signOut();
+    } catch (e) {
+      // Clear locally regardless of the result: if the network call failed the
+      // patient still expects to be signed out on this device, and leaving
+      // their data on screen is the worse outcome.
+      debugPrint('signOut failed, clearing local session anyway: $e');
+    } finally {
+      _clearSession();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _clearSession() {
+    currentUser = null;
+    token = null;
+    errorMessage = null;
+    for (final reset in _onSessionEnded) {
+      reset();
+    }
+    notifyListeners();
+  }
 
   Future<void> login(String email, String password) async {
     isLoading = true;

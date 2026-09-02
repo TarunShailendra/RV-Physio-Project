@@ -197,7 +197,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => context.go('/login'),
+                      onPressed: () async {
+                        final auth = context.read<AuthNotifier>();
+                        await auth.signOut();
+                        if (!context.mounted) return;
+                        context.go('/login');
+                      },
                       icon: const Icon(Icons.logout),
                       label: Text(l10n.logOut),
                       style: OutlinedButton.styleFrom(

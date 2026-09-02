@@ -10,6 +10,15 @@ class ProfileNotifier extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
+  /// Clears the loaded profile. Called when the session ends so the next
+  /// patient to sign in on this device does not see the previous one's data.
+  void reset() {
+    profile = null;
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> loadProfile() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
