@@ -19,8 +19,35 @@ class IQOLModel {
   final bool urgeLeak;
   final int freqCode;
 
-  bool get isComplete =>
-      items.length == 22 && items.every((item) => item >= 1 && item <= 5);
+  /// Number of Likert items in the instrument.
+  static const int itemCount = 22;
+
+  /// Marks an item the patient has not answered. Valid responses are 1..5.
+  static const int unanswered = 0;
+
+  /// All 22 items carry a valid response.
+  bool get hasAllItems =>
+      items.length == itemCount &&
+      items.every((item) => item >= 1 && item <= 5);
+
+  /// The background page asks how long the patient has had leakage.
+  bool get hasDuration => durationYears > 0 || durationMonths > 0;
+
+  /// The whole questionnaire is answered. Nothing should be scored or saved
+  /// before this holds: an unanswered item is stored as 0, which drags the
+  /// raw score below its own floor.
+  bool get isComplete => hasAllItems && hasDuration;
+
+  /// Index of the first item still unanswered, or null when all are done.
+  /// Used to send the patient back to the question they missed rather than
+  /// refusing to submit without saying where the gap is.
+  int? get firstUnansweredItemIndex {
+    for (var index = 0; index < itemCount; index++) {
+      final value = index < items.length ? items[index] : unanswered;
+      if (value < 1 || value > 5) return index;
+    }
+    return null;
+  }
 
   double get score {
     final normalizedItems = List<int>.generate(

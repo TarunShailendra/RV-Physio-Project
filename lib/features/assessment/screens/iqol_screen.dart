@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../../exercise/exercise_notifier.dart';
 import '../notifiers/assessment_summary_notifier.dart';
+import '../models/iqol_model.dart';
 import '../notifiers/iqol_notifier.dart';
 
 class IqolScreen extends StatefulWidget {
@@ -23,13 +24,19 @@ class _IqolScreenState extends State<IqolScreen> {
   int _page = 0;
   bool _triedToAdvance = false;
 
+  /// Page index of the background questions, after the 22 Likert items.
+  static const int _backgroundPage = IQOLModel.itemCount;
+
+  /// Page index of the result summary.
+  static const int _resultPage = IQOLModel.itemCount + 1;
+
   bool _isCurrentPageAnswered(IqolNotifier notifier) {
-    if (_page < 22) {
-      return notifier.model.items[_page] != 0;
+    final model = notifier.model;
+    if (_page < IQOLModel.itemCount) {
+      return model.items[_page] != IQOLModel.unanswered;
     }
-    if (_page == 22) {
-      return notifier.model.durationYears > 0 ||
-          notifier.model.durationMonths > 0;
+    if (_page == _backgroundPage) {
+      return model.hasDuration;
     }
     return true;
   }
@@ -47,7 +54,14 @@ class _IqolScreenState extends State<IqolScreen> {
 
   Future<void> _handleSubmit() async {
     final notifier = context.read<IqolNotifier>();
-    if (!_isCurrentPageAnswered(notifier)) return;
+
+    // Gate on the entire questionnaire, not just the page in view. The page
+    // check alone returns true on the result page, so it never established
+    // that the 22 items had been answered at all.
+    if (!notifier.model.isComplete) {
+      _goToFirstGap(notifier.model);
+      return;
+    }
 
     final summary = context.read<AssessmentSummaryNotifier>();
     final dashboardNotifier = context.read<DashboardNotifier>();
@@ -57,6 +71,22 @@ class _IqolScreenState extends State<IqolScreen> {
     dashboardNotifier.applyAssessmentSummary(summary);
     exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
     context.go('/dashboard');
+  }
+
+  /// Moves to the first unanswered question and says what is missing, so an
+  /// incomplete submit explains itself instead of doing nothing.
+  void _goToFirstGap(IQOLModel model) {
+    final target = model.firstUnansweredItemIndex ?? _backgroundPage;
+    setState(() => _triedToAdvance = true);
+    _controller.animateToPage(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.completeAllQuestions)),
+    );
   }
 
   void _goBack() {
@@ -108,7 +138,7 @@ class _IqolScreenState extends State<IqolScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: (_page + 1) / 24,
+                    value: (_page + 1) / (_resultPage + 1),
                     minHeight: 6,
                     color: const Color(0xFF4DB6AC),
                     backgroundColor: Colors.white.withValues(alpha: 0.2),
@@ -118,13 +148,19 @@ class _IqolScreenState extends State<IqolScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _controller,
+                  // Swiping used to move between pages without any validation,
+                  // so all 22 questions could be skipped and submitted as
+                  // zeros. Paging is driven by the Back and Next buttons,
+                  // which check the current page, matching how the ICIQ and
+                  // IPAQ screens already behave.
+                  physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (value) => setState(() {
                     _page = value;
                     _triedToAdvance = false;
                   }),
-                  itemCount: 24,
+                  itemCount: _resultPage + 1,
                   itemBuilder: (context, index) {
-                    if (index < 22) {
+                    if (index < IQOLModel.itemCount) {
                       return _QuestionPage(
                         title: questions[index],
                         value: notifier.model.items[index],
@@ -133,7 +169,7 @@ class _IqolScreenState extends State<IqolScreen> {
                         onChanged: (v) => notifier.updateItem(index, v),
                       );
                     }
-                    if (index == 22) {
+                    if (index == _backgroundPage) {
                       return _AboutPage(
                         notifier: notifier,
                         showError: _triedToAdvance,
@@ -189,11 +225,13 @@ class _IqolScreenState extends State<IqolScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: _page == 23
+                          onPressed: _page == _resultPage
                               ? _handleSubmit
                               : () => _handleNext(notifier),
                           child: Text(
-                            _page == 23 ? l10n.submit : l10n.assessmentNext,
+                            _page == _resultPage
+                                ? l10n.submit
+                                : l10n.assessmentNext,
                           ),
                         ),
                       ),
