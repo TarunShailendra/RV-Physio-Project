@@ -26,10 +26,30 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
 
   // 3 days × 24 time slots
   static const List<String> _timeSlotKeys = [
-    'time6am', 'time7am', 'time8am', 'time9am', 'time10am', 'time11am',
-    'timeMidday', 'time1pm', 'time2pm', 'time3pm', 'time4pm', 'time5pm',
-    'time6pm', 'time7pm', 'time8pm', 'time9pm', 'time10pm', 'time11pm',
-    'timeMidnight', 'time1am', 'time2am', 'time3am', 'time4am', 'time5am',
+    'time6am',
+    'time7am',
+    'time8am',
+    'time9am',
+    'time10am',
+    'time11am',
+    'timeMidday',
+    'time1pm',
+    'time2pm',
+    'time3pm',
+    'time4pm',
+    'time5pm',
+    'time6pm',
+    'time7pm',
+    'time8pm',
+    'time9pm',
+    'time10pm',
+    'time11pm',
+    'timeMidnight',
+    'time1am',
+    'time2am',
+    'time3am',
+    'time4am',
+    'time5am',
   ];
 
   // data[day][slotIndex]
@@ -38,12 +58,21 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
   // bed/wake markers per day: map of slotIndex -> 'BED' or 'WOKE'
   late List<Map<int, String>> _markers;
 
+  /// Bumped once the previous diary has loaded. The text fields are keyed on
+  /// it so they rebuild with the loaded values: TextFormField.initialValue is
+  /// read only when the field's state is first created, and the load finishes
+  /// after the first build, so the summary line showed the loaded data while
+  /// the inputs underneath stayed blank.
+  int _loadRevision = 0;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _data = List.generate(3, (_) =>
-        List.generate(_timeSlotKeys.length, (_) => BladderDiaryEntry()));
+    _data = List.generate(
+      3,
+      (_) => List.generate(_timeSlotKeys.length, (_) => BladderDiaryEntry()),
+    );
     _markers = List.generate(3, (_) => {});
     _loadPreviousEntry();
   }
@@ -80,14 +109,21 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
             final slotKey = _timeSlotKeys[slot];
             final slotData = dayMap[slotKey] as Map<String, dynamic>?;
             if (slotData == null) continue;
-            _data[day][slot].fluidAmount = slotData['fluidAmount'] as String? ?? '';
+            _data[day][slot].fluidAmount =
+                slotData['fluidAmount'] as String? ?? '';
             _data[day][slot].fluidType = slotData['fluidType'] as String? ?? '';
-            _data[day][slot].urineOutput = slotData['urineOutput'] as String? ?? '';
-            _data[day][slot].cantMeasure = slotData['cantMeasure'] as bool? ?? false;
-            _data[day][slot].bladderSensation = slotData['bladderSensation'] as int?;
+            _data[day][slot].urineOutput =
+                slotData['urineOutput'] as String? ?? '';
+            _data[day][slot].cantMeasure =
+                slotData['cantMeasure'] as bool? ?? false;
+            _data[day][slot].bladderSensation =
+                slotData['bladderSensation'] as int?;
             _data[day][slot].pad = slotData['pad'] as bool? ?? false;
+            final marker = slotData['marker'] as String?;
+            if (marker != null) _markers[day][slot] = marker;
           }
         }
+        _loadRevision++;
       });
     } catch (e) {
       debugPrint('loadPreviousEntry error: $e');
@@ -106,31 +142,56 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
 
   String _getLocalizedTimeSlot(int slot, AppLocalizations l10n) {
     switch (_timeSlotKeys[slot]) {
-      case 'time6am': return l10n.time6am;
-      case 'time7am': return l10n.time7am;
-      case 'time8am': return l10n.time8am;
-      case 'time9am': return l10n.time9am;
-      case 'time10am': return l10n.time10am;
-      case 'time11am': return l10n.time11am;
-      case 'timeMidday': return l10n.timeMidday;
-      case 'time1pm': return l10n.time1pm;
-      case 'time2pm': return l10n.time2pm;
-      case 'time3pm': return l10n.time3pm;
-      case 'time4pm': return l10n.time4pm;
-      case 'time5pm': return l10n.time5pm;
-      case 'time6pm': return l10n.time6pm;
-      case 'time7pm': return l10n.time7pm;
-      case 'time8pm': return l10n.time8pm;
-      case 'time9pm': return l10n.time9pm;
-      case 'time10pm': return l10n.time10pm;
-      case 'time11pm': return l10n.time11pm;
-      case 'timeMidnight': return l10n.timeMidnight;
-      case 'time1am': return l10n.time1am;
-      case 'time2am': return l10n.time2am;
-      case 'time3am': return l10n.time3am;
-      case 'time4am': return l10n.time4am;
-      case 'time5am': return l10n.time5am;
-      default: return '';
+      case 'time6am':
+        return l10n.time6am;
+      case 'time7am':
+        return l10n.time7am;
+      case 'time8am':
+        return l10n.time8am;
+      case 'time9am':
+        return l10n.time9am;
+      case 'time10am':
+        return l10n.time10am;
+      case 'time11am':
+        return l10n.time11am;
+      case 'timeMidday':
+        return l10n.timeMidday;
+      case 'time1pm':
+        return l10n.time1pm;
+      case 'time2pm':
+        return l10n.time2pm;
+      case 'time3pm':
+        return l10n.time3pm;
+      case 'time4pm':
+        return l10n.time4pm;
+      case 'time5pm':
+        return l10n.time5pm;
+      case 'time6pm':
+        return l10n.time6pm;
+      case 'time7pm':
+        return l10n.time7pm;
+      case 'time8pm':
+        return l10n.time8pm;
+      case 'time9pm':
+        return l10n.time9pm;
+      case 'time10pm':
+        return l10n.time10pm;
+      case 'time11pm':
+        return l10n.time11pm;
+      case 'timeMidnight':
+        return l10n.timeMidnight;
+      case 'time1am':
+        return l10n.time1am;
+      case 'time2am':
+        return l10n.time2am;
+      case 'time3am':
+        return l10n.time3am;
+      case 'time4am':
+        return l10n.time4am;
+      case 'time5am':
+        return l10n.time5am;
+      default:
+        return '';
     }
   }
 
@@ -140,19 +201,26 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.bladderSensation,
-                style: GoogleFonts.poppins(
-                    fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(
+              l10n.bladderSensation,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('${l10n.selectCodeFor} ${_getLocalizedTimeSlot(slot, l10n)}',
-                style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+            Text(
+              '${l10n.selectCodeFor} ${_getLocalizedTimeSlot(slot, l10n)}',
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+            ),
             const SizedBox(height: 12),
             ...List.generate(5, (i) {
               final isSelected = _data[day][slot].bladderSensation == i;
@@ -164,7 +232,9 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF00897B).withValues(alpha: 0.12)
@@ -176,15 +246,18 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                           : Colors.grey.shade200,
                     ),
                   ),
-                  child: Text(sensationLabels[i]!,
-                      style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? const Color(0xFF00897B)
-                              : Colors.black87)),
+                  child: Text(
+                    sensationLabels[i]!,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? const Color(0xFF00897B)
+                          : Colors.black87,
+                    ),
+                  ),
                 ),
               );
             }),
@@ -212,7 +285,8 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       itemBuilder: (context, slot) {
         final entry = _data[day][slot];
         final marker = _markers[day][slot];
-        final hasData = entry.fluidAmount.isNotEmpty ||
+        final hasData =
+            entry.fluidAmount.isNotEmpty ||
             entry.fluidType.isNotEmpty ||
             entry.urineOutput.isNotEmpty ||
             entry.cantMeasure ||
@@ -222,13 +296,16 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
 
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: hasData ? 2 : 1,
           color: hasData ? Colors.white : Colors.grey.shade50,
           child: ExpansionTile(
-            tilePadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 4,
+            ),
             childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
             leading: Container(
               width: 52,
@@ -240,13 +317,14 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
-                child: Text(_getLocalizedTimeSlot(slot, l10n),
-                    style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: hasData
-                            ? const Color(0xFF00897B)
-                            : Colors.grey)),
+                child: Text(
+                  _getLocalizedTimeSlot(slot, l10n),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: hasData ? const Color(0xFF00897B) : Colors.grey,
+                  ),
+                ),
               ),
             ),
             title: _buildSlotSummary(entry, marker),
@@ -264,29 +342,32 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
               const SizedBox(height: 10),
 
               // Fluids
-              Text(l10n.drinks,
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700)),
+              Text(
+                l10n.drinks,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
               const SizedBox(height: 6),
               Row(
                 children: [
                   Expanded(
                     child: _miniField(
+                      fieldKey: 'amountMlCups-\$day-\$slot',
                       label: l10n.amountMlCups,
                       value: entry.fluidAmount,
-                      onChanged: (v) =>
-                          setState(() => entry.fluidAmount = v),
+                      onChanged: (v) => setState(() => entry.fluidAmount = v),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _miniField(
+                      fieldKey: 'fluidType-\$day-\$slot',
                       label: l10n.fluidType,
                       value: entry.fluidType,
-                      onChanged: (v) =>
-                          setState(() => entry.fluidType = v),
+                      onChanged: (v) => setState(() => entry.fluidType = v),
                     ),
                   ),
                 ],
@@ -294,21 +375,24 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
               const SizedBox(height: 12),
 
               // Urine output
-              Text(l10n.urineOutput,
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700)),
+              Text(
+                l10n.urineOutput,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
               const SizedBox(height: 6),
               Row(
                 children: [
                   Expanded(
                     child: _miniField(
+                      fieldKey: 'mlOrLeak-\$day-\$slot',
                       label: l10n.mlOrLeak,
                       value: entry.urineOutput,
                       enabled: !entry.cantMeasure,
-                      onChanged: (v) =>
-                          setState(() => entry.urineOutput = v),
+                      onChanged: (v) => setState(() => entry.urineOutput = v),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -324,9 +408,13 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                       children: [
                         _checkbox(entry.cantMeasure),
                         const SizedBox(width: 4),
-                        Text(l10n.cantMeasure,
-                            style: GoogleFonts.poppins(
-                                fontSize: 11, color: Colors.grey.shade700)),
+                        Text(
+                          l10n.cantMeasure,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -342,25 +430,33 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.bladderSensation,
-                            style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700)),
+                        Text(
+                          l10n.bladderSensation,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
                         const SizedBox(height: 6),
                         GestureDetector(
                           onTap: () => _showSensationPicker(day, slot),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                  color: entry.bladderSensation != null
-                                      ? const Color(0xFF00897B)
-                                      : Colors.grey.shade300),
+                                color: entry.bladderSensation != null
+                                    ? const Color(0xFF00897B)
+                                    : Colors.grey.shade300,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                               color: entry.bladderSensation != null
-                                  ? const Color(0xFF00897B).withValues(alpha: 0.05)
+                                  ? const Color(
+                                      0xFF00897B,
+                                    ).withValues(alpha: 0.05)
                                   : Colors.white,
                             ),
                             child: Row(
@@ -371,14 +467,17 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                                         ? '${l10n.code} ${entry.bladderSensation}'
                                         : l10n.tapToSelect,
                                     style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: entry.bladderSensation != null
-                                            ? const Color(0xFF00897B)
-                                            : Colors.grey),
+                                      fontSize: 12,
+                                      color: entry.bladderSensation != null
+                                          ? const Color(0xFF00897B)
+                                          : Colors.grey,
+                                    ),
                                   ),
                                 ),
-                                const Icon(Icons.arrow_drop_down,
-                                    color: Colors.grey),
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.grey,
+                                ),
                               ],
                             ),
                           ),
@@ -389,15 +488,17 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                   const SizedBox(width: 16),
                   Column(
                     children: [
-                      Text(l10n.pad,
-                          style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700)),
+                      Text(
+                        l10n.pad,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       GestureDetector(
-                        onTap: () =>
-                            setState(() => entry.pad = !entry.pad),
+                        onTap: () => setState(() => entry.pad = !entry.pad),
                         child: _checkbox(entry.pad, size: 28),
                       ),
                     ],
@@ -431,8 +532,9 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     return Text(
       parts.isEmpty ? l10n.tapToAddEntry : parts.join('  ·  '),
       style: GoogleFonts.poppins(
-          fontSize: 11,
-          color: parts.isEmpty ? Colors.grey.shade400 : Colors.black87),
+        fontSize: 11,
+        color: parts.isEmpty ? Colors.grey.shade400 : Colors.black87,
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -447,41 +549,41 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: active
-              ? const Color(0xFF00897B)
-              : Colors.grey.shade100,
+          color: active ? const Color(0xFF00897B) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: active
-                  ? const Color(0xFF00897B)
-                  : Colors.grey.shade300),
+            color: active ? const Color(0xFF00897B) : Colors.grey.shade300,
+          ),
         ),
-        child: Text(displayLabel,
-            style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: active ? Colors.white : Colors.grey.shade700)),
+        child: Text(
+          displayLabel,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: active ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
       ),
     );
   }
 
   Widget _miniField({
+    required String fieldKey,
     required String label,
     required String value,
     required ValueChanged<String> onChanged,
     bool enabled = true,
   }) {
     return TextFormField(
+      key: ValueKey('$fieldKey-$_loadRevision'),
       initialValue: value,
       enabled: enabled,
       style: GoogleFonts.poppins(fontSize: 12),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.poppins(fontSize: 11),
-        border:
-            OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         filled: !enabled,
         fillColor: Colors.grey.shade100,
       ),
@@ -496,7 +598,8 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       decoration: BoxDecoration(
         color: value ? const Color(0xFF00897B) : Colors.transparent,
         border: Border.all(
-            color: value ? const Color(0xFF00897B) : Colors.grey),
+          color: value ? const Color(0xFF00897B) : Colors.grey,
+        ),
         borderRadius: BorderRadius.circular(4),
       ),
       child: value
@@ -511,88 +614,127 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.sensationCodesTitle,
-            style:
-                GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l10n.sensationCodesTitle,
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: sensationLabels.entries
-              .map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(e.value,
-                        style: GoogleFonts.poppins(fontSize: 12)),
-                  ))
+              .map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    e.value,
+                    style: GoogleFonts.poppins(fontSize: 12),
+                  ),
+                ),
+              )
               .toList(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close,
-                style: GoogleFonts.poppins(color: const Color(0xFF00897B))),
-          )
+            child: Text(
+              l10n.close,
+              style: GoogleFonts.poppins(color: const Color(0xFF00897B)),
+            ),
+          ),
         ],
       ),
     );
   }
 
+  /// Builds the payload sent to Supabase, skipping time slots the patient
+  /// left untouched.
+  Map<String, dynamic> _buildDiaryPayload() {
+    final diary = <String, dynamic>{};
+    for (var day = 0; day < 3; day++) {
+      final dayMap = <String, dynamic>{};
+      for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
+        final entry = _data[day][slot];
+        final marker = _markers[day][slot];
+        final isEmpty =
+            entry.fluidAmount.isEmpty &&
+            entry.fluidType.isEmpty &&
+            entry.urineOutput.isEmpty &&
+            !entry.cantMeasure &&
+            entry.bladderSensation == null &&
+            !entry.pad &&
+            marker == null;
+        if (isEmpty) continue;
+        dayMap[_timeSlotKeys[slot]] = {
+          'fluidAmount': entry.fluidAmount,
+          'fluidType': entry.fluidType,
+          'urineOutput': entry.urineOutput,
+          'cantMeasure': entry.cantMeasure,
+          'bladderSensation': entry.bladderSensation,
+          'pad': entry.pad,
+          // Bed and wake times: the reason a bladder diary records nocturia
+          // at all. Collected and shown, but previously dropped on submit.
+          'marker': marker,
+        };
+      }
+      if (dayMap.isNotEmpty) {
+        diary['day${day + 1}'] = dayMap;
+      }
+    }
+    return diary;
+  }
+
   Future<void> _submitDiary() async {
     final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Null while the save succeeds; a message to show the patient otherwise.
+    String? failure;
 
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId != null) {
-        final diary = <String, dynamic>{};
-        for (var day = 0; day < 3; day++) {
-          final dayMap = <String, dynamic>{};
-          for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
-            final entry = _data[day][slot];
-            final isEmpty = entry.fluidAmount.isEmpty &&
-                entry.fluidType.isEmpty &&
-                entry.urineOutput.isEmpty &&
-                !entry.cantMeasure &&
-                entry.bladderSensation == null &&
-                !entry.pad;
-            if (isEmpty) continue;
-            dayMap[_timeSlotKeys[slot]] = {
-              'fluidAmount': entry.fluidAmount,
-              'fluidType': entry.fluidType,
-              'urineOutput': entry.urineOutput,
-              'cantMeasure': entry.cantMeasure,
-              'bladderSensation': entry.bladderSensation,
-              'pad': entry.pad,
-            };
-          }
-          if (dayMap.isNotEmpty) {
-            diary['day${day + 1}'] = dayMap;
-          }
-        }
+      if (userId == null) {
+        failure = l10n.diarySaveSignedOut;
+      } else {
         await Supabase.instance.client.from('bladder_diaries').insert({
           'user_id': userId,
-          'diary': diary,
+          'diary': _buildDiaryPayload(),
           'submitted_at': DateTime.now().toIso8601String(),
         });
         debugPrint('Bladder diary saved successfully');
       }
     } catch (e) {
       debugPrint('Bladder diary save error: $e');
+      failure = l10n.diarySaveFailed;
     }
 
     if (!mounted) return;
+
+    if (failure != null) {
+      // Say so, and stay put. Three days of entries are still on screen and
+      // are held only in memory, so navigating away would discard them.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(failure),
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(label: l10n.retry, onPressed: _submitDiary),
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.diarySubmittedTitle,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l10n.diarySubmittedTitle,
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle,
-                color: Color(0xFF00897B), size: 56),
+            const Icon(Icons.check_circle, color: Color(0xFF00897B), size: 56),
             const SizedBox(height: 12),
             Text(
               l10n.diarySubmittedMessage,
@@ -611,10 +753,13 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00897B),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text(l10n.continueText,
-                style: GoogleFonts.poppins(color: Colors.white)),
+            child: Text(
+              l10n.continueText,
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -631,9 +776,13 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
         ),
-        title: Text(l10n.bladderDiaryTitle,
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text(
+          l10n.bladderDiaryTitle,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: const Color(0xFF00897B),
         actions: [
           IconButton(
@@ -645,10 +794,14 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
-          labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          unselectedLabelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.normal, fontSize: 13),
+          labelStyle: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+          unselectedLabelStyle: GoogleFonts.poppins(
+            fontWeight: FontWeight.normal,
+            fontSize: 13,
+          ),
           tabs: [
             Tab(text: l10n.day1),
             Tab(text: l10n.day2),
@@ -658,11 +811,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildDayTab(0),
-          _buildDayTab(1),
-          _buildDayTab(2),
-        ],
+        children: [_buildDayTab(0), _buildDayTab(1), _buildDayTab(2)],
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
@@ -672,11 +821,16 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
             backgroundColor: const Color(0xFF00897B),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          child: Text(l10n.submitDiary,
-              style: GoogleFonts.poppins(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
+          child: Text(
+            l10n.submitDiary,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
