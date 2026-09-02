@@ -17,12 +17,7 @@ class BladderDiaryNotifier extends ChangeNotifier {
         return;
       }
 
-      days.add(
-        DiaryDay(
-          date: today,
-          entries: [entry],
-        ),
-      );
+      days.add(DiaryDay(date: today, entries: [entry]));
     } else {
       final day = days[dayIndex];
       days[dayIndex] = DiaryDay(

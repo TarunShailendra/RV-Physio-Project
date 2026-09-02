@@ -163,8 +163,8 @@ class _ExerciseContent extends StatelessWidget {
                     color: day.isCompleted
                         ? Colors.green
                         : isSelected
-                            ? AppTheme.primaryColor
-                            : Colors.grey.shade300,
+                        ? AppTheme.primaryColor
+                        : Colors.grey.shade300,
                   ),
                   onSelected: (_) => notifier.selectDay(index),
                 );
@@ -220,9 +220,18 @@ class _ExerciseContent extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
-                  _SessionDetail(label: l10n.reps, value: currentSession.reps.toString()),
-                  _SessionDetail(label: l10n.hold, value: l10n.seconds(currentSession.holdSeconds)),
-                  _SessionDetail(label: l10n.rest, value: l10n.seconds(currentSession.restSeconds)),
+                  _SessionDetail(
+                    label: l10n.reps,
+                    value: currentSession.reps.toString(),
+                  ),
+                  _SessionDetail(
+                    label: l10n.hold,
+                    value: l10n.seconds(currentSession.holdSeconds),
+                  ),
+                  _SessionDetail(
+                    label: l10n.rest,
+                    value: l10n.seconds(currentSession.restSeconds),
+                  ),
                 ],
               ),
             ),
@@ -260,7 +269,9 @@ class _ExerciseContent extends StatelessWidget {
               onPressed: notifier.isTimerRunning
                   ? notifier.pauseTimer
                   : notifier.startTimer,
-              icon: Icon(notifier.isTimerRunning ? Icons.pause : Icons.play_arrow),
+              icon: Icon(
+                notifier.isTimerRunning ? Icons.pause : Icons.play_arrow,
+              ),
               label: Text(notifier.isTimerRunning ? l10n.pause : l10n.start),
             ),
           ),

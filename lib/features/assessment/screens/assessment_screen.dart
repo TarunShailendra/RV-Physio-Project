@@ -49,10 +49,12 @@ class AssessmentScreen extends StatelessWidget {
               title: l10n.iqolTitle,
               icon: Icons.favorite_outline,
               completed: summary.iqol != null,
-              locked: summary.iciq == null ||
+              locked:
+                  summary.iciq == null ||
                   summary.ipaq == null ||
                   !exercise.isIqolAvailable,
-              onTap: summary.iciq == null ||
+              onTap:
+                  summary.iciq == null ||
                       summary.ipaq == null ||
                       !exercise.isIqolAvailable
                   ? null
@@ -91,15 +93,13 @@ class _AssessmentTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: TextStyle(
-            color: locked ? Colors.grey : null,
-          ),
+          style: TextStyle(color: locked ? Colors.grey : null),
         ),
         trailing: locked
             ? const Icon(Icons.lock, color: Colors.grey)
             : completed
-                ? const Icon(Icons.check_circle, color: Colors.green)
-                : const Icon(Icons.chevron_right),
+            ? const Icon(Icons.check_circle, color: Colors.green)
+            : const Icon(Icons.chevron_right),
         onTap: locked ? null : onTap,
       ),
     );

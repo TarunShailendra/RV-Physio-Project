@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';  // ✅ import
+import '../../l10n/app_localizations.dart'; // ✅ import
 
 class AppBottomNavigation extends StatelessWidget {
   const AppBottomNavigation({super.key});
@@ -46,7 +46,7 @@ class AppBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;  // ✅ get localizations
+    final l10n = AppLocalizations.of(context)!; // ✅ get localizations
     final currentPath = GoRouterState.of(context).uri.path;
     final selectedIndex = _destinations.indexWhere(
       (destination) => destination.route == currentPath,
@@ -66,9 +66,11 @@ class AppBottomNavigation extends StatelessWidget {
         for (final destination in _destinations)
           NavigationDestination(
             icon: Icon(destination.icon, color: Colors.grey),
-            selectedIcon: Icon(destination.activeIcon,
-                color: const Color(0xFF00897B)),
-            label: _getLabel(l10n, destination.labelKey),  // ✅ dynamic label
+            selectedIcon: Icon(
+              destination.activeIcon,
+              color: const Color(0xFF00897B),
+            ),
+            label: _getLabel(l10n, destination.labelKey), // ✅ dynamic label
           ),
       ],
     );

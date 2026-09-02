@@ -67,13 +67,16 @@ class EducationScreen extends StatelessWidget {
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      AppTheme.primaryColor.withAlpha(20), // 0.12 opacity
+                  backgroundColor: AppTheme.primaryColor.withAlpha(
+                    20,
+                  ), // 0.12 opacity
                   foregroundColor: AppTheme.primaryColor,
                   child: Icon(article.icon),
                 ),
                 title: Text(_getLocalizedTitle(article.titleKey, l10n)),
-                subtitle: Text(_getLocalizedSubtitle(article.subtitleKey, l10n)),
+                subtitle: Text(
+                  _getLocalizedSubtitle(article.subtitleKey, l10n),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.of(context).push(
@@ -165,28 +168,18 @@ class _EducationDetailScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Icon(
-              icon,
-              size: 48,
-              color: AppTheme.primaryColor,
-            ),
+            Icon(icon, size: 48, color: AppTheme.primaryColor),
             const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text(title, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.primaryColor,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppTheme.primaryColor),
             ),
             const SizedBox(height: 24),
-            Text(
-              detailContent,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text(detailContent, style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       ),

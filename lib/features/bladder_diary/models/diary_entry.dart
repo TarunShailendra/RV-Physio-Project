@@ -39,10 +39,7 @@ class DiaryEntry {
 }
 
 class DiaryDay {
-  const DiaryDay({
-    required this.date,
-    required this.entries,
-  });
+  const DiaryDay({required this.date, required this.entries});
 
   final DateTime date;
   final List<DiaryEntry> entries;

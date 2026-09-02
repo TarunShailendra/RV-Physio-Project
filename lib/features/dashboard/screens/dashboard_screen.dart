@@ -41,8 +41,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: data == null && notifier.isLoading
           ? const Center(child: CircularProgressIndicator())
           : data == null
-              ? const Center(child: Text('Failed to load dashboard'))
-              : GlassBackground(
+          ? const Center(child: Text('Failed to load dashboard'))
+          : GlassBackground(
               child: SafeArea(
                 child: ListView(
                   padding: const EdgeInsets.all(16),
@@ -90,7 +90,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -119,7 +121,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF00897B).withValues(alpha: 0.5),
+                                  color: const Color(
+                                    0xFF00897B,
+                                  ).withValues(alpha: 0.5),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -129,7 +133,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF00897B),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -174,16 +180,12 @@ class _GreetingCard extends StatelessWidget {
             child: Text(
               l10n.weekXofY(data.currentWeek, data.totalWeeks),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const Icon(
-            Icons.spa,
-            color: Colors.white70,
-            size: 28,
-          ),
+          const Icon(Icons.spa, color: Colors.white70, size: 28),
         ],
       ),
     );
@@ -191,7 +193,11 @@ class _GreetingCard extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.icon});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
@@ -220,17 +226,17 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white70,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: Colors.white70),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -260,9 +266,9 @@ class _WeeklyAdherenceChart extends StatelessWidget {
           Text(
             l10n.weeklyAdherence,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -295,7 +301,10 @@ class _WeeklyAdherenceChart extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toInt()}%',
-                          style: const TextStyle(color: Colors.white54, fontSize: 11),
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11,
+                          ),
                         );
                       },
                     ),
@@ -312,7 +321,10 @@ class _WeeklyAdherenceChart extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             l10n.week(week),
-                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
                           ),
                         );
                       },
@@ -367,9 +379,9 @@ class _IciqComparison extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.iciqComparison(data.iciqScorePre, data.iciqScorePost),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.white),
             ),
           ),
           const Icon(Icons.arrow_downward, color: Color(0xFF80CBC4)),
