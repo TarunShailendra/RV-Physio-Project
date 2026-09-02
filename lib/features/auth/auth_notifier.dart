@@ -4,16 +4,21 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/user_model.dart';
-import '../assessment/notifiers/assessment_summary_notifier.dart';
 
 class AuthNotifier extends ChangeNotifier {
   AuthNotifier({
-    AssessmentSummaryNotifier? assessmentNotifier,
+    List<Future<void> Function()> onSignedIn = const [],
     List<VoidCallback> onSessionEnded = const [],
-  }) : _assessmentNotifier = assessmentNotifier,
+  }) : _onSignedIn = onSignedIn,
        _onSessionEnded = onSessionEnded;
 
-  final AssessmentSummaryNotifier? _assessmentNotifier;
+  /// Run once a patient is signed in, to pull their data back from Supabase.
+  ///
+  /// Previously only the assessment summary was refreshed here. Exercise
+  /// progress was loaded once in main(), before anyone could be signed in, so
+  /// it returned immediately and completed weeks did not come back until the
+  /// next cold start with a session already on disk.
+  final List<Future<void> Function()> _onSignedIn;
 
   /// Run when the session ends, to clear every notifier holding patient data.
   /// Registered in main.dart so that the provider list is the single place
@@ -28,6 +33,13 @@ class AuthNotifier extends ChangeNotifier {
   UserModel? currentUser;
   bool isLoading = false;
   String? errorMessage;
+
+  /// Set when a signup was refused because the address already has an account.
+  ///
+  /// The signup screen has always had a message for this, but nothing ever set
+  /// the flag it reads, so a duplicate registration surfaced as a raw
+  /// exception string instead.
+  bool emailAlreadyRegistered = false;
 
   /// Adopts a session that Supabase restored from storage, and keeps
   /// [currentUser] in step with sign-in and sign-out from then on.
@@ -45,6 +57,18 @@ class AuthNotifier extends ChangeNotifier {
     if (user != null && currentUser == null) {
       currentUser = await _buildUserFromProfile(user);
       notifyListeners();
+      await _loadSignedInData();
+    }
+  }
+
+  Future<void> _loadSignedInData() async {
+    for (final load in _onSignedIn) {
+      try {
+        await load();
+      } catch (e) {
+        // One loader failing must not stop the others.
+        debugPrint('sign-in data load failed: $e');
+      }
     }
   }
 
@@ -122,8 +146,7 @@ class AuthNotifier extends ChangeNotifier {
           fallbackEmail: email.trim(),
         );
 
-        // Update assessment completion status from Supabase for this user
-        await _assessmentNotifier?.checkCompletedAssessments();
+        await _loadSignedInData();
       }
     } catch (e) {
       errorMessage = e.toString();
@@ -143,6 +166,7 @@ class AuthNotifier extends ChangeNotifier {
   }) async {
     isLoading = true;
     errorMessage = null;
+    emailAlreadyRegistered = false;
     notifyListeners();
 
     try {
@@ -152,6 +176,14 @@ class AuthNotifier extends ChangeNotifier {
         data: {'full_name': fullName.trim(), 'phone': phone.trim()},
       );
       final user = response.user;
+
+      // With email-enumeration protection on, Supabase returns a user with no
+      // identities rather than an error when the address is already taken.
+      if (user != null && (user.identities?.isEmpty ?? false)) {
+        emailAlreadyRegistered = true;
+        return;
+      }
+
       if (user != null) {
         DateTime? parsedDob;
         if (dob != null && dob.isNotEmpty) {
@@ -183,8 +215,17 @@ class AuthNotifier extends ChangeNotifier {
           dateOfBirth: parsedDob,
         );
 
-        // Update assessment completion status from Supabase for this user
-        await _assessmentNotifier?.checkCompletedAssessments();
+        await _loadSignedInData();
+      }
+    } on AuthException catch (e) {
+      // With enumeration protection off, it comes back as an error instead.
+      final message = e.message.toLowerCase();
+      if (message.contains('already registered') ||
+          message.contains('already been registered') ||
+          message.contains('user already exists')) {
+        emailAlreadyRegistered = true;
+      } else {
+        errorMessage = e.message;
       }
     } catch (e) {
       errorMessage = e.toString();

@@ -95,7 +95,6 @@ void main() {
     final iqol = IqolNotifier()..updateItem(0, 3);
 
     final auth = AuthNotifier(
-      assessmentNotifier: assessment,
       onSessionEnded: [
         assessment.reset,
         exercise.reset,

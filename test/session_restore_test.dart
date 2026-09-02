@@ -74,6 +74,39 @@ void main() {
     auth.dispose();
   });
 
+  test('initialize() runs the sign-in data loaders', () async {
+    // Exercise progress used to be loaded once in main(), before anyone could
+    // be signed in, so it returned immediately and completed weeks did not come
+    // back until the next cold start.
+    final ran = <String>[];
+    final auth = AuthNotifier(
+      onSignedIn: [
+        () async => ran.add('assessments'),
+        () async => ran.add('exercise'),
+      ],
+    );
+
+    await auth.initialize();
+
+    expect(ran, ['assessments', 'exercise']);
+    auth.dispose();
+  });
+
+  test('one failing loader does not stop the others', () async {
+    final ran = <String>[];
+    final auth = AuthNotifier(
+      onSignedIn: [
+        () async => throw StateError('table unreadable'),
+        () async => ran.add('exercise'),
+      ],
+    );
+
+    await auth.initialize();
+
+    expect(ran, ['exercise']);
+    auth.dispose();
+  });
+
   test('initialize() notifies listeners once the user is adopted', () async {
     final auth = AuthNotifier();
     var notifications = 0;

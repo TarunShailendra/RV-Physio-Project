@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -109,17 +109,19 @@ class _SignupScreenState extends State<SignupScreen> {
                       onChanged: (_) {
                         if (_emailTaken) setState(() => _emailTaken = false);
                       },
-                       validator: (value) {
-                         final email = value?.trim() ?? '';
-                         if (email.isEmpty) return null;
-                         if (!email.contains('@')) {
-                           return l10n.enterValidEmail;
-                         }
-                         if (_emailTaken) {
-                           return 'This email is already registered';
-                         }
-                         return null;
-                       },
+                      validator: (value) {
+                        final email = value?.trim() ?? '';
+                        if (email.isEmpty) {
+                          return l10n.enterYourEmail;
+                        }
+                        if (!email.contains('@') || !email.contains('.')) {
+                          return l10n.enterValidEmail;
+                        }
+                        if (_emailTaken) {
+                          return 'This email is already registered';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -314,9 +316,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final email = _emailController.text.trim().isEmpty
-        ? '${_phoneController.text.trim()}@phone.local'
-        : _emailController.text.trim();
+    final email = _emailController.text.trim();
 
     final authNotifier = context.read<AuthNotifier>();
     await authNotifier.signup(
@@ -331,6 +331,11 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (mounted) {
+      if (authNotifier.emailAlreadyRegistered) {
+        setState(() => _emailTaken = true);
+        _formKey.currentState!.validate();
+        return;
+      }
       if (authNotifier.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

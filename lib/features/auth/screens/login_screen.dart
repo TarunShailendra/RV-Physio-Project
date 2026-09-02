@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -107,15 +107,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Icons.email_outlined,
                                   color: Colors.white70,
                                 ),
-                                 validator: (value) {
-                                   final email = value?.trim() ?? '';
-                                   if (email.isEmpty) return null;
-                                   if (!email.contains('@') ||
-                                       !email.contains('.')) {
-                                     return l10n.enterValidEmail;
-                                   }
-                                   return null;
-                                 },
+                                validator: (value) {
+                                  final email = value?.trim() ?? '';
+                                  if (email.isEmpty) {
+                                    return l10n.enterYourEmail;
+                                  }
+                                  if (!email.contains('@') ||
+                                      !email.contains('.')) {
+                                    return l10n.enterValidEmail;
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 16),
                               _glassTextField(
@@ -176,8 +178,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                               );
                                               if (context.mounted) {
                                                 if (auth.currentUser == null) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
                                                     SnackBar(
                                                       content: Text(
                                                         auth.errorMessage ??

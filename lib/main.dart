@@ -15,18 +15,25 @@ import 'features/profile/profile_notifier.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://yfigxvdvohhobmgkqyca.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaWd4dmR2b2hob2JtZ2txeWNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzcyNTksImV4cCI6MjA5Mzc1MzI1OX0.nOjeVT84wlAY4goUUnVotTm-pOUIb2IIKR8eoXAwIkc',
-  );
+  // Credentials come from the build, not from source. Copy
+  // supabase.env.example.json to supabase.env.json (gitignored) and run:
+  //   flutter run --dart-define-from-file=supabase.env.json
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw StateError(
+      'Missing Supabase credentials. Pass --dart-define-from-file=supabase.env.json, '
+      'or --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
+    );
+  }
+
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   final profileNotifier = ProfileNotifier();
   final dashboardNotifier = DashboardNotifier();
   final exerciseNotifier = ExerciseNotifier();
   final assessmentSummaryNotifier = AssessmentSummaryNotifier();
-  // populate completion status from Supabase on startup
-  await assessmentSummaryNotifier.checkCompletedAssessments();
-  await exerciseNotifier.loadProgress(); // restore week unlock state from Supabase
 
   final iciqNotifier = IciqNotifier();
   final ipaqNotifier = IpaqNotifier();
@@ -34,7 +41,13 @@ void main() async {
   final bladderDiaryNotifier = BladderDiaryNotifier();
 
   final authNotifier = AuthNotifier(
-    assessmentNotifier: assessmentSummaryNotifier,
+    // Pulled back from Supabase whenever a patient signs in, including the
+    // session restored at startup. These used to run once here, before anyone
+    // could be signed in, so they returned without loading anything.
+    onSignedIn: [
+      assessmentSummaryNotifier.checkCompletedAssessments,
+      exerciseNotifier.loadProgress,
+    ],
     // Everything holding patient data, cleared when the session ends. Any
     // notifier added to the provider list below belongs here too.
     onSessionEnded: [
@@ -54,18 +67,20 @@ void main() async {
   // expired.
   await authNotifier.initialize();
 
-  runApp(AppProviders(
-    authNotifier: authNotifier,
-    profileNotifier: profileNotifier,
-    dashboardNotifier: dashboardNotifier,
-    exerciseNotifier: exerciseNotifier,
-    assessmentSummaryNotifier: assessmentSummaryNotifier,
-    iciqNotifier: iciqNotifier,
-    ipaqNotifier: ipaqNotifier,
-    iqolNotifier: iqolNotifier,
-    bladderDiaryNotifier: bladderDiaryNotifier,
-    child: const TelerehabApp(),
-  ));
+  runApp(
+    AppProviders(
+      authNotifier: authNotifier,
+      profileNotifier: profileNotifier,
+      dashboardNotifier: dashboardNotifier,
+      exerciseNotifier: exerciseNotifier,
+      assessmentSummaryNotifier: assessmentSummaryNotifier,
+      iciqNotifier: iciqNotifier,
+      ipaqNotifier: ipaqNotifier,
+      iqolNotifier: iqolNotifier,
+      bladderDiaryNotifier: bladderDiaryNotifier,
+      child: const TelerehabApp(),
+    ),
+  );
 }
 
 class AppProviders extends StatelessWidget {
