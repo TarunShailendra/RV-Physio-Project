@@ -68,6 +68,13 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
   /// the inputs underneath stayed blank.
   int _loadRevision = 0;
 
+  /// The row this diary was saved as, once it has been submitted.
+  ///
+  /// Kept so a second submit edits that diary rather than inserting a near
+  /// copy of it. Without it the patient had two ways to duplicate three days
+  /// of readings: submit twice, or come back to a form still holding them.
+  String? _diaryId;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +104,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
   }
 
   Map<String, dynamic> _draftJson() => {
+    'diaryId': _diaryId,
     'data': [
       for (var day = 0; day < 3; day++)
         [
@@ -131,6 +139,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
 
     if (!mounted) return;
     setState(() {
+      _diaryId = draft['diaryId'] as String?;
       final days = draft['data'] as List<dynamic>? ?? const [];
       for (var day = 0; day < days.length && day < 3; day++) {
         final slots = days[day] as List<dynamic>? ?? const [];
@@ -735,6 +744,14 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
         // Nothing to record. Worth refusing rather than storing an empty
         // diary that reads as three days of no fluid and no voids.
         failure = l10n.diaryEmpty;
+      } else if (_diaryId != null) {
+        // Already submitted once: edit that diary rather than store a second
+        // copy of the same three days.
+        await Supabase.instance.client
+            .from('bladder_diaries')
+            .update({'diary': payload})
+            .eq('id', _diaryId!);
+        debugPrint('Bladder diary $_diaryId updated');
       } else {
         // submitted_at is left to the column's `now()` default. It was sent
         // as DateTime.now().toIso8601String(), which for a local DateTime
@@ -742,13 +759,19 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
         // and every diary was stamped a whole timezone into the future —
         // +05:30 here, and whatever the patient's phone is set to elsewhere.
         // The server's clock is the one that can be trusted anyway.
-        await Supabase.instance.client.from('bladder_diaries').insert({
-          'user_id': userId,
-          'diary': payload,
-        });
-        debugPrint('Bladder diary saved successfully');
-        await DiaryDraftStore.clear();
+        final row = await Supabase.instance.client
+            .from('bladder_diaries')
+            .insert({'user_id': userId, 'diary': payload})
+            .select('id')
+            .single();
+        _diaryId = row['id'] as String?;
+        debugPrint('Bladder diary saved as $_diaryId');
       }
+      // The draft is deliberately kept. Clearing it on submit emptied the
+      // form the next time the patient opened the diary, which read as three
+      // days of readings being thrown away. It is cleared on sign-out, which
+      // is the point at which it must not survive.
+      await DiaryDraftStore.save(_draftJson());
     } catch (e) {
       debugPrint('Bladder diary save error: $e');
       failure = l10n.diarySaveFailed;
