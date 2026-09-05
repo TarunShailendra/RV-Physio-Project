@@ -31,10 +31,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = context.watch<ProfileNotifier>().profile;
     final currentUser = context.watch<AuthNotifier>().currentUser;
     final l10n = AppLocalizations.of(context)!;
-    final profileName = profile?.fullName?.trim();
-    final displayName = profileName?.isNotEmpty == true
-        ? profileName!
-        : currentUser?.name ?? l10n.user;
+    final displayEmail = (profile?.email ?? currentUser?.email)?.trim() ?? '';
+    final displayName = _displayName(
+      profile?.fullName,
+      currentUser?.name,
+      displayEmail,
+      l10n,
+    );
     final displayAge = _ageFromDateOfBirth(profile?.dateOfBirth);
     // Real figures, or nothing. These three were hardcoded to 1, 0% and 0
     // regardless of what the patient had actually done.
@@ -89,8 +92,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     Text(
-                      // Showed "Bengaluru" as though the patient had entered it.
-                      (profile?.city.isNotEmpty ?? false) ? profile!.city : '',
+                      // The city sat here, under an email address standing in
+                      // for the patient's name. The name belongs on the line
+                      // above; the city is a profile detail like any other
+                      // and is listed with the rest below.
+                      displayEmail,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: Colors.white70,
@@ -348,6 +354,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// The patient's name for the header.
+  ///
+  /// AuthNotifier falls back to the email address when the profile row has no
+  /// full name, so taking it unconditionally printed the address twice: once
+  /// as the name and again as the subtitle beneath it.
+  String _displayName(
+    String? profileName,
+    String? sessionName,
+    String email,
+    AppLocalizations l10n,
+  ) {
+    for (final candidate in [profileName, sessionName]) {
+      final name = candidate?.trim();
+      if (name != null && name.isNotEmpty && name != email) return name;
+    }
+    return l10n.user;
   }
 
   int? _ageFromDateOfBirth(DateTime? dateOfBirth) {
