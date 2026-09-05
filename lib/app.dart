@@ -86,6 +86,7 @@ GoRouter createAppRouter(
         isSignedIn: authNotifier.currentUser != null,
         hasCompletedProfile:
             authNotifier.currentUser?.isProfileComplete ?? false,
+        assessmentsLoaded: summaryNotifier.assessmentsLoaded,
         hasIciq: summaryNotifier.iciq != null,
         hasIpaq: summaryNotifier.ipaq != null,
         hasIqol: summaryNotifier.iqol != null,

@@ -17,6 +17,7 @@ void main() {
         path: path,
         isSignedIn: isSignedIn,
         hasCompletedProfile: true,
+        assessmentsLoaded: true,
         hasIciq: true,
         hasIpaq: true,
         hasIqol: true,
@@ -96,6 +97,7 @@ void main() {
           path: path,
           isSignedIn: true,
           hasCompletedProfile: hasCompletedProfile,
+          assessmentsLoaded: true,
           hasIciq: false,
           hasIpaq: false,
           hasIqol: false,
@@ -131,6 +133,7 @@ void main() {
           path: '/dashboard',
           isSignedIn: false,
           hasCompletedProfile: false,
+          assessmentsLoaded: true,
           hasIciq: false,
           hasIpaq: false,
           hasIqol: false,
@@ -153,6 +156,7 @@ void main() {
       path: path,
       isSignedIn: true,
       hasCompletedProfile: true,
+      assessmentsLoaded: true,
       hasIciq: hasIciq,
       hasIpaq: hasIpaq,
       hasIqol: hasIqol,
@@ -233,6 +237,7 @@ void main() {
               path: path,
               isSignedIn: signedIn,
               hasCompletedProfile: false,
+              assessmentsLoaded: true,
               hasIciq: false,
               hasIpaq: false,
               hasIqol: false,
@@ -249,6 +254,89 @@ void main() {
           );
         }
       }
+    });
+  });
+
+  group('a session whose results have not been read back yet', () {
+    String? redirect(String path) => resolveRedirect(
+      path: path,
+      isSignedIn: true,
+      hasCompletedProfile: true,
+      // Signing in publishes the patient before Supabase has been asked what
+      // they have already answered, so every questionnaire looks undone.
+      assessmentsLoaded: false,
+      hasIciq: false,
+      hasIpaq: false,
+      hasIqol: false,
+      isIqolAvailable: false,
+    );
+
+    test('a returning patient is not thrown back into the ICIQ', () {
+      expect(
+        redirect('/dashboard'),
+        isNull,
+        reason:
+            'Logging in reopened questionnaires the patient had already '
+            'filled in, because a not-yet-loaded result was indistinguishable '
+            'from a missing one.',
+      );
+    });
+
+    test('no route is pushed into the assessment sequence', () {
+      for (final path in appRouteBuilders.keys) {
+        if (publicRoutes.contains(path)) continue;
+        expect(
+          redirect(path),
+          isNot(anyOf('/iciq', '/ipaq', '/iqol')),
+          reason: '$path must wait for the load rather than guess',
+        );
+      }
+    });
+
+    test('the authentication and profile gates still come first', () {
+      expect(
+        resolveRedirect(
+          path: '/dashboard',
+          isSignedIn: false,
+          hasCompletedProfile: true,
+          assessmentsLoaded: false,
+          hasIciq: false,
+          hasIpaq: false,
+          hasIqol: false,
+          isIqolAvailable: false,
+        ),
+        signedOutLanding,
+      );
+      expect(
+        resolveRedirect(
+          path: '/dashboard',
+          isSignedIn: true,
+          hasCompletedProfile: false,
+          assessmentsLoaded: false,
+          hasIciq: false,
+          hasIpaq: false,
+          hasIqol: false,
+          isIqolAvailable: false,
+        ),
+        profileSetupRoute,
+      );
+    });
+
+    test('once loaded, a genuinely missing ICIQ is still required', () {
+      expect(
+        resolveRedirect(
+          path: '/dashboard',
+          isSignedIn: true,
+          hasCompletedProfile: true,
+          assessmentsLoaded: true,
+          hasIciq: false,
+          hasIpaq: false,
+          hasIqol: false,
+          isIqolAvailable: false,
+        ),
+        '/iciq',
+        reason: 'waiting for the load must not become skipping the gate',
+      );
     });
   });
 }

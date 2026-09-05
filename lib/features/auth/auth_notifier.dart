@@ -85,7 +85,17 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadSignedInData() async {
+  /// Runs the sign-in loaders, joining a run already in flight rather than
+  /// starting a second one. sign-in reaches here twice — once from login() or
+  /// signup(), once from the auth event they raise — and the two would
+  /// otherwise fetch everything twice over.
+  Future<void> _loadSignedInData() {
+    return _signedInDataLoad ??= _runSignedInLoaders().whenComplete(
+      () => _signedInDataLoad = null,
+    );
+  }
+
+  Future<void> _runSignedInLoaders() async {
     for (final load in _onSignedIn) {
       try {
         await load();
@@ -96,6 +106,10 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  /// The sign-in data load currently in flight, if any. See
+  /// [_loadSignedInData].
+  Future<void>? _signedInDataLoad;
+
   void _handleAuthStateChange(AuthState state) {
     switch (state.event) {
       case AuthChangeEvent.signedOut:
@@ -105,7 +119,11 @@ class AuthNotifier extends ChangeNotifier {
       case AuthChangeEvent.userUpdated:
         final user = state.session?.user;
         if (user != null) {
-          unawaited(_refreshCurrentUser(user));
+          // The loaders belong here and not only in login() and signup(), so
+          // that a session which starts any other way still pulls the
+          // patient's assessments and progress. Without them the route guard
+          // never learns which questionnaires are done.
+          unawaited(_refreshCurrentUser(user).then((_) => _loadSignedInData()));
         }
         break;
       // initialSession is covered by initialize(), so that startup is

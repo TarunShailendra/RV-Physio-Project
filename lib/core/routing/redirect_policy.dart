@@ -41,6 +41,7 @@ String? resolveRedirect({
   required String path,
   required bool isSignedIn,
   required bool hasCompletedProfile,
+  required bool assessmentsLoaded,
   required bool hasIciq,
   required bool hasIpaq,
   required bool hasIqol,
@@ -65,8 +66,16 @@ String? resolveRedirect({
     return path == profileSetupRoute ? null : profileSetupRoute;
   }
 
-  // 4. Assessment sequence, unchanged in behaviour for signed-in patients.
+  // 4. Assessment sequence.
   if (assessmentExemptRoutes.contains(path)) return null;
+
+  // Nothing below can tell a questionnaire that was never done from one that
+  // has not been read back from Supabase yet, and sign-in publishes the
+  // patient before their results arrive. Sending them to the ICIQ on that
+  // evidence meant every login reopened questionnaires they had already
+  // filled in. Leave them where they are until the answer is actually known;
+  // the guard runs again when the load completes.
+  if (!assessmentsLoaded) return null;
 
   if (!hasIciq) return '/iciq';
 

@@ -13,6 +13,14 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
   IQOLModel? iqol;
   IPAQModel? ipaq;
 
+  /// Whether [checkCompletedAssessments] has run for the current session.
+  ///
+  /// Until it has, a null questionnaire means "not fetched yet", not "not
+  /// done". The route guard could not tell the two apart, so signing in threw
+  /// the patient back into the ICIQ they had already filled in: sign-in
+  /// publishes the user before the results have been read back.
+  bool assessmentsLoaded = false;
+
   // Resolved lazily. As an eager field initialiser this threw whenever the
   // notifier was built before Supabase.initialize(), which made the class
   // impossible to construct in a test and made AppProviders' own
@@ -177,6 +185,7 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
       debugPrint('IQOL restore failed: $e');
     }
 
+    assessmentsLoaded = true;
     notifyListeners();
   }
 
@@ -237,6 +246,7 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
     iciq = null;
     iqol = null;
     ipaq = null;
+    assessmentsLoaded = false;
     notifyListeners();
   }
 }
