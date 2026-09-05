@@ -2042,6 +2042,54 @@ abstract class AppLocalizations {
   /// **'Do you have hypertension?'**
   String get haveHypertension;
 
+  /// No description provided for @personalHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal History'**
+  String get personalHistory;
+
+  /// No description provided for @children.
+  ///
+  /// In en, this message translates to:
+  /// **'Children'**
+  String get children;
+
+  /// No description provided for @childbirthPain.
+  ///
+  /// In en, this message translates to:
+  /// **'Childbirth-related pain'**
+  String get childbirthPain;
+
+  /// No description provided for @heightCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get heightCm;
+
+  /// No description provided for @weightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get weightKg;
+
+  /// No description provided for @diabetes.
+  ///
+  /// In en, this message translates to:
+  /// **'Diabetes'**
+  String get diabetes;
+
+  /// No description provided for @hypertension.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypertension'**
+  String get hypertension;
+
+  /// No description provided for @notProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'Not provided'**
+  String get notProvided;
+
   /// No description provided for @genderNonBinary.
   ///
   /// In en, this message translates to:

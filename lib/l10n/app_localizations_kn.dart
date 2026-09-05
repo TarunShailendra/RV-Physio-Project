@@ -1047,6 +1047,30 @@ class AppLocalizationsKn extends AppLocalizations {
   String get haveHypertension => 'ನಿಮಗೆ ಅಧಿಕ ರಕ್ತದೊತ್ತಡ ಇದೆಯೇ?';
 
   @override
+  String get personalHistory => 'ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ';
+
+  @override
+  String get children => 'ಮಕ್ಕಳು';
+
+  @override
+  String get childbirthPain => 'ಹೆರಿಗೆ ಸಂಬಂಧಿತ ನೋವು';
+
+  @override
+  String get heightCm => 'ಎತ್ತರ (ಸೆಂ.ಮೀ)';
+
+  @override
+  String get weightKg => 'ತೂಕ (ಕೆ.ಜಿ)';
+
+  @override
+  String get diabetes => 'ಮಧುಮೇಹ';
+
+  @override
+  String get hypertension => 'ಅಧಿಕ ರಕ್ತದೋತ್ತಡ';
+
+  @override
+  String get notProvided => 'ನೀಡಿಲ್ಲ';
+
+  @override
   String get genderNonBinary => 'ನಾನ್-ಬೈನರಿ';
 
   @override

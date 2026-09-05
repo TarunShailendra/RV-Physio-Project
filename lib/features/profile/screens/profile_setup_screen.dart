@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/auth_notifier.dart';
 import '../models/profile_model.dart';
+import '../profile_labels.dart';
 import '../profile_notifier.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -16,57 +17,6 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  static const List<String> _incontinenceTypeKeys = [
-    'stress',
-    'urge',
-    'mixed',
-    'unknown',
-  ];
-
-  /// Stored values stay English so the database keeps one vocabulary; only
-  /// the labels are translated. Mirrors _incontinenceTypeKeys above.
-  static const List<String> _maritalStatuses = [
-    'Single',
-    'Married',
-    'Separated',
-    'Divorced',
-    'Widowed',
-  ];
-  static const List<String> _deliveryTypes = [
-    'Vaginal delivery',
-    'Caesarean section',
-    'Assisted delivery',
-    'Other',
-  ];
-  static const List<String> _genders = [
-    'Female',
-    'Male',
-    'Non-binary',
-    'Prefer not to say',
-  ];
-
-  String _maritalLabel(String value, AppLocalizations l10n) => switch (value) {
-    'Single' => l10n.maritalSingle,
-    'Married' => l10n.maritalMarried,
-    'Separated' => l10n.maritalSeparated,
-    'Divorced' => l10n.maritalDivorced,
-    _ => l10n.maritalWidowed,
-  };
-
-  String _deliveryLabel(String value, AppLocalizations l10n) => switch (value) {
-    'Vaginal delivery' => l10n.deliveryVaginal,
-    'Caesarean section' => l10n.deliveryCaesarean,
-    'Assisted delivery' => l10n.deliveryAssisted,
-    _ => l10n.deliveryOther,
-  };
-
-  String _genderLabel(String value, AppLocalizations l10n) => switch (value) {
-    'Female' => l10n.female,
-    'Male' => l10n.male,
-    'Non-binary' => l10n.genderNonBinary,
-    _ => l10n.genderPreferNotToSay,
-  };
-
   final _formKey = GlobalKey<FormState>();
   final _cityController = TextEditingController();
   final _occupationController = TextEditingController();
@@ -136,7 +86,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   /// for.
   String? _keyForIncontinenceType(String stored) {
     final key = stored.trim().toLowerCase();
-    return _incontinenceTypeKeys.contains(key) ? key : null;
+    return incontinenceTypeKeys.contains(key) ? key : null;
   }
 
   @override
@@ -217,10 +167,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         labelText: l10n.incontinenceType,
                         border: const OutlineInputBorder(),
                       ),
-                      items: _incontinenceTypeKeys.map((key) {
+                      items: incontinenceTypeKeys.map((key) {
                         return DropdownMenuItem<String>(
                           value: key,
-                          child: Text(_getLocalizedIncontinenceType(key, l10n)),
+                          child: Text(incontinenceLabel(key, l10n)),
                         );
                       }).toList(),
                       onChanged: profileNotifier.isLoading
@@ -275,11 +225,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         labelText: l10n.maritalStatus,
                         border: const OutlineInputBorder(),
                       ),
-                      items: _maritalStatuses
+                      items: maritalStatuses
                           .map(
                             (value) => DropdownMenuItem(
                               value: value,
-                              child: Text(_maritalLabel(value, l10n)),
+                              child: Text(maritalLabel(value, l10n)),
                             ),
                           )
                           .toList(),
@@ -300,11 +250,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           labelText: l10n.deliveryTypeLabel,
                           border: const OutlineInputBorder(),
                         ),
-                        items: _deliveryTypes
+                        items: deliveryTypes
                             .map(
                               (value) => DropdownMenuItem(
                                 value: value,
-                                child: Text(_deliveryLabel(value, l10n)),
+                                child: Text(deliveryLabel(value, l10n)),
                               ),
                             )
                             .toList(),
@@ -384,11 +334,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         labelText: l10n.gender,
                         border: const OutlineInputBorder(),
                       ),
-                      items: _genders
+                      items: genders
                           .map(
                             (value) => DropdownMenuItem(
                               value: value,
-                              child: Text(_genderLabel(value, l10n)),
+                              child: Text(genderLabel(value, l10n)),
                             ),
                           )
                           .toList(),
@@ -422,21 +372,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ),
       ),
     );
-  }
-
-  String _getLocalizedIncontinenceType(String key, AppLocalizations l10n) {
-    switch (key) {
-      case 'stress':
-        return l10n.stressIncontinence;
-      case 'urge':
-        return l10n.urgeIncontinence;
-      case 'mixed':
-        return l10n.mixedIncontinence;
-      case 'unknown':
-        return l10n.unknownIncontinence;
-      default:
-        return key;
-    }
   }
 
   Future<void> _handleSubmit() async {

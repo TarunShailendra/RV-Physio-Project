@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/locale/locale_notifier.dart';
 import '../../auth/auth_notifier.dart';
 import '../../dashboard/dashboard_notifier.dart';
+import '../profile_labels.dart';
 import '../profile_notifier.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -134,65 +135,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // Profile details
-                  Text(
-                    l10n.profileDetails,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A2E2B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  //
+                  // Every answer the patient gives during setup is shown
+                  // back here. The screen used to render six of them and
+                  // silently drop the rest, so most of what was asked for
+                  // after signing up appeared nowhere in the app.
+                  _SectionTitle(l10n.profileDetails),
                   _InfoCard(
                     children: [
                       _InfoRow(
                         icon: Icons.cake_outlined,
                         label: l10n.age,
-                        value: displayAge?.toString() ?? '--',
+                        value: displayAge?.toString() ?? l10n.notProvided,
+                      ),
+                      _InfoRow(
+                        icon: Icons.person_outline,
+                        label: l10n.gender,
+                        value: _orNotProvided(
+                          profile?.gender == null
+                              ? null
+                              : genderLabel(profile!.gender!, l10n),
+                          l10n,
+                        ),
+                      ),
+                      _InfoRow(
+                        icon: Icons.phone_outlined,
+                        label: l10n.phone,
+                        value: _orNotProvided(profile?.phone, l10n),
+                      ),
+                      _InfoRow(
+                        icon: Icons.email_outlined,
+                        label: l10n.email,
+                        value: _orNotProvided(profile?.email, l10n),
                       ),
                       _InfoRow(
                         icon: Icons.work_outline,
                         label: l10n.occupation,
-                        value: profile?.occupation ?? '--',
+                        value: _orNotProvided(profile?.occupation, l10n),
                       ),
                       _InfoRow(
                         icon: Icons.location_on_outlined,
                         label: l10n.city,
-                        value: profile?.city ?? '--',
+                        value: _orNotProvided(profile?.city, l10n),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  Text(
-                    l10n.healthInfo,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A2E2B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  _SectionTitle(l10n.healthInfo),
                   _InfoCard(
                     children: [
                       _InfoRow(
                         icon: Icons.medical_information_outlined,
                         label: l10n.incontinenceType,
-                        value: profile?.incontinenceType ?? '--',
+                        value: _orNotProvided(
+                          profile?.incontinenceType == null
+                              ? null
+                              : incontinenceLabel(
+                                  profile!.incontinenceType,
+                                  l10n,
+                                ),
+                          l10n,
+                        ),
                       ),
                       _InfoRow(
                         icon: Icons.timer_outlined,
                         label: l10n.symptomDuration,
-                        value:
-                            '${profile?.symptomDurationMonths ?? '--'} ${l10n.months}',
+                        value: profile == null
+                            ? l10n.notProvided
+                            : '${profile.symptomDurationMonths} ${l10n.months}',
                       ),
                       _InfoRow(
                         icon: Icons.local_hospital_outlined,
                         label: l10n.soughtTreatment,
-                        value: profile?.hasSoughtTreatment == true
-                            ? l10n.yes
-                            : l10n.no,
+                        value: _yesNo(profile?.hasSoughtTreatment, l10n),
                       ),
+                      _InfoRow(
+                        icon: Icons.bloodtype_outlined,
+                        label: l10n.diabetes,
+                        value: _yesNo(profile?.hasDiabetes, l10n),
+                      ),
+                      _InfoRow(
+                        icon: Icons.monitor_heart_outlined,
+                        label: l10n.hypertension,
+                        value: _yesNo(profile?.hasHypertension, l10n),
+                      ),
+                      _InfoRow(
+                        icon: Icons.height_outlined,
+                        label: l10n.heightCm,
+                        value: _orNotProvided(
+                          _formatMeasurement(profile?.heightCm),
+                          l10n,
+                        ),
+                      ),
+                      _InfoRow(
+                        icon: Icons.monitor_weight_outlined,
+                        label: l10n.weightKg,
+                        value: _orNotProvided(
+                          _formatMeasurement(profile?.weightKg),
+                          l10n,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _SectionTitle(l10n.personalHistory),
+                  _InfoCard(
+                    children: [
+                      _InfoRow(
+                        icon: Icons.favorite_outline,
+                        label: l10n.maritalStatus,
+                        value: _orNotProvided(
+                          profile?.maritalStatus == null
+                              ? null
+                              : maritalLabel(profile!.maritalStatus!, l10n),
+                          l10n,
+                        ),
+                      ),
+                      _InfoRow(
+                        icon: Icons.child_care_outlined,
+                        label: l10n.children,
+                        value: _yesNo(profile?.hasChildren, l10n),
+                      ),
+                      // The three rows below only mean anything for a patient
+                      // who has children, and setup does not collect them
+                      // otherwise.
+                      if (profile?.hasChildren == true) ...[
+                        _InfoRow(
+                          icon: Icons.pregnant_woman_outlined,
+                          label: l10n.deliveryTypeLabel,
+                          value: _orNotProvided(
+                            profile?.deliveryType == null
+                                ? null
+                                : deliveryLabel(profile!.deliveryType!, l10n),
+                            l10n,
+                          ),
+                        ),
+                        _InfoRow(
+                          icon: Icons.escalator_warning_outlined,
+                          label: l10n.childrenAgesLabel,
+                          value: _orNotProvided(profile?.childrenAges, l10n),
+                        ),
+                        if (profile?.childbirthPainLevel != null)
+                          _InfoRow(
+                            icon: Icons.healing_outlined,
+                            label: l10n.childbirthPain,
+                            value: '${profile!.childbirthPainLevel} / 10',
+                          ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -268,6 +359,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
       age--;
     }
     return age < 0 ? null : age;
+  }
+}
+
+/// Shows a value, or "Not provided" when the patient left it blank.
+///
+/// Blank and absent are the same thing to a reader, so an empty string is
+/// treated as missing rather than rendered as an empty row.
+String _orNotProvided(String? value, AppLocalizations l10n) {
+  final trimmed = value?.trim();
+  return (trimmed == null || trimmed.isEmpty) ? l10n.notProvided : trimmed;
+}
+
+String _yesNo(bool? value, AppLocalizations l10n) => switch (value) {
+  true => l10n.yes,
+  false => l10n.no,
+  null => l10n.notProvided,
+};
+
+/// Trims a trailing ".0" so a height entered as 165 does not read "165.0".
+String? _formatMeasurement(double? value) {
+  if (value == null) return null;
+  return value == value.roundToDouble()
+      ? value.round().toString()
+      : value.toStringAsFixed(1);
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF1A2E2B),
+        ),
+      ),
+    );
   }
 }
 

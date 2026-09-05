@@ -1055,6 +1055,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get haveHypertension => 'Do you have hypertension?';
 
   @override
+  String get personalHistory => 'Personal History';
+
+  @override
+  String get children => 'Children';
+
+  @override
+  String get childbirthPain => 'Childbirth-related pain';
+
+  @override
+  String get heightCm => 'Height (cm)';
+
+  @override
+  String get weightKg => 'Weight (kg)';
+
+  @override
+  String get diabetes => 'Diabetes';
+
+  @override
+  String get hypertension => 'Hypertension';
+
+  @override
+  String get notProvided => 'Not provided';
+
+  @override
   String get genderNonBinary => 'Non-binary';
 
   @override
