@@ -4,16 +4,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../assessment/notifiers/assessment_summary_notifier.dart';
 import 'models/dashboard_model.dart';
 
-/// Mean adherence across the weeks the patient has actually reached.
+/// Adherence for the week the patient is on.
 ///
-/// This used to divide by all eight weeks regardless of progress, so a patient
-/// in week 1 with perfect adherence was shown 13% — the most demotivating
-/// number the app could put in front of them.
-double averageAdherence(List<double> weekly, int currentWeek) {
+/// This was a mean across every week up to the current one, which is wrong for
+/// anyone whose assessments start them past week 1: the weeks before their
+/// start are counted as zeroes they were never asked to fill. A patient
+/// recommended to begin at week 3, with all seven days of week 3 done, was
+/// shown 33% — sitting next to a card reading 7/7 for the same week.
+///
+/// Reporting the current week alone also makes the two cards agree by
+/// construction, since both come from the same completed-day count. The full
+/// history is still on the weekly adherence chart, which is where a trend
+/// across weeks belongs.
+double currentWeekAdherence(List<double> weekly, int currentWeek) {
   if (weekly.isEmpty) return 0;
-  final weeksReached = currentWeek.clamp(1, weekly.length);
-  final reached = weekly.take(weeksReached);
-  return reached.reduce((a, b) => a + b) / weeksReached;
+  final week = currentWeek.clamp(1, weekly.length);
+  return weekly[week - 1];
 }
 
 class DashboardNotifier extends ChangeNotifier {
@@ -102,7 +108,7 @@ class DashboardNotifier extends ChangeNotifier {
         totalWeeks: 8,
         exercisesCompletedThisWeek: fullyCompletedDays(currentWeek),
         exercisesTargetThisWeek: daysPerWeek,
-        adherencePercentage: averageAdherence(weeklyAdherence, currentWeek),
+        adherencePercentage: currentWeekAdherence(weeklyAdherence, currentWeek),
         iciqScorePre: iciqScorePre ?? data?.iciqScorePre ?? 0,
         iciqScorePost: data?.iciqScorePost ?? 0,
         weeklyAdherence: weeklyAdherence,

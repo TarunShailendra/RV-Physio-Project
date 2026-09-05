@@ -176,29 +176,54 @@ void main() {
     );
   });
 
-  group('E3 — adherence is averaged over the weeks reached', () {
+  group('E3 — adherence reports the week the patient is on', () {
     test('a perfect first week reads as 100%, not 13%', () {
       final weekly = <double>[100, 0, 0, 0, 0, 0, 0, 0];
-      expect(averageAdherence(weekly, 1), 100.0);
+      expect(currentWeekAdherence(weekly, 1), 100.0);
       expect(
         weekly.reduce((a, b) => a + b) / 8,
         12.5,
-        reason: 'what the old calculation produced',
+        reason: 'what the original calculation produced',
       );
     });
 
-    test('later weeks average only what has been reached', () {
-      expect(averageAdherence(<double>[100, 50, 0, 0, 0, 0, 0, 0], 2), 75.0);
-      expect(averageAdherence(<double>[90, 60, 30, 0, 0, 0, 0, 0], 3), 60.0);
+    test('a patient started past week 1 is not charged for the weeks before '
+        'their start', () {
+      // The assessments can recommend beginning at week 2 or 3. Averaging
+      // across "weeks reached" counted those untouched weeks as zeroes, so a
+      // flawless week 3 showed 33% beside a card reading 7/7.
+      final weekly = <double>[0, 0, 100, 0, 0, 0, 0, 0];
+      expect(currentWeekAdherence(weekly, 3), 100.0);
+      expect(
+        weekly.take(3).reduce((a, b) => a + b) / 3,
+        closeTo(33.3, 0.1),
+        reason: 'what the averaging produced',
+      );
     });
 
-    test('a finished protocol still averages all eight weeks', () {
-      expect(averageAdherence(List<double>.filled(8, 80), 8), 80.0);
+    test('earlier weeks do not follow the patient forward', () {
+      expect(
+        currentWeekAdherence(<double>[100, 50, 0, 0, 0, 0, 0, 0], 2),
+        50.0,
+      );
+      expect(
+        currentWeekAdherence(<double>[90, 60, 30, 0, 0, 0, 0, 0], 3),
+        30.0,
+      );
     });
 
-    test('degenerate inputs do not divide by zero', () {
-      expect(averageAdherence([], 3), 0);
-      expect(averageAdherence(<double>[50], 0), 50.0);
+    test('the last week of a finished protocol is the one reported', () {
+      expect(currentWeekAdherence(List<double>.filled(8, 80), 8), 80.0);
+    });
+
+    test('degenerate inputs are clamped rather than throwing', () {
+      expect(currentWeekAdherence([], 3), 0);
+      expect(currentWeekAdherence(<double>[50], 0), 50.0);
+      expect(
+        currentWeekAdherence(<double>[50, 60], 9),
+        60.0,
+        reason: 'a week past the end reads as the last one, not a range error',
+      );
     });
   });
 }
