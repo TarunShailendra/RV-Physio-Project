@@ -25,7 +25,10 @@ Map<String, dynamic> buildProfileUpsertRow(
     'symptom_duration_months': p.symptomDurationMonths,
     'has_sought_treatment': p.hasSoughtTreatment,
     'date_of_birth': p.dateOfBirth?.toIso8601String().split('T').first,
-    'profile_completed_at': completedAt.toIso8601String(),
+    // toUtc() before serialising: a local DateTime's ISO string carries no
+    // offset, so Postgres reads the wall-clock reading as UTC and stores a
+    // timestamptz a whole timezone out.
+    'profile_completed_at': completedAt.toUtc().toIso8601String(),
     'phone': p.phone,
     'email': p.email,
     'marital_status': p.maritalStatus,

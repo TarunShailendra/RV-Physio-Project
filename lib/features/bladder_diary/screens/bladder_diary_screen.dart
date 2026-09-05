@@ -117,14 +117,17 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     ],
   };
 
-  /// Restores the diary in progress, falling back to the last submitted one.
+  /// Restores the diary the patient is part-way through, if there is one.
+  ///
+  /// It used to fall back to loading their last *submitted* diary. A three-day
+  /// bladder diary is a fresh observation period, so that opened the form
+  /// already filled in with old readings, with nothing to say they were old —
+  /// and submit always inserts a new row, so tapping it stored the same three
+  /// days again under a new timestamp.
   Future<void> _restoreDraft() async {
     final draft = await DiaryDraftStore.load();
 
-    if (draft == null) {
-      await _loadPreviousEntry();
-      return;
-    }
+    if (draft == null) return;
 
     if (!mounted) return;
     setState(() {
@@ -156,53 +159,6 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       }
       _loadRevision++;
     });
-  }
-
-  Future<void> _loadPreviousEntry() async {
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      final row = await Supabase.instance.client
-          .from('bladder_diaries')
-          .select('diary')
-          .eq('user_id', userId)
-          .order('submitted_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-
-      if (row == null) return;
-      final diary = row['diary'] as Map<String, dynamic>?;
-      if (diary == null) return;
-
-      setState(() {
-        for (var day = 0; day < 3; day++) {
-          final dayKey = 'day${day + 1}';
-          final dayMap = diary[dayKey] as Map<String, dynamic>?;
-          if (dayMap == null) continue;
-          for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
-            final slotKey = _timeSlotKeys[slot];
-            final slotData = dayMap[slotKey] as Map<String, dynamic>?;
-            if (slotData == null) continue;
-            _data[day][slot].fluidAmount =
-                slotData['fluidAmount'] as String? ?? '';
-            _data[day][slot].fluidType = slotData['fluidType'] as String? ?? '';
-            _data[day][slot].urineOutput =
-                slotData['urineOutput'] as String? ?? '';
-            _data[day][slot].cantMeasure =
-                slotData['cantMeasure'] as bool? ?? false;
-            _data[day][slot].bladderSensation =
-                slotData['bladderSensation'] as int?;
-            _data[day][slot].pad = slotData['pad'] as bool? ?? false;
-            final marker = slotData['marker'] as String?;
-            if (marker != null) _markers[day][slot] = marker;
-          }
-        }
-        _loadRevision++;
-      });
-    } catch (e) {
-      debugPrint('loadPreviousEntry error: $e');
-    }
   }
 
   Map<int, String> _getSensationLabels(AppLocalizations l10n) {
@@ -370,6 +326,10 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
             marker != null;
 
         return Card(
+          // Without this the list identifies rows by position, so scrolling
+          // could carry one time slot's expanded state — and, with the field
+          // keys above, its typed text — onto a different hour.
+          key: ValueKey('diary-$day-$slot'),
           margin: const EdgeInsets.only(bottom: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -430,7 +390,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                 children: [
                   Expanded(
                     child: _miniField(
-                      fieldKey: 'amountMlCups-\$day-\$slot',
+                      fieldKey: 'amountMlCups-$day-$slot',
                       label: l10n.amountMlCups,
                       value: entry.fluidAmount,
                       onChanged: (v) => _edit(() => entry.fluidAmount = v),
@@ -439,7 +399,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: _miniField(
-                      fieldKey: 'fluidType-\$day-\$slot',
+                      fieldKey: 'fluidType-$day-$slot',
                       label: l10n.fluidType,
                       value: entry.fluidType,
                       onChanged: (v) => _edit(() => entry.fluidType = v),
@@ -463,7 +423,7 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
                 children: [
                   Expanded(
                     child: _miniField(
-                      fieldKey: 'mlOrLeak-\$day-\$slot',
+                      fieldKey: 'mlOrLeak-$day-$slot',
                       label: l10n.mlOrLeak,
                       value: entry.urineOutput,
                       enabled: !entry.cantMeasure,
@@ -768,13 +728,23 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
 
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
+      final payload = _buildDiaryPayload();
       if (userId == null) {
         failure = l10n.diarySaveSignedOut;
+      } else if (payload.isEmpty) {
+        // Nothing to record. Worth refusing rather than storing an empty
+        // diary that reads as three days of no fluid and no voids.
+        failure = l10n.diaryEmpty;
       } else {
+        // submitted_at is left to the column's `now()` default. It was sent
+        // as DateTime.now().toIso8601String(), which for a local DateTime
+        // carries no offset, so Postgres read the wall-clock reading as UTC
+        // and every diary was stamped a whole timezone into the future —
+        // +05:30 here, and whatever the patient's phone is set to elsewhere.
+        // The server's clock is the one that can be trusted anyway.
         await Supabase.instance.client.from('bladder_diaries').insert({
           'user_id': userId,
-          'diary': _buildDiaryPayload(),
-          'submitted_at': DateTime.now().toIso8601String(),
+          'diary': payload,
         });
         debugPrint('Bladder diary saved successfully');
         await DiaryDraftStore.clear();

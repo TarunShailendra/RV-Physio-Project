@@ -698,6 +698,10 @@ class AppLocalizationsKn extends AppLocalizations {
       'ನಿಮ್ಮ ಅವಧಿ ಮುಗಿದಿದೆ. ಡೈರಿ ಉಳಿಸಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.';
 
   @override
+  String get diaryEmpty =>
+      'ನಿಮ್ಮ ಡೈರಿಯನ್ನು ಸಲ್ಲಿಸುವ ಮುಂದೆ ಕನಿಷ್ಠ ಒಂದು ನಮೂದನ್ನು ಸೇರಿಸಿ.';
+
+  @override
   String get retry => 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ';
 
   @override

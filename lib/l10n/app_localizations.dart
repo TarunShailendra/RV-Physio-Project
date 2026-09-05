@@ -1364,6 +1364,12 @@ abstract class AppLocalizations {
   /// **'Your session has ended. Sign in again to save your diary.'**
   String get diarySaveSignedOut;
 
+  /// No description provided for @diaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one entry before submitting your diary.'**
+  String get diaryEmpty;
+
   /// No description provided for @retry.
   ///
   /// In en, this message translates to:

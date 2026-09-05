@@ -211,6 +211,7 @@
   "assessmentSaveFailed": "Your answers could not be saved. Please check your connection and try again.",
   "assessmentSaveSignedOut": "Your session has ended. Sign in again to save your answers.",
   "diarySaveSignedOut": "Your session has ended. Sign in again to save your diary.",
+  "diaryEmpty": "Add at least one entry before submitting your diary.",
   "retry": "Retry",
   "submitDiary": "Submit 3-Day Diary",
   "sensation0": "0 – No urge, social reason",

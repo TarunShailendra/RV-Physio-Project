@@ -707,6 +707,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your session has ended. Sign in again to save your diary.';
 
   @override
+  String get diaryEmpty =>
+      'Add at least one entry before submitting your diary.';
+
+  @override
   String get retry => 'Retry';
 
   @override
