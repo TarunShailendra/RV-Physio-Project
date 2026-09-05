@@ -22,6 +22,40 @@ double currentWeekAdherence(List<double> weekly, int currentWeek) {
   return weekly[week - 1];
 }
 
+/// The week the patient is on: the first week at or after the furthest one
+/// they have touched that they have not yet finished.
+///
+/// This was simply the highest week holding a completed session, which lags a
+/// week behind from the moment a week is finished until the first session of
+/// the next one is logged. Through that whole gap — the start of every new
+/// week — the dashboard and the profile reported the week just finished,
+/// along with its exercise count and its adherence.
+///
+/// Reading forward to the first incomplete week mirrors
+/// ExerciseNotifier.highestUnlockedWeek, so the two agree about where the
+/// patient is. [recommendedStartWeek] only applies to a patient who has done
+/// nothing yet; once there is any activity, that is the better evidence.
+int resolveCurrentWeek({
+  required Set<int> weeksTouched,
+  required Map<int, int> completedDaysByWeek,
+  required int recommendedStartWeek,
+}) {
+  final started = weeksTouched.isEmpty
+      ? recommendedStartWeek
+      : weeksTouched.reduce((a, b) => a > b ? a : b);
+
+  for (
+    var week = started.clamp(1, DashboardNotifier.totalWeeks);
+    week < DashboardNotifier.totalWeeks;
+    week++
+  ) {
+    if ((completedDaysByWeek[week] ?? 0) < DashboardNotifier.daysPerWeek) {
+      return week;
+    }
+  }
+  return DashboardNotifier.totalWeeks;
+}
+
 class DashboardNotifier extends ChangeNotifier {
   DashboardNotifier();
 
@@ -32,9 +66,10 @@ class DashboardNotifier extends ChangeNotifier {
   /// The screen needs to tell those apart: one is worth retrying.
   bool loadFailed = false;
 
-  /// Sessions in a day, and days in a week, of the protocol.
+  /// Sessions in a day, days in a week, and weeks in the protocol.
   static const int sessionsPerDay = 5;
   static const int daysPerWeek = 7;
+  static const int totalWeeks = 8;
 
   int? _recommendedStartWeek;
 
@@ -77,7 +112,7 @@ class DashboardNotifier extends ChangeNotifier {
         final day = row['day_number'] as int?;
         final session = row['session_number'] as int?;
         if (week == null || day == null || session == null) continue;
-        if (week < 1 || week > 8) continue;
+        if (week < 1 || week > totalWeeks) continue;
         byWeek
             .putIfAbsent(week, () => <int, Set<int>>{})
             .putIfAbsent(day, () => <int>{})
@@ -92,20 +127,22 @@ class DashboardNotifier extends ChangeNotifier {
               .length;
 
       final weeklyAdherence = <double>[
-        for (var week = 1; week <= 8; week++)
+        for (var week = 1; week <= totalWeeks; week++)
           ((fullyCompletedDays(week) / daysPerWeek) * 100).clamp(0.0, 100.0),
       ];
 
-      // The week with activity, or the one the assessments recommended for a
-      // patient who has not started yet.
-      final active = byWeek.keys.toList()..sort();
-      final currentWeek = active.isNotEmpty
-          ? active.last
-          : (_recommendedStartWeek ?? 1);
+      final currentWeek = resolveCurrentWeek(
+        weeksTouched: byWeek.keys.toSet(),
+        completedDaysByWeek: {
+          for (var week = 1; week <= totalWeeks; week++)
+            week: fullyCompletedDays(week),
+        },
+        recommendedStartWeek: _recommendedStartWeek ?? 1,
+      );
 
       data = DashboardModel(
         currentWeek: currentWeek,
-        totalWeeks: 8,
+        totalWeeks: totalWeeks,
         exercisesCompletedThisWeek: fullyCompletedDays(currentWeek),
         exercisesTargetThisWeek: daysPerWeek,
         adherencePercentage: currentWeekAdherence(weeklyAdherence, currentWeek),
@@ -132,8 +169,14 @@ class DashboardNotifier extends ChangeNotifier {
     final current = data;
     if (current == null) return;
 
+    // The recommendation is a floor, not a position. Assigning it outright
+    // walked the patient backwards: the I-QOL is taken after a week of the
+    // protocol is finished, and saving it reset the displayed week to the one
+    // the assessments had recommended at intake.
     data = current.copyWith(
-      currentWeek: summary.recommendedStartWeek,
+      currentWeek: summary.recommendedStartWeek > current.currentWeek
+          ? summary.recommendedStartWeek
+          : current.currentWeek,
       iciqScorePre: summary.iciq?.iciqScore ?? current.iciqScorePre,
     );
     notifyListeners();

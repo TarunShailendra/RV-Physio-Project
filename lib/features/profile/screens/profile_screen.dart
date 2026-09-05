@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/locale/locale_notifier.dart';
 import '../../auth/auth_notifier.dart';
+import '../../assessment/notifiers/assessment_summary_notifier.dart';
 import '../../dashboard/dashboard_notifier.dart';
 import '../profile_labels.dart';
 import '../profile_notifier.dart';
@@ -23,6 +24,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileNotifier>().loadProfile();
+      // The three stat cards read DashboardNotifier.data, which only the
+      // dashboard ever loaded. Opening the profile without visiting the
+      // dashboard first showed dashes, and opening it afterwards showed
+      // whatever was true when the dashboard was last built.
+      final summary = context.read<AssessmentSummaryNotifier>();
+      context.read<DashboardNotifier>().loadDashboard(
+        recommendedStartWeek: summary.recommendedStartWeek,
+        iciqScorePre: summary.iciq?.iciqScore,
+      );
     });
   }
 
