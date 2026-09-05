@@ -3,6 +3,55 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/profile_model.dart';
 
+/// Columns that signup fills in and profile setup does not ask about again.
+/// A null for one of these means "not loaded", never "clear it".
+const _signupOwnedColumns = {'full_name', 'phone', 'email', 'date_of_birth'};
+
+/// Builds the row `saveProfile` upserts.
+///
+/// Split out of the notifier so it can be tested: the notifier itself reaches
+/// through `Supabase.instance.client`, which no unit test here can stand up.
+@visibleForTesting
+Map<String, dynamic> buildProfileUpsertRow(
+  ProfileModel p,
+  DateTime completedAt,
+) {
+  final row = <String, dynamic>{
+    'id': p.userId,
+    'full_name': p.fullName,
+    'city': p.city,
+    'occupation': p.occupation,
+    'incontinence_type': p.incontinenceType,
+    'symptom_duration_months': p.symptomDurationMonths,
+    'has_sought_treatment': p.hasSoughtTreatment,
+    'date_of_birth': p.dateOfBirth?.toIso8601String().split('T').first,
+    'profile_completed_at': completedAt.toIso8601String(),
+    'phone': p.phone,
+    'email': p.email,
+    'marital_status': p.maritalStatus,
+    'has_children': p.hasChildren,
+    'delivery_type': p.deliveryType,
+    'children_ages': p.childrenAges,
+    'childbirth_pain_level': p.childbirthPainLevel,
+    'height_cm': p.heightCm,
+    'weight_kg': p.weightKg,
+    'has_diabetes': p.hasDiabetes,
+    'has_hypertension': p.hasHypertension,
+    'gender': p.gender,
+  };
+
+  // Signup owns full_name, phone, email and date_of_birth; profile setup only
+  // passes them back through. Sending them as null would blank out what
+  // signup wrote, which is how patients ended up with no phone number and no
+  // age on a profile they had filled in correctly. An upsert leaves alone a
+  // column it is not given, so dropping the nulls keeps the stored value.
+  row.removeWhere(
+    (key, value) => value == null && _signupOwnedColumns.contains(key),
+  );
+
+  return row;
+}
+
 class ProfileNotifier extends ChangeNotifier {
   SupabaseClient get _supabase => Supabase.instance.client;
 
@@ -51,29 +100,7 @@ class ProfileNotifier extends ChangeNotifier {
 
     try {
       final completedAt = p.profileCompletedAt ?? DateTime.now();
-      final row = {
-        'id': p.userId,
-        'full_name': p.fullName,
-        'city': p.city,
-        'occupation': p.occupation,
-        'incontinence_type': p.incontinenceType,
-        'symptom_duration_months': p.symptomDurationMonths,
-        'has_sought_treatment': p.hasSoughtTreatment,
-        'date_of_birth': p.dateOfBirth?.toIso8601String().split('T').first,
-        'profile_completed_at': completedAt.toIso8601String(),
-        'phone': p.phone,
-        'email': p.email,
-        'marital_status': p.maritalStatus,
-        'has_children': p.hasChildren,
-        'delivery_type': p.deliveryType,
-        'children_ages': p.childrenAges,
-        'childbirth_pain_level': p.childbirthPainLevel,
-        'height_cm': p.heightCm,
-        'weight_kg': p.weightKg,
-        'has_diabetes': p.hasDiabetes,
-        'has_hypertension': p.hasHypertension,
-        'gender': p.gender,
-      };
+      final row = buildProfileUpsertRow(p, completedAt);
 
       await _supabase.from('profiles').upsert(row, onConflict: 'id');
       profile = ProfileModel(

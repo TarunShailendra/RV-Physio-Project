@@ -18,12 +18,14 @@ class ProfileSetupScreen extends StatefulWidget {
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
   final _occupationController = TextEditingController();
   final _symptomDurationController = TextEditingController();
   final _childrenAgesController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
+  DateTime? _dateOfBirth;
   String? _selectedIncontinenceTypeKey;
   bool _hasSoughtTreatment = false;
   String? _maritalStatus;
@@ -59,6 +61,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       // edit only once the form has actually been completed, otherwise a new
       // patient is sent to their profile instead of on to the assessment.
       _isEditing = p.city.trim().isNotEmpty;
+      _phoneController.text = p.phone ?? '';
+      _dateOfBirth = p.dateOfBirth;
       _cityController.text = p.city;
       _occupationController.text = p.occupation;
       _symptomDurationController.text = p.symptomDurationMonths.toString();
@@ -81,6 +85,27 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     });
   }
 
+  String _formatDob(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/'
+      '${value.year}';
+
+  Future<void> _pickDateOfBirth(FormFieldState<DateTime> field) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 30, now.month, now.day),
+      firstDate: DateTime(now.year - 120),
+      // A date of birth cannot be in the future, so the picker will not offer
+      // one; the signup form has to say so in words because its three
+      // dropdowns can be set to anything.
+      lastDate: now,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _dateOfBirth = picked);
+    field.didChange(picked);
+  }
+
   /// Inverse of [_getEnglishIncontinenceType]. Returns null for anything the
   /// dropdown does not offer, so it cannot be handed a value it has no item
   /// for.
@@ -91,6 +116,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   void dispose() {
+    _phoneController.dispose();
     _cityController.dispose();
     _occupationController.dispose();
     _symptomDurationController.dispose();
@@ -131,6 +157,48 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 24),
+                    // Signup asks for these two, but nothing asked for
+                    // them again, so a patient whose row had lost them had no
+                    // way to put them back and their profile showed no phone
+                    // number and no age.
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      decoration: InputDecoration(
+                        labelText: l10n.phone,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        final phone = value?.trim() ?? '';
+                        if (phone.isEmpty) return l10n.enterPhoneNumber;
+                        if (phone.length < 10) return l10n.enterValidPhone;
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    FormField<DateTime>(
+                      initialValue: _dateOfBirth,
+                      validator: (_) =>
+                          _dateOfBirth == null ? l10n.selectDateOfBirth : null,
+                      builder: (field) => InkWell(
+                        onTap: () => _pickDateOfBirth(field),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: l10n.dateOfBirth,
+                            border: const OutlineInputBorder(),
+                            errorText: field.errorText,
+                            suffixIcon: const Icon(Icons.calendar_today),
+                          ),
+                          child: Text(
+                            _dateOfBirth == null
+                                ? l10n.notProvided
+                                : _formatDob(_dateOfBirth!),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _cityController,
                       textInputAction: TextInputAction.next,
@@ -390,7 +458,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       context.go('/login');
       return;
     }
-    final parsedDob = _parseDob(currentUser.dob) ?? currentUser.dateOfBirth;
+    // The form owns these now. Falling back to the session user kept a stale
+    // null in play whenever the profile row had lost its date of birth.
+    final parsedDob = _dateOfBirth ?? currentUser.dateOfBirth;
+    final phone = _phoneController.text.trim();
 
     // Map selected key back to English value for storage
     final incontinenceTypeValue = _getEnglishIncontinenceType(
@@ -405,7 +476,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       symptomDurationMonths: int.parse(_symptomDurationController.text.trim()),
       hasSoughtTreatment: _hasSoughtTreatment,
       fullName: currentUser.name,
-      phone: currentUser.phone,
+      phone: phone.isEmpty ? currentUser.phone : phone,
       email: currentUser.email,
       dateOfBirth: parsedDob,
       maritalStatus: _maritalStatus,
@@ -446,20 +517,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       // came from. This always went to the ICIQ.
       context.go(_isEditing ? '/profile' : '/iciq');
     }
-  }
-
-  DateTime? _parseDob(String? dob) {
-    if (dob != null && dob.isNotEmpty) {
-      final parts = dob.split('/');
-      if (parts.length == 3) {
-        return DateTime(
-          int.parse(parts[2]),
-          int.parse(parts[1]),
-          int.parse(parts[0]),
-        );
-      }
-    }
-    return null;
   }
 
   String _getEnglishIncontinenceType(String key) {

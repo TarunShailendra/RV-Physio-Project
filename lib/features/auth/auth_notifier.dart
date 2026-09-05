@@ -208,10 +208,21 @@ class AuthNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Parsed before the call, not after, so the date of birth can travel in
+      // the auth metadata. signUp fires a signedIn event that rebuilds
+      // currentUser from the profiles row; if the row is seeded from metadata
+      // that carries no date of birth, the patient's is lost before profile
+      // setup ever reads it.
+      final parsedDob = _parseDobString(dob);
+
       final response = await _supabase.auth.signUp(
         email: email.trim(),
         password: password,
-        data: {'full_name': fullName.trim(), 'phone': phone.trim()},
+        data: {
+          'full_name': fullName.trim(),
+          'phone': phone.trim(),
+          'date_of_birth': _dateOnly(parsedDob),
+        },
       );
       final user = response.user;
 
@@ -223,18 +234,6 @@ class AuthNotifier extends ChangeNotifier {
       }
 
       if (user != null) {
-        DateTime? parsedDob;
-        if (dob != null && dob.isNotEmpty) {
-          final parts = dob.split('/');
-          if (parts.length == 3) {
-            parsedDob = DateTime(
-              int.parse(parts[2]),
-              int.parse(parts[1]),
-              int.parse(parts[0]),
-            );
-          }
-        }
-
         // With email confirmation on there is no session yet, so this write
         // has no auth.uid() and RLS rejects it. The details are already in the
         // auth record's metadata, so the row is created on first sign-in
@@ -245,7 +244,7 @@ class AuthNotifier extends ChangeNotifier {
             'full_name': fullName.trim(),
             'phone': phone.trim(),
             'email': email.trim(),
-            'date_of_birth': parsedDob?.toIso8601String().split('T').first,
+            'date_of_birth': _dateOnly(parsedDob),
           }, onConflict: 'id');
         }
 
@@ -311,13 +310,23 @@ class AuthNotifier extends ChangeNotifier {
     final resolvedEmail =
         profileRow?['email']?.toString() ?? user.email ?? fallbackEmail ?? '';
 
+    final dateOfBirth = _parseDate(profileRow?['date_of_birth']);
+
     return UserModel(
       id: user.id,
       name: fullName.isNotEmpty ? fullName : resolvedEmail,
       email: resolvedEmail,
       phone: profileRow?['phone']?.toString() ?? '',
-      age: 0,
-      dateOfBirth: _parseDate(profileRow?['date_of_birth']),
+      // Derived rather than left at 0. age and dob used to be filled only by
+      // signup, so any rebuild of the session user silently zeroed them while
+      // dateOfBirth carried the truth.
+      age: _ageFromDateOfBirth(dateOfBirth) ?? 0,
+      dob: dateOfBirth == null
+          ? null
+          : '${dateOfBirth.day.toString().padLeft(2, '0')}/'
+                '${dateOfBirth.month.toString().padLeft(2, '0')}/'
+                '${dateOfBirth.year}',
+      dateOfBirth: dateOfBirth,
       isProfileComplete: fullName.isNotEmpty && city.isNotEmpty,
     );
   }
@@ -328,6 +337,7 @@ class AuthNotifier extends ChangeNotifier {
     final metadata = user.userMetadata ?? const <String, dynamic>{};
     final fullName = metadata['full_name']?.toString().trim() ?? '';
     final phone = metadata['phone']?.toString().trim() ?? '';
+    final dateOfBirth = metadata['date_of_birth']?.toString().trim();
     if (fullName.isEmpty && phone.isEmpty && user.email == null) return null;
 
     final row = {
@@ -335,6 +345,12 @@ class AuthNotifier extends ChangeNotifier {
       'full_name': fullName,
       'phone': phone,
       'email': user.email,
+      // Signup collects this, so it belongs in the seeded row. Leaving it out
+      // meant a patient whose row was seeded here had no date of birth, and
+      // profile setup then wrote that null back over the real one.
+      'date_of_birth': (dateOfBirth == null || dateOfBirth.isEmpty)
+          ? null
+          : dateOfBirth,
     };
     try {
       await _supabase.from('profiles').upsert(row, onConflict: 'id');
@@ -344,6 +360,33 @@ class AuthNotifier extends ChangeNotifier {
       return null;
     }
   }
+
+  int? _ageFromDateOfBirth(DateTime? dateOfBirth) {
+    if (dateOfBirth == null) return null;
+    final today = DateTime.now();
+    var age = today.year - dateOfBirth.year;
+    if (today.month < dateOfBirth.month ||
+        (today.month == dateOfBirth.month && today.day < dateOfBirth.day)) {
+      age--;
+    }
+    return age < 0 ? null : age;
+  }
+
+  /// Parses the `dd/MM/yyyy` string the signup form produces.
+  DateTime? _parseDobString(String? dob) {
+    if (dob == null || dob.isEmpty) return null;
+    final parts = dob.split('/');
+    if (parts.length != 3) return null;
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null) return null;
+    return DateTime(year, month, day);
+  }
+
+  /// Formats a date for a Postgres `date` column, which takes no time part.
+  String? _dateOnly(DateTime? value) =>
+      value?.toIso8601String().split('T').first;
 
   DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
