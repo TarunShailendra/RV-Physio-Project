@@ -66,6 +66,7 @@ class ExerciseNotifier extends ChangeNotifier {
   bool get isWeekOneComplete => _completedWeeks.contains(1);
 
   /// Days the exercise protocol is meant to run for before reassessment.
+  /// Descriptive only: it no longer gates [isIqolAvailable].
   static const int protocolDurationDays = 7;
 
   /// When the patient's protocol began — their earliest completed session, or
@@ -81,17 +82,20 @@ class ExerciseNotifier extends ChangeNotifier {
     return DateTime.now().difference(start).inDays;
   }
 
-  /// The I-QOL opens once a full week of the protocol is done *and* a week has
-  /// actually elapsed.
+  /// The I-QOL opens once a full week of the protocol is done.
   ///
-  /// Two separate defects lived here. It used to ask specifically for week 1,
-  /// stranding any patient whose protocol starts later. And it counted only
-  /// finished sessions, so all 35 of them could be tapped through in a couple
-  /// of minutes to unlock a questionnaire the protocol says comes after seven
-  /// days of exercises.
-  bool get isIqolAvailable =>
-      _completedWeeks.isNotEmpty &&
-      daysSinceProtocolStart >= protocolDurationDays;
+  /// "A full week" means any week the patient has finished, not week 1
+  /// specifically: asking for week 1 stranded anyone whose assessments start
+  /// them at week 2 or 3, since they would finish their own first week and
+  /// never be offered the questionnaire.
+  ///
+  /// Completing a week no longer also requires that a week has elapsed. The
+  /// protocol places the I-QOL after seven days of exercises, and all 35
+  /// sessions can be tapped through in a couple of minutes, so with the app
+  /// alone the questionnaire can now be reached the same day the protocol
+  /// starts. [daysSinceProtocolStart] still records how long it actually
+  /// took, which is the figure that matters when reading the results back.
+  bool get isIqolAvailable => _completedWeeks.isNotEmpty;
 
   DayPlan? get currentDay =>
       currentPlan != null && currentDayIndex < currentPlan!.days.length

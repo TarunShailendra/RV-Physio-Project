@@ -145,8 +145,12 @@ void main() {
     });
   });
 
-  group('E2 — the protocol is measured in days', () {
-    test('a completed week alone does not open the I-QOL', () {
+  group('E2 — the I-QOL opens on a completed week', () {
+    test('a completed week opens it with no waiting', () async {
+      // The gate used to require seven elapsed days as well, on the grounds
+      // that 35 sessions tapped through in minutes is not a week of exercise.
+      // That was removed deliberately: the questionnaire now follows the work
+      // rather than the calendar.
       final notifier = ExerciseNotifier()
         ..loadWeek(1)
         ..protocolStartDate = DateTime.now();
@@ -155,25 +159,33 @@ void main() {
         notifier.daysSinceProtocolStart,
         lessThan(ExerciseNotifier.protocolDurationDays),
       );
+      expect(notifier.isIqolAvailable, isFalse, reason: 'week 1 is not done');
+
+      final plan = notifier.currentPlan!;
+      for (var day = 0; day < plan.days.length; day++) {
+        for (var s = 0; s < plan.days[day].sessions.length; s++) {
+          await notifier.completeSession(day, s);
+        }
+      }
+
       expect(
         notifier.isIqolAvailable,
-        isFalse,
-        reason: '35 sessions tapped through in minutes is not a week',
+        isTrue,
+        reason: 'finishing the week is the whole condition now',
       );
     });
 
-    test(
-      'seven elapsed days without a completed week is not enough either',
-      () {
-        final notifier = ExerciseNotifier()
-          ..loadWeek(1)
-          ..protocolStartDate = DateTime.now().subtract(
-            const Duration(days: 30),
-          );
+    test('elapsed time alone still opens nothing', () {
+      final notifier = ExerciseNotifier()
+        ..loadWeek(1)
+        ..protocolStartDate = DateTime.now().subtract(const Duration(days: 30));
 
-        expect(notifier.isIqolAvailable, isFalse);
-      },
-    );
+      expect(
+        notifier.isIqolAvailable,
+        isFalse,
+        reason: 'a month of doing nothing is not a completed week',
+      );
+    });
   });
 
   group('E3 — adherence reports the week the patient is on', () {

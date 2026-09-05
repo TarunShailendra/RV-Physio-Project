@@ -23,13 +23,10 @@ void main() {
 
   /// Completes every session of [week]: 7 days x 5 sessions.
   ///
-  /// Also backdates the protocol start, because the I-QOL now needs seven
-  /// elapsed days as well as a finished week.
+  /// No backdating of the protocol start: the I-QOL asks only for a finished
+  /// week, so a week completed in the same instant opens it.
   Future<void> completeWeek(ExerciseNotifier notifier, int week) async {
     notifier.loadWeek(week);
-    notifier.protocolStartDate = DateTime.now().subtract(
-      const Duration(days: ExerciseNotifier.protocolDurationDays),
-    );
     final plan = notifier.currentPlan!;
     expect(plan.weekNumber, week);
     for (var day = 0; day < plan.days.length; day++) {
