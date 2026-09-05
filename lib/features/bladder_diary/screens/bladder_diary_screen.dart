@@ -125,17 +125,25 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
     ],
   };
 
-  /// Restores the diary the patient is part-way through, if there is one.
+  /// Restores the diary the patient is part-way through, from the device if
+  /// there is a draft and from Supabase otherwise.
   ///
-  /// It used to fall back to loading their last *submitted* diary. A three-day
-  /// bladder diary is a fresh observation period, so that opened the form
-  /// already filled in with old readings, with nothing to say they were old —
-  /// and submit always inserts a new row, so tapping it stored the same three
-  /// days again under a new timestamp.
+  /// The draft is cleared on sign-out, because the next patient to use the
+  /// device must not find the previous one's diary. That makes the server the
+  /// only copy after a sign-out, so it has to be read back — otherwise
+  /// signing in again presented an empty diary and three days of readings
+  /// looked lost.
+  ///
+  /// Reading it back used to create its own problem: submit always inserted,
+  /// so a form refilled from an earlier diary stored those three days a
+  /// second time. It carries the row's id now, and submit updates that row.
   Future<void> _restoreDraft() async {
     final draft = await DiaryDraftStore.load();
 
-    if (draft == null) return;
+    if (draft == null) {
+      await _loadSubmittedDiary();
+      return;
+    }
 
     if (!mounted) return;
     setState(() {
@@ -168,6 +176,53 @@ class _BladderDiaryScreenState extends State<BladderDiaryScreen>
       }
       _loadRevision++;
     });
+  }
+
+  /// Loads the patient's most recent diary, and the id of the row holding it.
+  Future<void> _loadSubmittedDiary() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final row = await Supabase.instance.client
+          .from('bladder_diaries')
+          .select('id, diary')
+          .eq('user_id', userId)
+          .order('submitted_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      final diary = row?['diary'] as Map<String, dynamic>?;
+      if (diary == null || !mounted) return;
+
+      setState(() {
+        _diaryId = row!['id'] as String?;
+        for (var day = 0; day < 3; day++) {
+          final dayMap = diary['day${day + 1}'] as Map<String, dynamic>?;
+          if (dayMap == null) continue;
+          for (var slot = 0; slot < _timeSlotKeys.length; slot++) {
+            final slotData =
+                dayMap[_timeSlotKeys[slot]] as Map<String, dynamic>?;
+            if (slotData == null) continue;
+            _data[day][slot]
+              ..fluidAmount = slotData['fluidAmount'] as String? ?? ''
+              ..fluidType = slotData['fluidType'] as String? ?? ''
+              ..urineOutput = slotData['urineOutput'] as String? ?? ''
+              ..cantMeasure = slotData['cantMeasure'] as bool? ?? false
+              ..bladderSensation = slotData['bladderSensation'] as int?
+              ..pad = slotData['pad'] as bool? ?? false;
+            final marker = slotData['marker'] as String?;
+            if (marker != null) _markers[day][slot] = marker;
+          }
+        }
+        _loadRevision++;
+      });
+
+      // Hold it locally too, so the next visit does not need the network.
+      await DiaryDraftStore.save(_draftJson());
+    } catch (e) {
+      debugPrint('bladder diary restore failed: $e');
+    }
   }
 
   Map<int, String> _getSensationLabels(AppLocalizations l10n) {

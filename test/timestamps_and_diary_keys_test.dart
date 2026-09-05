@@ -46,9 +46,10 @@ void main() {
         'lib/features/bladder_diary/screens/bladder_diary_screen.dart',
       ).readAsStringSync();
 
+      // The read path orders by it; only the write must not set it.
       expect(
         source,
-        isNot(contains("'submitted_at'")),
+        isNot(contains("'submitted_at':")),
         reason:
             'submitted_at defaults to now() in the column. The device clock '
             'is not the authority on when the server received a diary.',
