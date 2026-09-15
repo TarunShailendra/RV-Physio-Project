@@ -345,5 +345,112 @@
   "language": "ಭಾಷೆ",
   "languageEnglish": "ಇಂಗ್ಲಿಷ್",
   "languageKannada": "ಕನ್ನಡ",
-  "languageSystem": "ಸಾಧನದ ಭಾಷೆ ಬಳಸಿ"
+  "languageSystem": "ಸಾಧನದ ಭಾಷೆ ಬಳಸಿ",
+  "dayNumber": "ದಿನ {day}",
+  "@dayNumber": {
+    "description": "Day {day}",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "itemsDoneOfTotal": "{total} ರಲ್ಲಿ {done} ಮುಗಿದಿದೆ",
+  "@itemsDoneOfTotal": {
+    "description": "{done} of {total} done",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "daysDoneOfTotal": "{total} ದಿನಗಳಲ್ಲಿ {done} ಮುಗಿದಿದೆ",
+  "@daysDoneOfTotal": {
+    "description": "{done} of {total} days completed",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "repsOnly": "{reps} ಬಾರಿ",
+  "@repsOnly": {
+    "description": "{reps} reps",
+    "placeholders": {
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "repsAndHold": "{reps} ಬಾರಿ · {hold}ಸೆಕೆಂಡ್ ಹಿಡಿತ",
+  "@repsAndHold": {
+    "description": "{reps} reps · {hold}s hold",
+    "placeholders": {
+      "reps": {
+        "type": "int"
+      },
+      "hold": {
+        "type": "int"
+      }
+    }
+  },
+  "setsLabel": "{sets} ಸೆಟ್‌ಗಳು",
+  "@setsLabel": {
+    "description": "{sets} sets",
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "positionSupine": "ಮಲಗಿದೆ",
+  "@positionSupine": {
+    "description": "Lying down"
+  },
+  "positionSitting": "ಕುಳಿತು",
+  "@positionSitting": {
+    "description": "Sitting"
+  },
+  "positionStanding": "ನಿಂತು",
+  "@positionStanding": {
+    "description": "Standing"
+  },
+  "startingPosition": "ಪ್ರಾರಂಭಿಕ ಭಂಗಿ",
+  "@startingPosition": {
+    "description": "Starting position"
+  },
+  "howToDoIt": "ಹೇಗೆ ಮಾಡಬೇಕು",
+  "@howToDoIt": {
+    "description": "How to do it"
+  },
+  "tipLabel": "ಸಲಹೆ",
+  "@tipLabel": {
+    "description": "Tip"
+  },
+  "doLabel": "ಮಾಡಿ",
+  "@doLabel": {
+    "description": "Do"
+  },
+  "dontLabel": "ಮಾಡಬೇಡಿ",
+  "@dontLabel": {
+    "description": "Don't"
+  },
+  "markAsDone": "ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಿ",
+  "@markAsDone": {
+    "description": "Mark as done"
+  },
+  "nextRep": "ಮುಂದಿನ ಬಾರಿ",
+  "@nextRep": {
+    "description": "Next rep"
+  },
+  "safetyGuidance": "ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶನ",
+  "@safetyGuidance": {
+    "description": "Safety guidance"
+  }
 }

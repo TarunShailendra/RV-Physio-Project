@@ -2173,6 +2173,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use device language'**
   String get languageSystem;
+
+  /// Day {day}
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String dayNumber(int day);
+
+  /// {done} of {total} done
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String itemsDoneOfTotal(int done, int total);
+
+  /// {done} of {total} days completed
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} days completed'**
+  String daysDoneOfTotal(int done, int total);
+
+  /// {reps} reps
+  ///
+  /// In en, this message translates to:
+  /// **'{reps} reps'**
+  String repsOnly(int reps);
+
+  /// {reps} reps · {hold}s hold
+  ///
+  /// In en, this message translates to:
+  /// **'{reps} reps · {hold}s hold'**
+  String repsAndHold(int reps, int hold);
+
+  /// {sets} sets
+  ///
+  /// In en, this message translates to:
+  /// **'{sets} sets'**
+  String setsLabel(int sets);
+
+  /// Lying down
+  ///
+  /// In en, this message translates to:
+  /// **'Lying down'**
+  String get positionSupine;
+
+  /// Sitting
+  ///
+  /// In en, this message translates to:
+  /// **'Sitting'**
+  String get positionSitting;
+
+  /// Standing
+  ///
+  /// In en, this message translates to:
+  /// **'Standing'**
+  String get positionStanding;
+
+  /// Starting position
+  ///
+  /// In en, this message translates to:
+  /// **'Starting position'**
+  String get startingPosition;
+
+  /// How to do it
+  ///
+  /// In en, this message translates to:
+  /// **'How to do it'**
+  String get howToDoIt;
+
+  /// Tip
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get tipLabel;
+
+  /// Do
+  ///
+  /// In en, this message translates to:
+  /// **'Do'**
+  String get doLabel;
+
+  /// Don't
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t'**
+  String get dontLabel;
+
+  /// Mark as done
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get markAsDone;
+
+  /// Next rep
+  ///
+  /// In en, this message translates to:
+  /// **'Next rep'**
+  String get nextRep;
+
+  /// Safety guidance
+  ///
+  /// In en, this message translates to:
+  /// **'Safety guidance'**
+  String get safetyGuidance;
 }
 
 class _AppLocalizationsDelegate

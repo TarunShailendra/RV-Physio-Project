@@ -6,8 +6,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../assessment/notifiers/assessment_summary_notifier.dart';
+import '../content/exercise_content.dart';
 import '../exercise_notifier.dart';
 import '../models/exercise_model.dart';
+import 'exercise_detail_sheet.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({super.key});
@@ -29,6 +31,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         if (exercise.currentPlan != null) return;
         final summary = context.read<AssessmentSummaryNotifier>();
         exercise.applyProtocol(summary.protocol);
+        // applyProtocol only adopts the plan; it does not open a week, so the
+        // screen would sit on its spinner without this.
+        exercise.loadWeek(exercise.highestUnlockedWeek);
       } catch (e) {
         debugPrint('Exercise init error: $e');
       }
@@ -50,6 +55,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         title: Text(l10n.exercise),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.health_and_safety_outlined),
+            tooltip: l10n.safetyGuidance,
+            onPressed: () => _showSafety(context),
+          ),
+        ],
       ),
       bottomNavigationBar: const AppBottomNavigation(),
       body: plan == null
@@ -57,6 +69,75 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           : _ExerciseContent(notifier: notifier, plan: plan),
     );
   }
+}
+
+void _showSafety(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.7,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+        children: [
+          Text(
+            l10n.safetyGuidance,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.doLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          for (final rule in generalDos)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                    color: Colors.green.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(rule)),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.dontLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          for (final rule in generalDonts)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.cancel_outlined,
+                    size: 18,
+                    color: Colors.red.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(rule)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ExerciseContent extends StatelessWidget {
@@ -69,9 +150,8 @@ class _ExerciseContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentDay = notifier.currentDay;
-    final currentSession = notifier.currentSession;
 
-    if (currentDay == null || currentSession == null) {
+    if (currentDay == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -79,7 +159,6 @@ class _ExerciseContent extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Week selector
           SizedBox(
             height: 48,
             child: ListView.separated(
@@ -112,7 +191,6 @@ class _ExerciseContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Week progress card
           Card(
             color: AppTheme.primaryColor.withAlpha(26),
             child: Padding(
@@ -121,36 +199,41 @@ class _ExerciseContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.weekDifficulty(plan.weekNumber, plan.difficultyLabel),
+                    l10n.weekDifficulty(plan.weekNumber, plan.progressionFocus),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: plan.completedDays / 7,
+                    // The denominator is this week's own prescribed days,
+                    // three to five, not a fixed seven.
+                    value: plan.daysPerWeek == 0
+                        ? 0
+                        : plan.completedDays / plan.daysPerWeek,
                     minHeight: 8,
                     backgroundColor: AppTheme.primaryColor.withAlpha(41),
                     color: AppTheme.primaryColor,
                   ),
                   const SizedBox(height: 6),
-                  Text('${plan.completedDays} of 7 days completed'),
+                  Text(
+                    l10n.daysDoneOfTotal(plan.completedDays, plan.daysPerWeek),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 12),
 
-          // Day selector
           SizedBox(
             height: 44,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: 7,
+              itemCount: plan.days.length,
               separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final day = plan.days[index];
                 final isSelected = index == notifier.currentDayIndex;
                 return ChoiceChip(
-                  label: Text('Day ${day.dayNumber}'),
+                  label: Text(l10n.dayNumber(day.dayNumber)),
                   selected: isSelected,
                   selectedColor: day.isCompleted
                       ? Colors.green
@@ -174,186 +257,107 @@ class _ExerciseContent extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Day progress
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Day ${currentDay.dayNumber} — ${currentDay.completedCount} of 5 sessions',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (final session in currentDay.sessions)
-                        Container(
-                          width: 14,
-                          height: 14,
-                          margin: const EdgeInsets.symmetric(horizontal: 5),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: session.isCompleted
-                                ? AppTheme.primaryColor
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Current session detail
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Session ${currentSession.sessionNumber} — ${currentSession.exerciseName}',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  _SessionDetail(
-                    label: l10n.reps,
-                    value: currentSession.reps.toString(),
-                  ),
-                  _SessionDetail(
-                    label: l10n.hold,
-                    value: l10n.seconds(currentSession.holdSeconds),
-                  ),
-                  _SessionDetail(
-                    label: l10n.rest,
-                    value: l10n.seconds(currentSession.restSeconds),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Timer
-          Center(
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.primaryColor, width: 10),
-              ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _phaseLabel(notifier.phase, l10n),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  // Only this rebuilds on each tick.
-                  ValueListenableBuilder<int>(
-                    valueListenable: notifier.secondsRemaining,
-                    builder: (context, seconds, _) => Text(
-                      _formatSeconds(seconds, l10n),
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  if (notifier.currentRep > 0)
-                    Text(
-                      '${notifier.currentRep} / ${currentSession.reps}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                ],
-              ),
-            ),
-          ),
           const SizedBox(height: 16),
 
-          // Start/pause
-          Center(
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
+          Row(
+            children: [
+              Text(
+                l10n.dayNumber(currentDay.dayNumber),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-              onPressed: notifier.isTimerRunning
-                  ? notifier.pauseTimer
-                  : notifier.startTimer,
-              icon: Icon(
-                notifier.isTimerRunning ? Icons.pause : Icons.play_arrow,
+              const Spacer(),
+              Text(
+                l10n.itemsDoneOfTotal(
+                  currentDay.completedCount,
+                  currentDay.sessions.length,
+                ),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-              label: Text(notifier.isTimerRunning ? l10n.pause : l10n.start),
-            ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
-          // Complete session button
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
+          // The day as a checklist. It used to be five repeats of one exercise
+          // driven by a single timer; a day is now up to fifteen different
+          // exercises, so the patient works through them at their own pace and
+          // can leave and come back without losing their place.
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < currentDay.sessions.length; i++)
+                  _ItemRow(
+                    session: currentDay.sessions[i],
+                    dayIndex: notifier.currentDayIndex,
+                    sessionIndex: i,
+                    isLast: i == currentDay.sessions.length - 1,
+                  ),
+              ],
             ),
-            onPressed: currentSession.isCompleted
-                ? null
-                : () async {
-                    await notifier.completeSession(
-                      notifier.currentDayIndex,
-                      notifier.currentSessionIndex,
-                    );
-                  },
-            child: Text(l10n.completeSession),
           ),
           const SizedBox(height: 28),
         ],
       ),
     );
   }
-
-  String _phaseLabel(ExercisePhase phase, AppLocalizations l10n) =>
-      switch (phase) {
-        ExercisePhase.hold => l10n.hold,
-        ExercisePhase.rest => l10n.rest,
-        ExercisePhase.finished => l10n.completeSession,
-        ExercisePhase.ready => l10n.start,
-      };
-
-  String _formatSeconds(int seconds, AppLocalizations l10n) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    if (minutes == 0) return l10n.seconds(remainingSeconds);
-    return l10n.minutesAndSeconds(minutes, remainingSeconds);
-  }
 }
 
-class _SessionDetail extends StatelessWidget {
-  const _SessionDetail({required this.label, required this.value});
+class _ItemRow extends StatelessWidget {
+  const _ItemRow({
+    required this.session,
+    required this.dayIndex,
+    required this.sessionIndex,
+    required this.isLast,
+  });
 
-  final String label;
-  final String value;
+  final ExerciseSession session;
+  final int dayIndex;
+  final int sessionIndex;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(child: Text(label)),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final dose = _dose(session, l10n);
+    final subtitleParts = <String>[
+      if (dose.isNotEmpty) dose,
+      if (session.sets > 1) l10n.setsLabel(session.sets),
+    ];
+
+    return Column(
+      children: [
+        ListTile(
+          // ListView recycles elements, and a row without a stable key picks
+          // up its neighbour's state. The bladder diary shipped exactly that
+          // bug once already.
+          key: ValueKey(
+            'item-${session.week}-${session.day}-${session.sessionNumber}',
+          ),
+          leading: Icon(
+            session.isCompleted
+                ? Icons.check_circle
+                : Icons.radio_button_unchecked,
+            color: session.isCompleted ? Colors.green.shade700 : Colors.grey,
+          ),
+          title: Text(session.exerciseName),
+          subtitle: subtitleParts.isEmpty
+              ? null
+              : Text(subtitleParts.join(' · ')),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () =>
+              showExerciseDetail(context, session, dayIndex, sessionIndex),
+        ),
+        if (!isLast) const Divider(height: 1),
+      ],
     );
+  }
+
+  /// "12 reps - 10s hold", "12 reps", or nothing at all for an item the
+  /// document prescribes without a count, such as diaphragmatic breathing.
+  String _dose(ExerciseSession session, AppLocalizations l10n) {
+    final reps = session.reps;
+    if (reps == null) return '';
+    final hold = session.holdSeconds;
+    return hold == null ? l10n.repsOnly(reps) : l10n.repsAndHold(reps, hold);
   }
 }

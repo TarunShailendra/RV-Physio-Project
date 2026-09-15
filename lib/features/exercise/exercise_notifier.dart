@@ -50,6 +50,13 @@ class ExerciseNotifier extends ChangeNotifier {
   /// 1-based rep the patient is on, out of the session's reps.
   int currentRep = 0;
 
+  /// 1-based set the patient is on, out of the item's sets.
+  ///
+  /// The document prescribes most items as "reps x sets" and gives no rest
+  /// between sets, so the timer finishes a set and waits: the patient starts
+  /// the next one when they are ready.
+  int currentSet = 0;
+
   Timer? _timer;
 
   /// The programme this patient is following, chosen from their ICIQ severity
@@ -257,6 +264,7 @@ class ExerciseNotifier extends ChangeNotifier {
       case ExercisePhase.ready:
       case ExercisePhase.finished:
         currentRep = 1;
+        currentSet = 1;
         phase = ExercisePhase.hold;
         secondsRemaining.value = hold;
       case ExercisePhase.betweenReps:
@@ -321,11 +329,21 @@ class ExerciseNotifier extends ChangeNotifier {
     _finishReps();
   }
 
+  /// Ends a set. If the item prescribes another one, the clock stops and waits
+  /// for the patient rather than inventing a rest the document does not give.
   void _finishReps() {
     _timer?.cancel();
     isTimerRunning = false;
-    phase = ExercisePhase.finished;
     secondsRemaining.value = 0;
+
+    final session = currentSession;
+    if (session != null && currentSet < session.sets) {
+      currentSet++;
+      currentRep = 0;
+      phase = ExercisePhase.betweenReps;
+    } else {
+      phase = ExercisePhase.finished;
+    }
     notifyListeners();
   }
 
@@ -436,6 +454,7 @@ class ExerciseNotifier extends ChangeNotifier {
     isTimerRunning = false;
     phase = ExercisePhase.ready;
     currentRep = 0;
+    currentSet = 0;
     secondsRemaining.value = _secondsForCurrentSession();
   }
 
@@ -452,6 +471,7 @@ class ExerciseNotifier extends ChangeNotifier {
     isTimerRunning = false;
     phase = ExercisePhase.ready;
     currentRep = 0;
+    currentSet = 0;
     secondsRemaining.value = 0;
     protocolRevision.value++;
     notifyListeners();

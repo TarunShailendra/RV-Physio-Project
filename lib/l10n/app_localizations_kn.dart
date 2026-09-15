@@ -1114,4 +1114,67 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get languageSystem => 'ಸಾಧನದ ಭಾಷೆ ಬಳಸಿ';
+
+  @override
+  String dayNumber(int day) {
+    return 'ದಿನ $day';
+  }
+
+  @override
+  String itemsDoneOfTotal(int done, int total) {
+    return '$total ರಲ್ಲಿ $done ಮುಗಿದಿದೆ';
+  }
+
+  @override
+  String daysDoneOfTotal(int done, int total) {
+    return '$total ದಿನಗಳಲ್ಲಿ $done ಮುಗಿದಿದೆ';
+  }
+
+  @override
+  String repsOnly(int reps) {
+    return '$reps ಬಾರಿ';
+  }
+
+  @override
+  String repsAndHold(int reps, int hold) {
+    return '$reps ಬಾರಿ · $holdಸೆಕೆಂಡ್ ಹಿಡಿತ';
+  }
+
+  @override
+  String setsLabel(int sets) {
+    return '$sets ಸೆಟ್‌ಗಳು';
+  }
+
+  @override
+  String get positionSupine => 'ಮಲಗಿದೆ';
+
+  @override
+  String get positionSitting => 'ಕುಳಿತು';
+
+  @override
+  String get positionStanding => 'ನಿಂತು';
+
+  @override
+  String get startingPosition => 'ಪ್ರಾರಂಭಿಕ ಭಂಗಿ';
+
+  @override
+  String get howToDoIt => 'ಹೇಗೆ ಮಾಡಬೇಕು';
+
+  @override
+  String get tipLabel => 'ಸಲಹೆ';
+
+  @override
+  String get doLabel => 'ಮಾಡಿ';
+
+  @override
+  String get dontLabel => 'ಮಾಡಬೇಡಿ';
+
+  @override
+  String get markAsDone => 'ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಿ';
+
+  @override
+  String get nextRep => 'ಮುಂದಿನ ಬಾರಿ';
+
+  @override
+  String get safetyGuidance => 'ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶನ';
 }

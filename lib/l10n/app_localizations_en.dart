@@ -1122,4 +1122,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageSystem => 'Use device language';
+
+  @override
+  String dayNumber(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String itemsDoneOfTotal(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String daysDoneOfTotal(int done, int total) {
+    return '$done of $total days completed';
+  }
+
+  @override
+  String repsOnly(int reps) {
+    return '$reps reps';
+  }
+
+  @override
+  String repsAndHold(int reps, int hold) {
+    return '$reps reps · ${hold}s hold';
+  }
+
+  @override
+  String setsLabel(int sets) {
+    return '$sets sets';
+  }
+
+  @override
+  String get positionSupine => 'Lying down';
+
+  @override
+  String get positionSitting => 'Sitting';
+
+  @override
+  String get positionStanding => 'Standing';
+
+  @override
+  String get startingPosition => 'Starting position';
+
+  @override
+  String get howToDoIt => 'How to do it';
+
+  @override
+  String get tipLabel => 'Tip';
+
+  @override
+  String get doLabel => 'Do';
+
+  @override
+  String get dontLabel => 'Don\'t';
+
+  @override
+  String get markAsDone => 'Mark as done';
+
+  @override
+  String get nextRep => 'Next rep';
+
+  @override
+  String get safetyGuidance => 'Safety guidance';
 }
