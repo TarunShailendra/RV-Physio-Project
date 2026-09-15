@@ -4,9 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/exercise_model.dart';
+import 'models/protocol.dart';
+import 'protocols/protocol_lookup.dart';
 
 /// What the patient should be doing right now.
-enum ExercisePhase { ready, hold, rest, finished }
+///
+/// [betweenReps] is where an exercise rests when the document gives it no
+/// relax time. Only the slow pelvic floor holds are prescribed an explicit
+/// rest; for a bridge or a leg raise the lowering of the limb is the rest, and
+/// putting a number on it would be inventing clinical content. The patient
+/// starts the next rep when they are ready.
+enum ExercisePhase { ready, hold, rest, betweenReps, finished }
 
 class ExerciseNotifier extends ChangeNotifier {
   final Map<int, WeeklyPlan> _plans = {};
@@ -44,19 +52,40 @@ class ExerciseNotifier extends ChangeNotifier {
 
   Timer? _timer;
 
-  /// Week the patient's protocol begins at, from
-  /// AssessmentSummaryNotifier.recommendedStartWeek.
+  /// The programme this patient is following, chosen from their ICIQ severity
+  /// band and IPAQ activity level.
   ///
-  /// A milder, more active patient is placed past the beginner weeks rather
-  /// than made to grind through them. Weeks before this one stay reachable —
-  /// they are simply not required to unlock what follows.
-  int get recommendedStartWeek => _recommendedStartWeek;
-  int _recommendedStartWeek = 1;
+  /// Defaults to the severe protocol, which is the most conservative the
+  /// document defines. A patient whose questionnaires have not loaded yet must
+  /// never be shown a harder plan than they should have.
+  Protocol get protocol => _protocol;
+  Protocol _protocol = protocolFor();
 
-  /// Furthest week the patient may open: the first one at or after their start
-  /// week that they have not finished.
+  /// Adopts the protocol chosen from the patient's questionnaires, discarding
+  /// any plan built from the previous one.
+  ///
+  /// Replaces loadRecommendedWeek, which took a start week derived from the
+  /// same two scores and skipped the patient forward to it. Now that those
+  /// scores choose the programme itself, skipping would drop the patient past
+  /// their own protocol's baseline activation block.
+  void applyProtocol(Protocol protocol) {
+    if (protocol.id == _protocol.id) return;
+    _protocol = protocol;
+    _plans.clear();
+    currentPlan = null;
+    currentDayIndex = 0;
+    currentSessionIndex = 0;
+    _resetTimer();
+    protocolRevision.value++;
+    notifyListeners();
+  }
+
+  /// Furthest week the patient may open: the first one they have not finished.
+  ///
+  /// This used to be floored at a recommended start week. Every patient now
+  /// begins their own protocol at week 1.
   int get highestUnlockedWeek {
-    for (var week = _recommendedStartWeek; week < 8; week++) {
+    for (var week = 1; week < 8; week++) {
       if (!_completedWeeks.contains(week)) return week;
     }
     return 8;
@@ -110,32 +139,11 @@ class ExerciseNotifier extends ChangeNotifier {
   void loadWeek(int week) {
     if (!canAccessWeek(week)) return;
     _protocolStartDate ??= DateTime.now();
-    currentPlan = _plans[week] ??= WeeklyPlan.getWeekPlan(week);
+    currentPlan = _plans[week] ??= WeeklyPlan.forProtocol(_protocol, week);
     currentDayIndex = _firstIncompleteDay(currentPlan!);
     currentSessionIndex = _firstIncompleteSession();
     _resetTimer();
     notifyListeners();
-  }
-
-  /// Applies the recommendation from the assessments, then opens the week the
-  /// patient is currently on within it.
-  ///
-  /// The argument used to be discarded, so every caller's computed
-  /// recommendation was thrown away and everyone started at the first week
-  /// they had not finished — which is week 1 for every new patient.
-  void loadRecommendedWeek(int week) {
-    setRecommendedStartWeek(week);
-    loadWeek(highestUnlockedWeek);
-  }
-
-  /// Raises the floor of the protocol. Applied before loading a week, because
-  /// loadWeek refuses a week that is not yet unlocked.
-  void setRecommendedStartWeek(int week) {
-    final clamped = week.clamp(1, 8);
-    if (_recommendedStartWeek == clamped) return;
-    _recommendedStartWeek = clamped;
-    notifyListeners();
-    protocolRevision.value++;
   }
 
   void selectDay(int dayIndex) {
@@ -176,29 +184,28 @@ class ExerciseNotifier extends ChangeNotifier {
       for (final weekEntry in byWeekDaySession.entries) {
         final weekNum = weekEntry.key;
         final daySessionMap = weekEntry.value;
-        final basePlan = WeeklyPlan.getWeekPlan(weekNum);
+        if (weekNum < 1 || weekNum > 8) continue;
+        final basePlan = WeeklyPlan.forProtocol(_protocol, weekNum);
 
         final days = basePlan.days.map((day) {
           final completedSessions = daySessionMap[day.dayNumber] ?? {};
-          final sessions = day.sessions.map((session) {
-            return ExerciseSession(
-              week: session.week,
-              day: session.day,
-              sessionNumber: session.sessionNumber,
-              exerciseName: session.exerciseName,
-              reps: session.reps,
-              holdSeconds: session.holdSeconds,
-              restSeconds: session.restSeconds,
-              isCompleted: completedSessions.contains(session.sessionNumber),
-            );
-          }).toList();
+          final sessions = day.sessions
+              .map(
+                (session) => session.copyWith(
+                  isCompleted: completedSessions.contains(
+                    session.sessionNumber,
+                  ),
+                ),
+              )
+              .toList();
           return DayPlan(dayNumber: day.dayNumber, sessions: sessions);
         }).toList();
 
         final plan = WeeklyPlan(
           weekNumber: weekNum,
           days: days,
-          difficultyLabel: basePlan.difficultyLabel,
+          daysPerWeek: basePlan.daysPerWeek,
+          progressionFocus: basePlan.progressionFocus,
         );
 
         if (plan.isCompleted) _completedWeeks.add(weekNum);
@@ -240,10 +247,25 @@ class ExerciseNotifier extends ChangeNotifier {
     final session = currentSession;
     if (session == null || session.isCompleted) return;
 
-    if (phase == ExercisePhase.ready || phase == ExercisePhase.finished) {
-      currentRep = 1;
-      phase = ExercisePhase.hold;
-      secondsRemaining.value = session.holdSeconds;
+    final hold = session.holdSeconds;
+    // Items prescribed without a hold — clamshells, leg circles, the quick
+    // pelvic floor squeezes — are counted by the patient, not timed. There is
+    // nothing to count down, so the detail sheet offers "mark done" instead.
+    if (hold == null) return;
+
+    switch (phase) {
+      case ExercisePhase.ready:
+      case ExercisePhase.finished:
+        currentRep = 1;
+        phase = ExercisePhase.hold;
+        secondsRemaining.value = hold;
+      case ExercisePhase.betweenReps:
+        currentRep++;
+        phase = ExercisePhase.hold;
+        secondsRemaining.value = hold;
+      case ExercisePhase.hold:
+      case ExercisePhase.rest:
+        break; // resuming a countdown the patient paused
     }
 
     isTimerRunning = true;
@@ -264,21 +286,42 @@ class ExerciseNotifier extends ChangeNotifier {
   /// nothing on reaching zero — no cue for when to contract or release, which
   /// is the whole point of a pelvic floor protocol.
   void _advancePhase(ExerciseSession session) {
+    final totalReps = session.reps ?? 1;
+
     if (phase == ExercisePhase.hold) {
-      phase = ExercisePhase.rest;
-      secondsRemaining.value = session.restSeconds;
-      notifyListeners();
+      final relax = session.relaxSeconds;
+      if (relax != null) {
+        phase = ExercisePhase.rest;
+        secondsRemaining.value = relax;
+        notifyListeners();
+        return;
+      }
+      // No prescribed rest: stop the clock and wait for the patient rather
+      // than inventing a gap the document does not give.
+      if (currentRep < totalReps) {
+        _timer?.cancel();
+        isTimerRunning = false;
+        phase = ExercisePhase.betweenReps;
+        secondsRemaining.value = 0;
+        notifyListeners();
+        return;
+      }
+      _finishReps();
       return;
     }
 
-    if (currentRep < session.reps) {
+    if (currentRep < totalReps) {
       currentRep++;
       phase = ExercisePhase.hold;
-      secondsRemaining.value = session.holdSeconds;
+      secondsRemaining.value = session.holdSeconds ?? 0;
       notifyListeners();
       return;
     }
 
+    _finishReps();
+  }
+
+  void _finishReps() {
     _timer?.cancel();
     isTimerRunning = false;
     phase = ExercisePhase.finished;
@@ -305,21 +348,13 @@ class ExerciseNotifier extends ChangeNotifier {
     final day = plan.days[dayIndex];
     final session = day.sessions[sessionIndex];
 
-    final updatedSessions = day.sessions.map((s) {
-      if (s.sessionNumber == session.sessionNumber) {
-        return ExerciseSession(
-          week: s.week,
-          day: s.day,
-          sessionNumber: s.sessionNumber,
-          exerciseName: s.exerciseName,
-          reps: s.reps,
-          holdSeconds: s.holdSeconds,
-          restSeconds: s.restSeconds,
-          isCompleted: true,
-        );
-      }
-      return s;
-    }).toList();
+    final updatedSessions = day.sessions
+        .map(
+          (s) => s.sessionNumber == session.sessionNumber
+              ? s.copyWith(isCompleted: true)
+              : s,
+        )
+        .toList();
 
     final updatedDay = DayPlan(
       dayNumber: day.dayNumber,
@@ -332,7 +367,8 @@ class ExerciseNotifier extends ChangeNotifier {
     currentPlan = WeeklyPlan(
       weekNumber: plan.weekNumber,
       days: updatedDays,
-      difficultyLabel: plan.difficultyLabel,
+      daysPerWeek: plan.daysPerWeek,
+      progressionFocus: plan.progressionFocus,
     );
     _plans[plan.weekNumber] = currentPlan!;
 
@@ -349,13 +385,13 @@ class ExerciseNotifier extends ChangeNotifier {
           'week_number': session.week,
           'day_number': session.day,
           'session_number': session.sessionNumber,
+          'exercise_key': session.exerciseKey,
           'exercise_name': session.exerciseName,
           'reps': session.reps,
           'hold_seconds': session.holdSeconds,
-          'rest_seconds': session.restSeconds,
+          'rest_seconds': session.relaxSeconds,
           'completed': true,
-          'duration_seconds':
-              session.reps * (session.holdSeconds + session.restSeconds),
+          'duration_seconds': _durationSeconds(session),
           'completed_at': DateTime.now().toUtc().toIso8601String(),
         }, onConflict: 'user_id,week_number,day_number,session_number');
       }
@@ -378,10 +414,21 @@ class ExerciseNotifier extends ChangeNotifier {
     return index == -1 ? day.sessions.length - 1 : index;
   }
 
+  /// Prescribed seconds of work for [session]: reps x (hold + relax) x sets.
+  ///
+  /// Zero for items prescribed without a hold, which are counted rather than
+  /// timed. Sets are included because one item now covers all of its sets.
+  int _durationSeconds(ExerciseSession session) {
+    final reps = session.reps ?? 0;
+    final hold = session.holdSeconds ?? 0;
+    final relax = session.relaxSeconds ?? 0;
+    return reps * (hold + relax) * session.sets;
+  }
+
   int _secondsForCurrentSession() {
     final session = currentSession;
     if (session == null) return 0;
-    return session.reps * (session.holdSeconds + session.restSeconds);
+    return _durationSeconds(session);
   }
 
   void _resetTimer() {
@@ -397,7 +444,7 @@ class ExerciseNotifier extends ChangeNotifier {
     _timer = null;
     _plans.clear();
     _completedWeeks.clear();
-    _recommendedStartWeek = 1;
+    _protocol = protocolFor();
     _protocolStartDate = null;
     currentPlan = null;
     currentDayIndex = 0;
