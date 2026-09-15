@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/iciq_model.dart';
 import '../models/ipaq_model.dart';
+import '../../exercise/models/protocol.dart';
+import '../../exercise/protocols/protocol_lookup.dart';
 import '../models/iqol_model.dart';
 
 /// What happened to a save. The screens need to tell these apart: a rejected
@@ -27,31 +29,19 @@ class AssessmentSummaryNotifier extends ChangeNotifier {
   // `?? AssessmentSummaryNotifier()` fallback unusable.
   SupabaseClient get _client => Supabase.instance.client;
 
-  int get recommendedStartWeek {
-    final iciqScore = iciq?.iciqScore;
-    final iqolScore = iqol?.score;
-    final activityLevel = ipaq?.activityLevel;
-    final hasSevereSymptoms = iciqScore != null && iciqScore >= 15;
-    final hasLowerQualityOfLife = iqolScore != null && iqolScore < 50;
-    if (hasSevereSymptoms ||
-        hasLowerQualityOfLife ||
-        activityLevel == IPAQActivityLevel.low) {
-      return 1;
-    }
-    if (activityLevel == IPAQActivityLevel.high &&
-        (iciqScore == null || iciqScore <= 7) &&
-        (iqolScore == null || iqolScore >= 75)) {
-      return 3;
-    }
-    if ((activityLevel == IPAQActivityLevel.moderate ||
-            activityLevel == IPAQActivityLevel.high ||
-            (iqolScore != null && iqolScore >= 75)) &&
-        (iciqScore == null || iciqScore <= 14) &&
-        (iqolScore == null || iqolScore >= 60)) {
-      return 2;
-    }
-    return 1;
-  }
+  /// The exercise protocol for this patient, from their ICIQ severity band and
+  /// IPAQ activity level.
+  ///
+  /// This replaces recommendedStartWeek, which used the same two scores to
+  /// skip a milder, more active patient forward to week 2 or 3. Now that those
+  /// scores select the programme itself — its exercises, reps, hold times and
+  /// days per week — skipping would drop the patient past their own protocol's
+  /// baseline activation block, which is where the document puts the
+  /// foundational work.
+  Protocol get protocol => protocolFor(
+    severityBand: iciq?.severityBand,
+    activity: ipaq?.activityLevel,
+  );
 
   /// Saves the ICIQ.
   ///

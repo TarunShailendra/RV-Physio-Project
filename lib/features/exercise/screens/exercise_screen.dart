@@ -28,7 +28,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         // unlocked week and discarded their position.
         if (exercise.currentPlan != null) return;
         final summary = context.read<AssessmentSummaryNotifier>();
-        exercise.loadRecommendedWeek(summary.recommendedStartWeek);
+        exercise.applyProtocol(summary.protocol);
       } catch (e) {
         debugPrint('Exercise init error: $e');
       }

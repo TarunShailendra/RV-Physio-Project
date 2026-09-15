@@ -65,9 +65,7 @@ class _IpaqScreenState extends State<IpaqScreen> {
     setState(() => _isSubmitting = false);
     if (!reportAssessmentSave(context, saved)) return;
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
-    context.read<ExerciseNotifier>().loadRecommendedWeek(
-      summary.recommendedStartWeek,
-    );
+    context.read<ExerciseNotifier>().applyProtocol(summary.protocol);
     context.go('/dashboard');
   }
 

@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // whatever was true when the dashboard was last built.
       final summary = context.read<AssessmentSummaryNotifier>();
       context.read<DashboardNotifier>().loadDashboard(
-        recommendedStartWeek: summary.recommendedStartWeek,
+        protocol: summary.protocol,
         iciqScorePre: summary.iciq?.iciqScore,
       );
     });
