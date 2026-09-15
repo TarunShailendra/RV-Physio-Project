@@ -1,0 +1,2697 @@
+{
+ "Mild Incontinence + High Activity": {
+  "name": "Mild Incontinence + High Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 5,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 5,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 5,
+    "focus": "Functional + dynamic strength",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Mild Incontinence + Moderate Activity": {
+  "name": "Mild Incontinence + Moderate Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 4,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 4,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 5,
+    "focus": "Functional + dynamic strength",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Mild Incontinence + Low Activity": {
+  "name": "Mild Incontinence + Low Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 3,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 4,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 4,
+    "focus": "Functional + dynamic strength",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Moderate Incontinence + High Activity": {
+  "name": "Moderate Incontinence + High Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 5,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 5,
+      "relax": 5,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 5,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 5,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 5,
+    "focus": "Functional + dynamic strength",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Moderate Incontinence + Moderate Activity": {
+  "name": "Moderate Incontinence + Moderate Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 4,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 5,
+      "relax": 5,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 4,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 5,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 5,
+    "focus": "Functional + dynamic strength",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Moderate Incontinence + Low Activity": {
+  "name": "Moderate Incontinence + Low Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 3,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 5,
+      "relax": 5,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 4,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 8,
+      "relax": 5,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 8,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 4,
+    "focus": "Functional + dynamic strength",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 12,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 2,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 8,
+      "relax": 3,
+      "reps": 12,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 12,
+      "sets": 3
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "clamshells",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "quadruped_arm_leg_raise",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "single_leg_stretch",
+      "reps": 12,
+      "hold": 10,
+      "sets": 2
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 2
+     },
+     {
+      "key": "leg_circles",
+      "reps": 15,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "lunges",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "squats",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 10,
+      "hold": null,
+      "sets": 2
+     }
+    ]
+   }
+  ]
+ },
+ "Severe Incontinence + High Activity": {
+  "name": "Severe Incontinence + High Activity",
+  "blocks": [
+   {
+    "startWeek": 1,
+    "endWeek": 2,
+    "daysPerWeek": 5,
+    "focus": "Baseline activation",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 4,
+      "relax": 4,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 4,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 3,
+    "endWeek": 4,
+    "daysPerWeek": 5,
+    "focus": "Strength + stability",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "supine",
+      "hold": 6,
+      "relax": 3,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 4,
+      "relax": 4,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 5,
+    "endWeek": 6,
+    "daysPerWeek": 5,
+    "focus": "Functional + dynamic strength",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "sitting",
+      "hold": 6,
+      "relax": 3,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 4,
+      "relax": 4,
+      "reps": 6,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 10,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 8,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 8,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   },
+   {
+    "startWeek": 7,
+    "endWeek": 8,
+    "daysPerWeek": 5,
+    "focus": "High-level performance + endurance",
+    "sets": 1,
+    "items": [
+     {
+      "key": "pfmt_slow",
+      "position": "standing",
+      "hold": 6,
+      "relax": 3,
+      "reps": 8,
+      "sets": 2
+     },
+     {
+      "key": "pfmt_quick",
+      "position": null,
+      "hold": null,
+      "relax": null,
+      "reps": 10,
+      "sets": 2
+     },
+     {
+      "key": "diaphragmatic_breathing",
+      "reps": 1,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_bridging",
+      "reps": 12,
+      "hold": 15,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_rotations",
+      "reps": 12,
+      "hold": 10,
+      "sets": 1
+     },
+     {
+      "key": "clamshells",
+      "reps": 12,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "straight_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "side_leg_raise",
+      "reps": 10,
+      "hold": 5,
+      "sets": 1
+     },
+     {
+      "key": "pelvic_tilt",
+      "reps": 12,
+      "hold": 15,
+      "sets": 1
+     },
+     {
+      "key": "leg_circles",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "lunges",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "wall_squat",
+      "reps": 10,
+      "hold": null,
+      "sets": 1
+     },
+     {
+      "key": "leg_scissors",
+      "reps": 8,
+      "hold": null,
+      "sets": 1
+     }
+    ]
+   }
+  ]
+ }
+}

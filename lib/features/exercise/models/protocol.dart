@@ -62,6 +62,13 @@ class Protocol {
 
   final String id;
   final String severityBand;
+
+  /// The activity level this table was written for.
+  ///
+  /// Descriptive, not a selector: [protocolFor] matches on the id. It is
+  /// `high` on the severe protocol because that is the only severe table the
+  /// document provides, and the same table serves moderate and low activity
+  /// patients too.
   final IPAQActivityLevel activity;
   final String intensity;
   final String timeRange;
