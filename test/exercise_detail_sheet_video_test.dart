@@ -281,4 +281,36 @@ void main() {
     expect(fake.disposed, isFalse);
     expect(fake.calls.where((c) => c.startsWith('load')).length, 1);
   });
+
+  testWidgets(
+    'a sheet with little height does not overflow and keeps the video',
+    (tester) async {
+      createDemoVideoPlayer = () => fake;
+      // A short window leaves the sheet less height than an uncapped 16:9
+      // video needs, as dragging the sheet to its minimum does on a phone.
+      tester.view.physicalSize = const Size(360, 200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await openSheet(tester, 3);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('fake-video')), findsOneWidget);
+    },
+  );
+
+  testWidgets('on a wide surface the video is at most 40% of the sheet', (
+    tester,
+  ) async {
+    createDemoVideoPlayer = () => fake;
+    tester.view.physicalSize = const Size(1600, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await openSheet(tester, 3);
+
+    final video = tester.getSize(find.byKey(const Key('fake-video')));
+    final body = tester.getSize(find.byType(LayoutBuilder).last);
+    expect(video.height, lessThanOrEqualTo(body.height * 0.4));
+    expect(video.width / video.height, closeTo(16 / 9, 0.01));
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -68,14 +68,28 @@ class _ExerciseDetail extends StatelessWidget {
 
     // The video is pinned above the scrollable content so it stays in view
     // (and mounted) while the patient scrolls to the timer.
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: ExerciseDemoVideo(session: session),
-        ),
-        Expanded(child: _content(context, l10n, notifier, text)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The video never takes more than 40% of the sheet, so a sheet dragged
+        // small cannot overflow and the instructions and timer always keep
+        // room. It stays 16:9 by getting narrower, not by being stretched.
+        final videoHeight = constraints.maxHeight * 0.4;
+        final maxWidth = ((videoHeight - 16) * 16 / 9).clamp(0.0, 640.0);
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: ExerciseDemoVideo(session: session),
+                ),
+              ),
+            ),
+            Expanded(child: _content(context, l10n, notifier, text)),
+          ],
+        );
+      },
     );
   }
 
