@@ -1,101 +1,43 @@
-"""Pelvic bridging: one text-free rep, drawn exactly as the owner's bridge.py.
+"""Pelvic bridging: one text-free rep of the owner's bridge.py, drawn through the rig.
 
 Rest 0.4 s, lift 1.3 s, hold plateau 0.8 s, lower 1.5 s, rest 0.4 s.
 """
 import math
+from dataclasses import replace
 
 from PIL import Image, ImageDraw
 
+from figure import SIDE_SUPINE_KNEES_BENT, TORSO, draw_side_figure, knee_ik, plant_foot
 from spec import SideTiming, VideoSpec
-from studio import (GLOW, H, HAIR, LEG, LEG_D, S, SHADOW, SHOE, SHOE_D, SKIN, SKIN_D, TOP, W,
-                    capsule, circle, dashed_line, ease, paste_sprite, poly, sc, unit)
+from studio import H, SHADOW, W, dashed_line, ease, paste_sprite, unit
 
 # ---------- kinematics (from bridge.py) ----------
+# The shoulders stay on the mat and the trunk pivots about them; the feet stay
+# planted. Head and arms keep their place on the mat while the hips rise.
 SH = (430, 560)
-TORSO, THIGH, SHIN = 190, 170, 165
-ANKLE = (800, 566)
+ANKLE, FAR_ANKLE = (800, 566), (786, 564)
 THETA_MAX = math.radians(24)
 
 
-def knee_ik(hp, a_):
-    dx, dy = a_[0] - hp[0], a_[1] - hp[1]
-    dist = min(math.hypot(dx, dy), THIGH + SHIN - 0.01)
-    base = math.atan2(dy, dx)
-    al = math.acos((THIGH ** 2 + dist ** 2 - SHIN ** 2) / (2 * THIGH * dist))
-    c = [(hp[0] + THIGH * math.cos(base + s * al), hp[1] + THIGH * math.sin(base + s * al)) for s in (-1, 1)]
-    return min(c, key=lambda p: p[1])
+def hip_point(e):
+    th = THETA_MAX * e
+    return (SH[0] + TORSO * math.cos(th), SH[1] - TORSO * math.sin(th))
 
 
-def lerpw(table, f):
-    for (f0, w0), (f1, w1) in zip(table, table[1:]):
-        if f0 <= f <= f1:
-            return w0 + (w1 - w0) * (f - f0) / (f1 - f0)
-    return table[-1][1]
-
-
-UPW = [(0, 25), (0.25, 30), (0.5, 22), (0.8, 24), (1, 27)]
-DNW = [(0, 25), (0.3, 25), (0.6, 22), (1, 27)]
-
-
-def torso_poly(hp, f0, f1, n=10):
-    ux, uy = unit(SH, hp)
-    nx, ny = uy, -ux  # n points "up"/belly side
-    top, bot = [], []
-    for i in range(n + 1):
-        f = f0 + (f1 - f0) * i / n
-        px, py = SH[0] + (hp[0] - SH[0]) * f, SH[1] + (hp[1] - SH[1]) * f
-        top.append((px + nx * lerpw(UPW, f), py + ny * lerpw(UPW, f)))
-        bot.append((px - nx * lerpw(DNW, f), py - ny * lerpw(DNW, f)))
-    return top + bot[::-1]
-
-
-def shoe(d, a_, fill, sole):
-    x, y = a_[0] - 800, a_[1] - 566
-    poly(d, [(788 + x, 558 + y), (810 + x, 555 + y), (826 + x, 566 + y), (850 + x, 574 + y),
-             (855 + x, 584 + y), (784 + x, 584 + y)], fill)
-    poly(d, [(783 + x, 581 + y), (856 + x, 581 + y), (856 + x, 587 + y), (783 + x, 587 + y)], sole)
-
-
-def draw_leg(d, hp, a_, col, skin):
-    k = knee_ik(hp, a_)
-    capsule(d, hp, k, 23, 15, col)
-    capsule(d, k, (a_[0] - 2, a_[1] - 4), 15, 9, col)
-    return k
+def bridge_pose(e):
+    """The rig's pose with the hips at elevation e (0..1)."""
+    th = math.degrees(THETA_MAX * e)
+    rest = SIDE_SUPINE_KNEES_BENT
+    p = replace(rest, root=hip_point(e), trunk=rest.trunk - th, neck=rest.neck + th,
+                near_shoulder=rest.near_shoulder - th, far_shoulder=rest.far_shoulder - th)
+    p = plant_foot(p, "near", ANKLE)
+    return plant_foot(p, "far", FAR_ANKLE)
 
 
 def draw_figure(img, e):
-    th = THETA_MAX * e
-    hp = (SH[0] + TORSO * math.cos(th), SH[1] - TORSO * math.sin(th))
-    d = ImageDraw.Draw(img)
-    # far leg
-    fa = (ANKLE[0] - 14, ANKLE[1] - 2)
-    draw_leg(d, (hp[0] + 3, hp[1] - 3), fa, LEG_D, SKIN_D)
-    shoe(d, fa, SHOE_D, (190, 80, 95))
-    # head & neck
-    hc = (370, 559)
-    capsule(d, (SH[0] - 12, SH[1]), (hc[0] + 16, hc[1] + 2), 11, 11, SKIN)
-    circle(d, (hc[0] + 8, hc[1] - 27), 6, SKIN)  # nose
-    circle(d, hc, 29, SKIN)
-    d.pieslice([(hc[0] - 31) * S, (hc[1] - 31) * S, (hc[0] + 31) * S, (hc[1] + 31) * S], 70, 255, fill=HAIR)
-    d.ellipse(sc([(hc[0] - 90, hc[1] + 7), (hc[0] - 20, hc[1] + 27)]), fill=HAIR)
-    circle(d, (hc[0] - 24, hc[1] + 15), 5, TOP)
-    d.ellipse(sc([(hc[0] - 2, hc[1] - 6), (hc[0] + 9, hc[1] + 8)]), fill=SKIN_D)  # ear
-    # torso
-    poly(d, torso_poly(hp, 0, 1), SKIN)
-    circle(d, SH, 24, SKIN)
-    poly(d, torso_poly(hp, 0.1, 0.6), TOP)
-    poly(d, torso_poly(hp, 0.62, 1), LEG)
-    poly(d, torso_poly(hp, 0.62, 0.67, 2), (90, 86, 150))  # waistband
-    ux, uy = unit(SH, hp)
-    circle(d, (hp[0] + uy * 4, hp[1] - ux * 4 + 4), 27, LEG)  # glutes
-    # near leg + shoe
-    k = draw_leg(d, hp, ANKLE, LEG, SKIN)
-    shoe(d, ANKLE, SHOE, TOP)
-    # near arm (flat on floor)
-    capsule(d, (SH[0] + 4, SH[1] + 6), (518, 576), 11, 8, SKIN)
-    capsule(d, (518, 576), (592, 578), 8, 7, SKIN)
-    d.ellipse(sc([(588, 572), (612, 584)]), fill=SKIN)
-    return hp, k
+    """Draw the figure (and its glute glow); return hip and near knee."""
+    pts = draw_side_figure(img, bridge_pose(e), glow_at="glutes", glow_k=e * 0.45)
+    return pts["pelvis"], pts["near_knee"]
 
 
 def draw_guide(img, e, hp, k):
@@ -114,9 +56,8 @@ def draw_guide(img, e, hp, k):
 
 def guide_bbox():
     """Pixel bounding box (x0, y0, x1, y1) of the alignment guide at full lift."""
-    th = THETA_MAX
-    hp = (SH[0] + TORSO * math.cos(th), SH[1] - TORSO * math.sin(th))
-    k = knee_ik(hp, ANKLE)
+    hp = hip_point(1)
+    k = knee_ik(hp, ANKLE, bend="up")
     ux, uy = unit(SH, k)
     pts = [(SH[0] - ux * 30, SH[1] - uy * 30), (k[0] + ux * 25, k[1] + uy * 25), SH, hp, k]
     m = 12
@@ -145,11 +86,8 @@ def elevation(t):
 def render_elevation(e, room):
     """The full-resolution RGB frame with the hips at elevation e (0..1)."""
     img = room.copy()
-    th = THETA_MAX * e
-    hpos = (SH[0] + TORSO * math.cos(th), SH[1] - TORSO * math.sin(th))
-    paste_sprite(img, SHADOW, (hpos[0] - 20, 588), e * 0.55)
+    paste_sprite(img, SHADOW, (hip_point(e)[0] - 20, 588), e * 0.55)
     hp, k = draw_figure(img, e)
-    paste_sprite(img, GLOW, (hp[0] - 6, hp[1] + 6), e * 0.45)
     draw_guide(img, e, hp, k)
     return img.convert("RGB").resize((W, H), Image.LANCZOS)
 
