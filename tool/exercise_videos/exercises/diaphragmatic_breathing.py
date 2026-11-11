@@ -12,7 +12,7 @@ from figure import SIDE_SUPINE_KNEES_BENT, draw_side_figure, hand_on
 from spec import SideTiming, VideoSpec
 from studio import H, W, ease
 
-BELLY_RISE = 10  # px the belly pushes out at full breath in
+BELLY_RISE = 22  # px the belly pushes out at full breath in
 REST, IN, OUT = 0.4, 3.0, 4.0
 DURATION = REST + IN + OUT + REST
 TIMING = SideTiming(REST, REST + IN, REST + IN, REST + IN + OUT)

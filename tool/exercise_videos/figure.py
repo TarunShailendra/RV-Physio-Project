@@ -379,7 +379,7 @@ def _local_joints(pose):
     u = unit((0, 0), sh)
     front = (-u[1], u[0])
     on = lambda f: _lerp(sh, (0, 0), f)                                   # noqa: E731
-    j["pelvic_floor"] = _rot((8, 0), pt)
+    j["pelvic_floor"] = _rot((8 + PF_SHIFT[0], PF_SHIFT[1]), pt)
     j["glutes"] = _rot((-6, 6), pt)
     j["belly"] = _add(on(_BELLY[0]), _mul(front, _front_w(_BELLY[0], pose.belly) - 12))
     j["chest"] = _add(on(0.25), _mul(front, 12))
@@ -390,6 +390,7 @@ def _local_joints(pose):
     return j, rot
 
 
+PF_SHIFT = (9, -6)   # pelvic floor sling/glow: down toward the seat and a little forward
 GLOW_PARTS = ("pelvic_floor", "glutes", "belly", "chest", "lower_back",
               "near_thigh", "far_thigh", "near_shin", "far_shin")
 
@@ -515,8 +516,9 @@ def _head(pen, pose, j, rot):
 def _pelvic_floor(img, pose, rot, k):
     """A warm sling across the base of the pelvis that lifts as k rises."""
     pt = rot["trunk"]
-    a, b = _rot((-3, -17), pt), _rot((-3, 17), pt)
-    c = _rot((15 - 7 * k, 0), pt)      # control point: the sling's low point rises
+    dx, dy = PF_SHIFT
+    a, b = _rot((-3 + dx, -17 + dy), pt), _rot((-3 + dx, 17 + dy), pt)
+    c = _rot((15 - 7 * k + dx, dy), pt)      # control point: the sling's low point rises
     pts = []
     for i in range(13):
         t = i / 12

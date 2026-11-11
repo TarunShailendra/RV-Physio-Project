@@ -6,7 +6,7 @@ Quick (unheld loop): rest 0.4 s, in 0.3 s, plateau 0.2 s, out 0.3 s, rest 0.4 s.
 """
 from PIL import Image
 
-from figure import SIDE_SITTING, SIDE_STANDING, SIDE_SUPINE_KNEES_BENT, draw_side_figure
+from figure import SIDE_SITTING, SIDE_STANDING, place_hand, pose_points, SIDE_SUPINE_KNEES_BENT, draw_side_figure
 from spec import SideTiming, VideoSpec
 from studio import H, W, blur_sprite, ease, paste_sprite
 
@@ -14,10 +14,21 @@ PF_GLOW = blur_sprite(60, 50, (255, 120, 50), 12)  # smaller than the working-mu
 GLOW_PEAK = 0.7
 SLING_PEAK = 0.8
 
+# arms held a little forward of the body so neither crosses the pelvis
+def _standing():
+    p = SIDE_STANDING
+    x, y = pose_points(p)["pelvis"]
+    for side, dx in (("near", 52), ("far", 46)):
+        p = place_hand(p, side, (x + dx, y + 52), hand_angle=100.0)
+    return p
+
+
+STANDING = _standing()
+
 POSES = {
     "supine": (SIDE_SUPINE_KNEES_BENT, frozenset()),
     "sitting": (SIDE_SITTING, frozenset({"chair"})),
-    "standing": (SIDE_STANDING, frozenset({"chair"})),
+    "standing": (STANDING, frozenset()),
 }
 
 
