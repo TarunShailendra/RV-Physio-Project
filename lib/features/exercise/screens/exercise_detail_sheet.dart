@@ -23,7 +23,11 @@ Future<void> showExerciseDetail(
 ) {
   // The timer runs whichever item the notifier has selected, so opening an
   // item has to select it.
-  context.read<ExerciseNotifier>().selectSession(sessionIndex);
+  // Reopening the item already selected must not reset a running timer.
+  final notifier = context.read<ExerciseNotifier>();
+  if (notifier.currentSessionIndex != sessionIndex) {
+    notifier.selectSession(sessionIndex);
+  }
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -62,11 +66,29 @@ class _ExerciseDetail extends StatelessWidget {
     final language = Localizations.localeOf(context).languageCode;
     final text = exerciseContent[session.exerciseKey]?.forLocale(language);
 
+    // The video is pinned above the scrollable content so it stays in view
+    // (and mounted) while the patient scrolls to the timer.
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ExerciseDemoVideo(session: session),
+        ),
+        Expanded(child: _content(context, l10n, notifier, text)),
+      ],
+    );
+  }
+
+  Widget _content(
+    BuildContext context,
+    AppLocalizations l10n,
+    ExerciseNotifier notifier,
+    ExerciseText? text,
+  ) {
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       children: [
-        ExerciseDemoVideo(session: session),
         Text(
           session.exerciseName,
           style: Theme.of(context).textTheme.headlineSmall,

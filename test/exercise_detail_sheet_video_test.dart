@@ -86,10 +86,6 @@ void main() {
     int index, {
     ExerciseNotifier? notifier,
   }) async {
-    // Tall enough that the whole sheet is built; the list is lazy.
-    tester.view.physicalSize = const Size(800, 6000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
     notifier ??= ExerciseNotifier();
     notifier.loadWeek(1);
     await tester.pumpWidget(
@@ -119,6 +115,15 @@ void main() {
     return notifier;
   }
 
+  Future<void> scrollToStart(WidgetTester tester) => tester.scrollUntilVisible(
+    find.byIcon(Icons.play_arrow),
+    300,
+    scrollable: find.descendant(
+      of: find.byType(ListView),
+      matching: find.byType(Scrollable),
+    ),
+  );
+
   testWidgets('the sheet shows the video above the exercise name', (
     tester,
   ) async {
@@ -144,6 +149,14 @@ void main() {
 
     expect(find.byKey(const Key('fake-video')), findsNothing);
     expect(fake.calls, isEmpty);
+    await tester.scrollUntilVisible(
+      find.text('Mark as done'),
+      300,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
     expect(find.text('Mark as done'), findsOneWidget);
   });
 
@@ -156,6 +169,14 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('fake-video')), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Mark as done'),
+      300,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
     expect(find.text('Mark as done'), findsOneWidget);
   });
 
@@ -165,6 +186,8 @@ void main() {
     createDemoVideoPlayer = () => fake;
     final notifier = await openSheet(tester, 3);
 
+    await scrollToStart(tester);
+    await tester.pump();
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump(const Duration(milliseconds: 100));
     expect(notifier.isTimerRunning, isTrue);
@@ -182,6 +205,8 @@ void main() {
     createDemoVideoPlayer = () => fake;
     final notifier = await openSheet(tester, 3);
 
+    await scrollToStart(tester);
+    await tester.pump();
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();
     await tester.pump();
@@ -200,5 +225,60 @@ void main() {
     await openSheet(tester, 3, notifier: notifier);
 
     expect(notifier.currentSession!.exerciseKey, 'pelvic_bridging');
+  });
+
+  testWidgets('reopening the same item keeps a running timer', (tester) async {
+    createDemoVideoPlayer = () => FakeDemoVideoPlayer();
+    final notifier = await openSheet(tester, 3);
+    await scrollToStart(tester);
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump(const Duration(milliseconds: 100));
+    final phase = notifier.phase;
+    expect(notifier.isTimerRunning, isTrue);
+
+    Navigator.of(tester.element(find.byType(Scaffold).first)).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open'));
+    await tester.pump();
+
+    expect(notifier.isTimerRunning, isTrue);
+    expect(notifier.phase, phase);
+    expect(notifier.currentRep, 1);
+    notifier.pauseTimer();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('opening a different item selects and resets', (tester) async {
+    createDemoVideoPlayer = () => FakeDemoVideoPlayer();
+    final notifier = await openSheet(tester, 3);
+    expect(notifier.currentSessionIndex, 3);
+    Navigator.of(tester.element(find.byType(Scaffold).first)).pop();
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.text('open'));
+    showExerciseDetail(
+      context,
+      notifier.currentPlan!.days[0].sessions[0],
+      0,
+      0,
+    );
+    await tester.pumpAndSettle();
+
+    expect(notifier.currentSessionIndex, 0);
+  });
+
+  testWidgets('the video stays mounted while scrolling to the timer', (
+    tester,
+  ) async {
+    createDemoVideoPlayer = () => fake;
+    await openSheet(tester, 3);
+
+    await scrollToStart(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('fake-video')), findsOneWidget);
+    expect(fake.disposed, isFalse);
+    expect(fake.calls.where((c) => c.startsWith('load')).length, 1);
   });
 }
