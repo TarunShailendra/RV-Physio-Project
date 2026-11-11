@@ -43,6 +43,21 @@ void main() {
     expect(s.outDuration, const Duration(milliseconds: 1500));
   });
 
+  test('PFMT videos resolve by position', () {
+    for (final key in ['pfmt_slow', 'pfmt_quick']) {
+      for (final pos in [
+        ExercisePosition.supine,
+        ExercisePosition.sitting,
+        ExercisePosition.standing,
+      ]) {
+        expect(videoFor(key, pos)!.id, '${key}_${pos.name}');
+      }
+    }
+    expect(videoFor('pfmt_quick', null)!.id, 'pfmt_quick_supine');
+    expect(videoFor('diaphragmatic_breathing', null)!.id,
+        'diaphragmatic_breathing');
+  });
+
   test('an unknown exercise has no video', () {
     expect(videoFor('no_such_exercise', null), isNull);
   });
