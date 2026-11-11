@@ -17,7 +17,7 @@ from studio import H, W
 from ._motion import REST, phase, side
 
 # Relaxed: the natural hollow of the lower back, a gap above the mat.
-RELAXED = replace(SIDE_SUPINE_KNEES_BENT, pelvis=-8.0, lumbar=-5.0)
+RELAXED = replace(SIDE_SUPINE_KNEES_BENT, pelvis=-14.0, lumbar=-8.0)
 # Tilted: the pelvis rolled back, the lower back flat on the mat.
 TILTED = replace(SIDE_SUPINE_KNEES_BENT, pelvis=4.0, lumbar=0.0)
 GLOW_PEAK = 0.45

@@ -19,7 +19,7 @@ from ._motion import REST, phase, side
 ROOT = (600.0, 560.0)
 TUCK = dict(hip=115.0, knee=115.0, ankle=20.0)     # knee toward the chest, shin level
 PULL = dict(hip=123.0, knee=121.0, ankle=20.0)     # the staying knee drawn a little closer
-LONG = dict(hip=18.0, knee=0.0, ankle=40.0)        # straight, low, toes pointed
+LONG = dict(hip=10.0, knee=0.0, ankle=40.0)        # straight, low and close to the mat, toes pointed
 GLOW_PEAK = 0.45
 
 

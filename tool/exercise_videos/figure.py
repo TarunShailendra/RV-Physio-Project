@@ -348,6 +348,8 @@ def hand_on(pose: SidePose, side: Literal["near", "far"],
     u = unit((0, 0), sh)
     front = (-u[1], u[0])
     p = _add(_lerp(sh, (0, 0), f), _mul(front, _front_w(f, pose.belly) + 5))
+    if pose.pelvis:                     # the belly turns with the pelvis
+        p = _rot(p, _pelvis_turn(pose, f))
     supine = front[1] < -0.7            # front faces up: the back is on the floor
     # elbow: along the trunk from the shoulder, and toward the back (on the
     # floor when supine, as bridge.py's flat arm lies)
