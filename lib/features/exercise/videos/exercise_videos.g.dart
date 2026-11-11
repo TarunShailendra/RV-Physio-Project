@@ -212,4 +212,70 @@ const Map<String, ExerciseVideo> exerciseVideos = {
       ),
     ],
   ),
+  'wall_squat': ExerciseVideo(
+    id: 'wall_squat',
+    exerciseKey: 'wall_squat',
+    position: ExercisePosition.standing,
+    asset: 'assets/videos/wall_squat.mp4',
+    durationMs: 4600,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 2700,
+        outEndMs: 4200,
+      ),
+    ],
+  ),
+  'quadruped_arm_leg_raise': ExerciseVideo(
+    id: 'quadruped_arm_leg_raise',
+    exerciseKey: 'quadruped_arm_leg_raise',
+    position: null,
+    asset: 'assets/videos/quadruped_arm_leg_raise.mp4',
+    durationMs: 9200,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 2700,
+        outEndMs: 4200,
+      ),
+      VideoSide(
+        intoStartMs: 5000,
+        holdMs: 6500,
+        outStartMs: 7300,
+        outEndMs: 8800,
+      ),
+    ],
+  ),
+  'lunges': ExerciseVideo(
+    id: 'lunges',
+    exerciseKey: 'lunges',
+    position: ExercisePosition.standing,
+    asset: 'assets/videos/lunges.mp4',
+    durationMs: 4800,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 2300,
+        outStartMs: 2500,
+        outEndMs: 4400,
+      ),
+    ],
+  ),
+  'squats': ExerciseVideo(
+    id: 'squats',
+    exerciseKey: 'squats',
+    position: ExercisePosition.standing,
+    asset: 'assets/videos/squats.mp4',
+    durationMs: 3800,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1800,
+        outStartMs: 2000,
+        outEndMs: 3400,
+      ),
+    ],
+  ),
 };

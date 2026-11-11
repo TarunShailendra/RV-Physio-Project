@@ -1,7 +1,8 @@
 from spec import VideoSpec
 
-from . import (diaphragmatic_breathing, leg_circles, leg_scissors, pelvic_bridging, pelvic_tilt,
-               pfmt, single_leg_stretch, straight_leg_raise)
+from . import (diaphragmatic_breathing, leg_circles, leg_scissors, lunges, pelvic_bridging,
+               pelvic_tilt, pfmt, quadruped_arm_leg_raise, single_leg_stretch, squats,
+               straight_leg_raise, wall_squat)
 
 ALL_VIDEOS: list[VideoSpec] = [
     *pelvic_bridging.VIDEOS,
@@ -12,4 +13,8 @@ ALL_VIDEOS: list[VideoSpec] = [
     *single_leg_stretch.VIDEOS,
     *leg_scissors.VIDEOS,
     *leg_circles.VIDEOS,
+    *wall_squat.VIDEOS,
+    *quadruped_arm_leg_raise.VIDEOS,
+    *lunges.VIDEOS,
+    *squats.VIDEOS,
 ]

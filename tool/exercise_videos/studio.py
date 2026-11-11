@@ -118,13 +118,19 @@ def make_room(props: frozenset = frozenset()) -> Image.Image:
     return bg
 
 
+WALL_FLOOR = 596   # the wall prop stands on the floor line a standing figure's soles meet
+
+
 def _draw_wall(d):
-    """A plain wall panel to stand against, right of the mat, in the room's palette."""
+    """A plain wall to stand against, right of the mat, in the room's palette.
+    It comes forward to the floor line a standing figure's soles meet, so a
+    back resting on its face (x 930) reads as touching it."""
     # make_room leaves the rack out when this prop is present.
-    d.rectangle(sc([(930, 0), (W, 500)]), fill=(228, 232, 238))
-    d.rectangle(sc([(930, 0), (940, 500)]), fill=(196, 202, 210))      # panel edge
+    d.rectangle(sc([(930, 0), (W, WALL_FLOOR)]), fill=(228, 232, 238))
     d.rectangle(sc([(930, 330), (W, 344)]), fill=(120, 190, 182))      # wall stripe continues
-    d.rectangle(sc([(930, 492), (W, 502)]), fill=(186, 192, 200))      # baseboard
+    d.rectangle(sc([(930, WALL_FLOOR - 12), (W, WALL_FLOOR)]), fill=(186, 192, 200))  # baseboard
+    d.rectangle(sc([(930, 0), (938, WALL_FLOOR)]), fill=(196, 202, 210))  # the face's edge
+    d.rectangle(sc([(926, WALL_FLOOR - 1), (W, WALL_FLOOR + 3)]), fill=(40, 42, 48))  # contact shadow
 
 
 def _draw_chair(d):
