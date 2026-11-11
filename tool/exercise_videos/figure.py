@@ -151,6 +151,16 @@ def _back_w(f, lumbar):
     return _lerpw(DNW, f) + (lumbar * _bump(f, *_LUMBAR) if lumbar else 0)
 
 
+_PELVIS = (0.4, 0.8)     # `pelvis` turns the torso fully below 0.8 of shoulder -> hip, not above 0.4
+
+
+def _pelvis_turn(pose, f):
+    """Degrees (clockwise on screen, figure frame) the torso turns at fraction f."""
+    if not pose.pelvis:
+        return 0.0
+    return -pose.pelvis * _smooth((f - _PELVIS[0]) / (_PELVIS[1] - _PELVIS[0]))
+
+
 # ---------- the pose ----------
 @dataclass(frozen=True)
 class SidePose:
@@ -177,8 +187,16 @@ class SidePose:
     far_hip: float = 0.0
     far_knee: float = 0.0
     far_ankle: float = 0.0
+    # Seen length of each leg (thigh and shin together), 1 = full. Less draws
+    # it foreshortened, as a leg tipped toward or away from the camera.
+    near_leg: float = 1.0
+    far_leg: float = 1.0
     belly: float = 0.0     # px the belly pushes out (breathing in)
     lumbar: float = 0.0    # px added to the lower back: + flattens it (posterior tilt), - arches it
+    # Degrees the pelvis rolls about the hip joints: + rolls it back (posterior
+    # tilt: the lower belly and lower back drop, as in a pelvic tilt), - forward.
+    # It turns the torso's lower half, fading out toward the ribs.
+    pelvis: float = 0.0
     scale: float = 1.0     # 1 = bridge.py's size
     facing: int = 1        # 1 faces right (head left when supine), -1 mirrored
 
@@ -369,8 +387,9 @@ def _local_joints(pose):
         shin = thigh + getattr(pose, side + "_knee")
         foot = shin - 90 + getattr(pose, side + "_ankle")
         j[side + "_hip"] = hip
-        j[side + "_knee"] = _add(hip, _mul(_lean(thigh), THIGH))
-        j[side + "_ankle"] = _add(j[side + "_knee"], _mul(_lean(shin), SHIN))
+        seen = getattr(pose, side + "_leg")
+        j[side + "_knee"] = _add(hip, _mul(_lean(thigh), THIGH * seen))
+        j[side + "_ankle"] = _add(j[side + "_knee"], _mul(_lean(shin), SHIN * seen))
         pft = foot - 90
         rot[side + "_foot"] = pft
         j[side + "_heel"] = _add(j[side + "_ankle"], _rot(_HEEL, pft))
@@ -384,6 +403,9 @@ def _local_joints(pose):
     j["belly"] = _add(on(_BELLY[0]), _mul(front, _front_w(_BELLY[0], pose.belly) - 12))
     j["chest"] = _add(on(0.25), _mul(front, 12))
     j["lower_back"] = _add(on(0.68), _mul(front, -12))
+    if pose.pelvis:
+        for part, f in (("belly", _BELLY[0]), ("lower_back", 0.68)):
+            j[part] = _rot(j[part], _pelvis_turn(pose, f))
     for side in ("near", "far"):
         j[side + "_thigh"] = _lerp(j[side + "_hip"], j[side + "_knee"], 0.5)
         j[side + "_shin"] = _lerp(j[side + "_knee"], j[side + "_ankle"], 0.45)
@@ -449,15 +471,19 @@ class _Pen:
         SH, HP = self.pt(sh), self.pt(hp)
         ux, uy = unit(SH, HP)
         nx, ny = uy * p.facing, -ux * p.facing  # n points to the belly side
-        if p.belly or p.lumbar:
+        if p.belly or p.lumbar or p.pelvis:
             n *= 3                    # finer steps to carry the bumps
         top, bot = [], []
         for i in range(n + 1):
             f = f0 + (f1 - f0) * i / n
             px, py = SH[0] + (HP[0] - SH[0]) * f, SH[1] + (HP[1] - SH[1]) * f
             wu, wd = _front_w(f, p.belly) * self.k, _back_w(f, p.lumbar) * self.k
-            top.append((px + nx * wu, py + ny * wu))
-            bot.append((px - nx * wd, py - ny * wd))
+            t, b = (px + nx * wu, py + ny * wu), (px - nx * wd, py - ny * wd)
+            if p.pelvis:              # turn about the hip joint, in screen space
+                phi = _pelvis_turn(p, f) * p.facing
+                t, b = (_add(HP, _rot(_sub(q, HP), phi)) for q in (t, b))
+            top.append(t)
+            bot.append(b)
         self.d.polygon([(x * S, y * S) for x, y in top + bot[::-1]], fill=fill)
 
 

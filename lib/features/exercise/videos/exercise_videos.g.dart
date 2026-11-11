@@ -125,4 +125,91 @@ const Map<String, ExerciseVideo> exerciseVideos = {
       ),
     ],
   ),
+  'pelvic_tilt': ExerciseVideo(
+    id: 'pelvic_tilt',
+    exerciseKey: 'pelvic_tilt',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/pelvic_tilt.mp4',
+    durationMs: 4600,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 2700,
+        outEndMs: 4200,
+      ),
+    ],
+  ),
+  'straight_leg_raise': ExerciseVideo(
+    id: 'straight_leg_raise',
+    exerciseKey: 'straight_leg_raise',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/straight_leg_raise.mp4',
+    durationMs: 4600,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 2700,
+        outEndMs: 4200,
+      ),
+    ],
+  ),
+  'single_leg_stretch': ExerciseVideo(
+    id: 'single_leg_stretch',
+    exerciseKey: 'single_leg_stretch',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/single_leg_stretch.mp4',
+    durationMs: 8400,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1700,
+        outStartMs: 2500,
+        outEndMs: 3800,
+      ),
+      VideoSide(
+        intoStartMs: 4600,
+        holdMs: 5900,
+        outStartMs: 6700,
+        outEndMs: 8000,
+      ),
+    ],
+  ),
+  'leg_scissors': ExerciseVideo(
+    id: 'leg_scissors',
+    exerciseKey: 'leg_scissors',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/leg_scissors.mp4',
+    durationMs: 7200,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1700,
+        outStartMs: 1900,
+        outEndMs: 3200,
+      ),
+      VideoSide(
+        intoStartMs: 4000,
+        holdMs: 5300,
+        outStartMs: 5500,
+        outEndMs: 6800,
+      ),
+    ],
+  ),
+  'leg_circles': ExerciseVideo(
+    id: 'leg_circles',
+    exerciseKey: 'leg_circles',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/leg_circles.mp4',
+    durationMs: 3800,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 1900,
+        outEndMs: 3400,
+      ),
+    ],
+  ),
 };
