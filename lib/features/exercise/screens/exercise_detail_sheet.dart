@@ -254,7 +254,9 @@ class _Timer extends StatelessWidget {
 
   String _phaseLabel(ExercisePhase phase, AppLocalizations l10n) =>
       switch (phase) {
+        ExercisePhase.moveIn => l10n.getIntoPosition,
         ExercisePhase.hold => l10n.hold,
+        ExercisePhase.moveOut => l10n.returnToStart,
         ExercisePhase.rest => l10n.rest,
         ExercisePhase.betweenReps => l10n.nextRep,
         ExercisePhase.finished => l10n.markAsDone,

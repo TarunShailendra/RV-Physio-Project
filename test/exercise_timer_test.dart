@@ -18,6 +18,27 @@ import 'package:telerehab_app/features/exercise/exercise_notifier.dart';
 void main() {
   ExerciseNotifier openWeekOne() => ExerciseNotifier()..loadWeek(1);
 
+  // Each rep now starts and ends with a movement timed to the demonstration
+  // video. An item with no video has zero-length movements, so these read
+  // from the notifier rather than assuming either way.
+  Duration into(ExerciseNotifier n, int rep) =>
+      n.currentVideo?.sideForRep(rep).intoDuration ?? Duration.zero;
+  Duration out(ExerciseNotifier n, int rep) =>
+      n.currentVideo?.sideForRep(rep).outDuration ?? Duration.zero;
+
+  // One full set of the current item, movements included.
+  Duration perSet(ExerciseNotifier n) {
+    final s = n.currentSession!;
+    var total = Duration.zero;
+    for (var rep = 1; rep <= s.reps!; rep++) {
+      total +=
+          into(n, rep) +
+          Duration(seconds: s.holdSeconds! + (s.relaxSeconds ?? 0)) +
+          out(n, rep);
+    }
+    return total;
+  }
+
   testWidgets('starts on the first rep of the first set, holding', (
     tester,
   ) async {
@@ -25,6 +46,7 @@ void main() {
     expect(notifier.phase, ExercisePhase.ready);
 
     notifier.startTimer();
+    await tester.pump(into(notifier, 1));
 
     expect(notifier.phase, ExercisePhase.hold);
     expect(notifier.currentRep, 1);
@@ -44,11 +66,17 @@ void main() {
     expect(session.relaxSeconds, isNotNull, reason: 'PFMT prescribes a relax');
     notifier.startTimer();
 
-    await tester.pump(Duration(seconds: session.holdSeconds!));
+    await tester.pump(
+      into(notifier, 1) +
+          Duration(seconds: session.holdSeconds!) +
+          out(notifier, 1),
+    );
     expect(notifier.phase, ExercisePhase.rest, reason: 'the hold is over');
     expect(notifier.secondsRemaining.value, session.relaxSeconds);
 
-    await tester.pump(Duration(seconds: session.relaxSeconds!));
+    await tester.pump(
+      Duration(seconds: session.relaxSeconds!) + into(notifier, 2),
+    );
     expect(notifier.phase, ExercisePhase.hold, reason: 'on to the next rep');
     expect(notifier.currentRep, 2);
 
@@ -63,16 +91,13 @@ void main() {
     expect(session.sets, 2);
     notifier.startTimer();
 
-    await tester.pump(
-      Duration(
-        seconds: session.reps! * (session.holdSeconds! + session.relaxSeconds!),
-      ),
-    );
+    await tester.pump(perSet(notifier));
 
     expect(
       notifier.phase,
       ExercisePhase.betweenReps,
-      reason: 'one set of two is done and the document gives no rest between '
+      reason:
+          'one set of two is done and the document gives no rest between '
           'them, so the clock stops instead of inventing one',
     );
     expect(notifier.currentSet, 2);
@@ -82,13 +107,12 @@ void main() {
   testWidgets('the item finishes once every set is done', (tester) async {
     final notifier = openWeekOne();
     final session = notifier.currentSession!;
-    final perSet =
-        session.reps! * (session.holdSeconds! + session.relaxSeconds!);
+    final set = perSet(notifier);
 
     notifier.startTimer();
-    await tester.pump(Duration(seconds: perSet));
+    await tester.pump(set);
     notifier.startTimer(); // the patient begins the second set
-    await tester.pump(Duration(seconds: perSet));
+    await tester.pump(set);
 
     expect(notifier.phase, ExercisePhase.finished);
     expect(notifier.currentRep, session.reps);
@@ -110,6 +134,10 @@ void main() {
   testWidgets('ticking does not go through notifyListeners', (tester) async {
     final notifier = openWeekOne();
     notifier.startTimer();
+    // Count only once the hold clock is running; entering the hold is itself
+    // a phase change and rightly notifies.
+    await tester.pump(into(notifier, 1));
+    expect(notifier.phase, ExercisePhase.hold);
 
     var notifications = 0;
     notifier.addListener(() => notifications++);
@@ -130,7 +158,7 @@ void main() {
   testWidgets('pausing keeps the place', (tester) async {
     final notifier = openWeekOne();
     notifier.startTimer();
-    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(into(notifier, 1) + const Duration(seconds: 2));
 
     final at = notifier.secondsRemaining.value;
     notifier.pauseTimer();

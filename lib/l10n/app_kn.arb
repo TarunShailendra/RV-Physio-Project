@@ -452,5 +452,13 @@
   "safetyGuidance": "ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶನ",
   "@safetyGuidance": {
     "description": "Safety guidance"
+  },
+  "getIntoPosition": "ಸ್ಥಾನಕ್ಕೆ ಬನ್ನಿ",
+  "@getIntoPosition": {
+    "description": "Phase label while moving into the hold position"
+  },
+  "returnToStart": "ಆರಂಭಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+  "@returnToStart": {
+    "description": "Phase label while returning to the starting position"
   }
 }

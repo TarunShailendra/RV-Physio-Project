@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/exercise_model.dart';
 import 'models/protocol.dart';
 import 'protocols/protocol_lookup.dart';
+import 'videos/exercise_video.dart';
 
 /// What the patient should be doing right now.
 ///
@@ -14,9 +15,20 @@ import 'protocols/protocol_lookup.dart';
 /// rest; for a bridge or a leg raise the lowering of the limb is the rest, and
 /// putting a number on it would be inventing clinical content. The patient
 /// starts the next rep when they are ready.
-enum ExercisePhase { ready, hold, rest, betweenReps, finished }
+///
+/// [moveIn] and [moveOut] are the movement into and back out of the hold
+/// position, timed to the demonstration video. They last no time for an
+/// exercise that has no video.
+enum ExercisePhase { ready, moveIn, hold, moveOut, rest, betweenReps, finished }
 
 class ExerciseNotifier extends ChangeNotifier {
+  ExerciseNotifier({this.videoLookup = videoFor});
+
+  /// Finds the demonstration video for an exercise. A seam so tests can stand
+  /// in a session that has none.
+  final ExerciseVideo? Function(String exerciseKey, ExercisePosition? position)
+  videoLookup;
+
   final Map<int, WeeklyPlan> _plans = {};
   final Set<int> _completedWeeks = {};
   DateTime? _protocolStartDate;
@@ -58,6 +70,46 @@ class ExerciseNotifier extends ChangeNotifier {
   int currentSet = 0;
 
   Timer? _timer;
+
+  /// One-shot timer for the movement phases, kept apart from the periodic
+  /// countdown so pausing can cancel whichever is running.
+  Timer? _movement;
+
+  void _cancelTimers() {
+    _timer?.cancel();
+    _movement?.cancel();
+  }
+
+  /// The video for the item the timer is running, if it has one.
+  ExerciseVideo? get currentVideo {
+    final session = currentSession;
+    if (session == null) return null;
+    return videoLookup(session.exerciseKey, session.position);
+  }
+
+  /// Index into [ExerciseVideo.sides] for [currentRep]: 0 unless the video
+  /// alternates, when the sides go A, B, A, B and restart on A each set.
+  int get currentSideIndex {
+    final video = currentVideo;
+    if (video == null || currentRep < 1) return 0;
+    return video.sideForRep(currentRep) == video.sides.first ? 0 : 1;
+  }
+
+  /// Makes the item at [sessionIndex] the one the timer runs, and resets it.
+  ///
+  /// The detail sheet used to leave this unsaid, so its timer always ran the
+  /// day's first unfinished item whatever the patient had opened.
+  void selectSession(int sessionIndex) {
+    final day = currentDay;
+    if (day == null ||
+        sessionIndex < 0 ||
+        sessionIndex >= day.sessions.length) {
+      return;
+    }
+    currentSessionIndex = sessionIndex;
+    _resetTimer();
+    notifyListeners();
+  }
 
   /// The programme this patient is following, chosen from their ICIQ severity
   /// band and IPAQ activity level.
@@ -265,64 +317,124 @@ class ExerciseNotifier extends ChangeNotifier {
       case ExercisePhase.finished:
         currentRep = 1;
         currentSet = 1;
-        phase = ExercisePhase.hold;
+        phase = ExercisePhase.moveIn;
         secondsRemaining.value = hold;
       case ExercisePhase.betweenReps:
         currentRep++;
-        phase = ExercisePhase.hold;
+        phase = ExercisePhase.moveIn;
         secondsRemaining.value = hold;
+      case ExercisePhase.moveIn:
       case ExercisePhase.hold:
+      case ExercisePhase.moveOut:
       case ExercisePhase.rest:
-        break; // resuming a countdown the patient paused
+        break; // resuming; a paused movement replays from its beginning
     }
 
     isTimerRunning = true;
     notifyListeners();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (secondsRemaining.value > 1) {
-        secondsRemaining.value--;
-        return;
-      }
-      _advancePhase(session);
-    });
+    _runPhase(session);
   }
 
-  /// Moves to the next part of the rep, or ends the session.
+  /// Starts whatever drives the current phase: a one-shot timer for a
+  /// movement, the once-a-second countdown for a hold or rest.
+  void _runPhase(ExerciseSession session) {
+    switch (phase) {
+      case ExercisePhase.moveIn:
+        _runMovement(_side.intoDuration, () => _enterHold(session));
+      case ExercisePhase.moveOut:
+        _runMovement(_side.outDuration, () => _afterMoveOut(session));
+      case ExercisePhase.hold:
+      case ExercisePhase.rest:
+        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (secondsRemaining.value > 1) {
+            secondsRemaining.value--;
+            return;
+          }
+          timer.cancel();
+          _advancePhase(session);
+        });
+      case ExercisePhase.ready:
+      case ExercisePhase.betweenReps:
+      case ExercisePhase.finished:
+        break;
+    }
+  }
+
+  /// Runs [then] after [duration]. A zero-length movement (a session with no
+  /// video) completes immediately, so the timer behaves as it did before
+  /// movements existed.
+  void _runMovement(Duration duration, VoidCallback then) {
+    if (duration <= Duration.zero) {
+      then();
+      return;
+    }
+    _movement = Timer(duration, then);
+  }
+
+  VideoSide get _side {
+    final video = currentVideo;
+    if (video == null) return _noMovement;
+    return video.sideForRep(currentRep < 1 ? 1 : currentRep);
+  }
+
+  static const _noMovement = VideoSide(
+    intoStartMs: 0,
+    holdMs: 0,
+    outStartMs: 0,
+    outEndMs: 0,
+  );
+
+  void _enterHold(ExerciseSession session) {
+    phase = ExercisePhase.hold;
+    secondsRemaining.value = session.holdSeconds ?? 0;
+    notifyListeners();
+    _runPhase(session);
+  }
+
+  void _afterMoveOut(ExerciseSession session) {
+    final relax = session.relaxSeconds;
+    if (relax != null) {
+      phase = ExercisePhase.rest;
+      secondsRemaining.value = relax;
+      notifyListeners();
+      _runPhase(session);
+      return;
+    }
+    // No prescribed rest: stop the clock and wait for the patient rather
+    // than inventing a gap the document does not give.
+    if (currentRep < (session.reps ?? 1)) {
+      _cancelTimers();
+      isTimerRunning = false;
+      phase = ExercisePhase.betweenReps;
+      secondsRemaining.value = 0;
+      notifyListeners();
+      return;
+    }
+    _finishReps();
+  }
+
+  /// Moves on once a hold or a rest has counted down; movements are handled
+  /// by [_runMovement].
   ///
   /// The timer used to be one flat countdown of reps x (hold + rest) that did
-  /// nothing on reaching zero — no cue for when to contract or release, which
+  /// nothing on reaching zero: no cue for when to contract or release, which
   /// is the whole point of a pelvic floor protocol.
   void _advancePhase(ExerciseSession session) {
-    final totalReps = session.reps ?? 1;
-
     if (phase == ExercisePhase.hold) {
-      final relax = session.relaxSeconds;
-      if (relax != null) {
-        phase = ExercisePhase.rest;
-        secondsRemaining.value = relax;
-        notifyListeners();
-        return;
-      }
-      // No prescribed rest: stop the clock and wait for the patient rather
-      // than inventing a gap the document does not give.
-      if (currentRep < totalReps) {
-        _timer?.cancel();
-        isTimerRunning = false;
-        phase = ExercisePhase.betweenReps;
-        secondsRemaining.value = 0;
-        notifyListeners();
-        return;
-      }
-      _finishReps();
+      phase = ExercisePhase.moveOut;
+      secondsRemaining.value = 0;
+      notifyListeners();
+      _runPhase(session);
       return;
     }
 
-    if (currentRep < totalReps) {
+    // The rest is over.
+    if (currentRep < (session.reps ?? 1)) {
       currentRep++;
-      phase = ExercisePhase.hold;
+      phase = ExercisePhase.moveIn;
       secondsRemaining.value = session.holdSeconds ?? 0;
       notifyListeners();
+      _runPhase(session);
       return;
     }
 
@@ -332,7 +444,7 @@ class ExerciseNotifier extends ChangeNotifier {
   /// Ends a set. If the item prescribes another one, the clock stops and waits
   /// for the patient rather than inventing a rest the document does not give.
   void _finishReps() {
-    _timer?.cancel();
+    _cancelTimers();
     isTimerRunning = false;
     secondsRemaining.value = 0;
 
@@ -349,7 +461,7 @@ class ExerciseNotifier extends ChangeNotifier {
 
   void pauseTimer() {
     if (!isTimerRunning) return;
-    _timer?.cancel();
+    _cancelTimers();
     isTimerRunning = false;
     notifyListeners();
   }
@@ -450,7 +562,7 @@ class ExerciseNotifier extends ChangeNotifier {
   }
 
   void _resetTimer() {
-    _timer?.cancel();
+    _cancelTimers();
     isTimerRunning = false;
     phase = ExercisePhase.ready;
     currentRep = 0;
@@ -459,8 +571,9 @@ class ExerciseNotifier extends ChangeNotifier {
   }
 
   void reset() {
-    _timer?.cancel();
+    _cancelTimers();
     _timer = null;
+    _movement = null;
     _plans.clear();
     _completedWeeks.clear();
     _protocol = protocolFor();
@@ -479,7 +592,7 @@ class ExerciseNotifier extends ChangeNotifier {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _cancelTimers();
     secondsRemaining.dispose();
     protocolRevision.dispose();
     super.dispose();

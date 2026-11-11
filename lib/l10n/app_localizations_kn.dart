@@ -1177,4 +1177,10 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get safetyGuidance => 'ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶನ';
+
+  @override
+  String get getIntoPosition => 'ಸ್ಥಾನಕ್ಕೆ ಬನ್ನಿ';
+
+  @override
+  String get returnToStart => 'ಆರಂಭಕ್ಕೆ ಹಿಂತಿರುಗಿ';
 }

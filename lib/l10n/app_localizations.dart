@@ -2275,6 +2275,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Safety guidance'**
   String get safetyGuidance;
+
+  /// Phase label while moving into the hold position
+  ///
+  /// In en, this message translates to:
+  /// **'Get into position'**
+  String get getIntoPosition;
+
+  /// Phase label while returning to the starting position
+  ///
+  /// In en, this message translates to:
+  /// **'Return to start'**
+  String get returnToStart;
 }
 
 class _AppLocalizationsDelegate

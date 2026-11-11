@@ -1185,4 +1185,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetyGuidance => 'Safety guidance';
+
+  @override
+  String get getIntoPosition => 'Get into position';
+
+  @override
+  String get returnToStart => 'Return to start';
 }

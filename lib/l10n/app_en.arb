@@ -452,5 +452,13 @@
   "safetyGuidance": "Safety guidance",
   "@safetyGuidance": {
     "description": "Safety guidance"
+  },
+  "getIntoPosition": "Get into position",
+  "@getIntoPosition": {
+    "description": "Phase label while moving into the hold position"
+  },
+  "returnToStart": "Return to start",
+  "@returnToStart": {
+    "description": "Phase label while returning to the starting position"
   }
 }
