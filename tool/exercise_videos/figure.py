@@ -2,7 +2,8 @@
 
     python tool/exercise_videos/figure.py --poses
 
-writes build/exercise_videos/poses.png with the four reference poses.
+writes build/exercise_videos/poses.png: the four reference poses, then standing
+with a hand on the chair's backrest and lying with hands on chest and belly.
 
 Every shape (head, hair, bun, ear, nose, torso profile, limb radii, shoes) is
 the one bridge.py draws; this module only lets it bend. Each piece is stored
@@ -66,9 +67,14 @@ _EAR, _EAR_R = (3.5, 1), (5.5, 7)
 _HAIR_ARC = (70, 255)
 _TIE = (-24, 15)
 _TAIL, _TAIL_R = (-31, 2), (35, 10)    # tie -> ponytail centre, lying on the floor
+# bridge.py's arms reach only to the hip (shoulder -> hand 0.9x the torso),
+# too short to stand holding a chair or rest a hand on a thigh. They are
+# lengthened to about human reach (1.3x the torso); a flat arm keeps
+# bridge.py's height on the mat and just reaches further along it.
+ARM_REACH = 1.5
 _ARM_ROOT = (4, 6)                 # shoulder -> top of upper arm
-_UPPER = (84, 10)                  # -> elbow
-_FORE = (74, 2)                    # elbow -> wrist
+_UPPER = (84 * ARM_REACH, 10)      # -> elbow
+_FORE = (74 * ARM_REACH, 2)        # elbow -> wrist
 _HAND, _HAND_R = (8, 0), (12, 6)   # wrist -> hand centre; hand ellipse radii
 _SHIN_END = (-2, -4)               # ankle -> end of shin capsule (foot flat)
 _SHOE = [(-12, -8), (10, -11), (26, 0), (50, 8), (55, 18), (-16, 18)]
@@ -158,6 +164,12 @@ class SidePose:
     far_shoulder: float = 0.0
     far_elbow: float = 0.0
     far_wrist: float = 0.0
+    # Seen length of each arm bone, 1 = full. Less draws it foreshortened, as
+    # when an elbow rests out to the side (place_hand with a pinned elbow).
+    near_upper_arm: float = 1.0
+    near_forearm: float = 1.0
+    far_upper_arm: float = 1.0
+    far_forearm: float = 1.0
     near_hip: float = 0.0
     near_knee: float = 0.0
     near_ankle: float = 0.0
@@ -243,25 +255,53 @@ def plant_foot(pose: SidePose, side: Literal["near", "far"], ankle, *, foot: flo
 
 
 def place_hand(pose: SidePose, side: Literal["near", "far"], hand, *,
-               hand_angle: float | None = None) -> SidePose:
+               hand_angle: float | None = None,
+               elbow: Literal["down", "up"] | tuple[float, float] = "down") -> SidePose:
     """pose with this side's shoulder and elbow (and wrist, if hand_angle is
-    given) set so the centre of the hand lands on `hand` (screen pixels), the
-    elbow bending the natural way. hand_angle is the direction the fingers
-    point, degrees clockwise from up in the figure's own frame (90 = forward)."""
+    given) set so the centre of the hand lands on `hand` (screen pixels).
+    hand_angle is the direction the fingers point, degrees clockwise from up
+    in the figure's own frame (90 = forward).
+
+    elbow "down" bends the arm the natural way (the elbow behind the line from
+    shoulder to hand, as the figure faces), "up" the other way. A screen point
+    pins the elbow there instead (e.g. resting on the mat while the hand is on
+    the chest): the bones are then drawn foreshortened, as an arm whose elbow
+    sits out to the side; a bone never gets longer than full length."""
     s = _shoulder_local(pose)
     target = _to_local(pose, hand)
     wrist = getattr(pose, side + "_wrist")
-    for _ in range(6 if hand_angle is not None else 1):
-        v0 = _add(_FORE, _rot(_HAND, -wrist))          # elbow -> hand centre at rest
-        e = _two_bone(s, target, math.hypot(*_U0), math.hypot(*v0), 1)
-        upper = _B0 + _lean_of(_sub(e, s)) - _lean_of(_U0)
-        fore = _F0 + _lean_of(_sub(target, e)) - _lean_of(v0)
+    lu, lf = 1.0, 1.0
+    if isinstance(elbow, str):
+        bend = 1 if elbow == "down" else -1
+        for _ in range(6 if hand_angle is not None else 1):
+            v0 = _add(_FORE, _rot(_HAND, -wrist))          # elbow -> hand centre at rest
+            e = _two_bone(s, target, math.hypot(*_U0), math.hypot(*v0), bend)
+            upper = _B0 + _lean_of(_sub(e, s)) - _lean_of(_U0)
+            fore = _F0 + _lean_of(_sub(target, e)) - _lean_of(v0)
+            if hand_angle is not None:
+                wrist = _wrap(fore - hand_angle)
+    else:
+        pin = _to_local(pose, elbow)
+        upper = _B0 + _lean_of(_sub(pin, s)) - _lean_of(_U0)
+        for _ in range(4):                                  # the arm's root moves with it
+            root = _add(s, _rot(_ARM_ROOT, upper - _B0))
+            lu = min(1.0, math.dist(root, pin) / math.hypot(*_UPPER))
+            upper = _B0 + _lean_of(_sub(pin, root)) - _lean_of(_UPPER)
+        e = _add(root, _mul(_rot(_UPPER, upper - _B0), lu))
+        fore = _F0 + _lean_of(_sub(target, e)) - _lean_of(_FORE)
+        for _ in range(6):                                  # the hand hangs off the wrist
+            hand_abs = hand_angle if hand_angle is not None else fore - wrist
+            v = _sub(_sub(target, e), _rot(_HAND, hand_abs - _F0))
+            lf = max(0.15, min(1.0, math.hypot(*v) / math.hypot(*_FORE)))
+            fore = _F0 + _lean_of(v) - _lean_of(_FORE)
         if hand_angle is not None:
             wrist = _wrap(fore - hand_angle)
     return replace(pose, **{
         side + "_shoulder": _wrap(pose.trunk + 180 - upper),
         side + "_elbow": _wrap(upper - fore),
         side + "_wrist": wrist,
+        side + "_upper_arm": lu,
+        side + "_forearm": lf,
     })
 
 
@@ -269,30 +309,32 @@ def hand_on(pose: SidePose, side: Literal["near", "far"],
             part: Literal["chest", "belly", "thigh"]) -> SidePose:
     """pose with this side's hand resting flat on the chest, the belly (both
     follow `belly`) or its own thigh, fingers toward the head (chest, belly)
-    or the knee (thigh). Call after the rest of the pose is set."""
+    or the knee (thigh). Call after the rest of the pose is set.
+
+    On the chest or belly the elbow rests out to the side: on the floor beside
+    the trunk when lying on the back, by the waist otherwise."""
+    sh = _shoulder_local(pose)
     if part == "thigh":
-        # bridge.py's arms are short: the hand rests as far along the thigh
-        # as it reaches (on the hip crease when sitting upright).
         j, _ = _local_joints(pose)
         hip, knee = j[side + "_hip"], j[side + "_knee"]
         d = unit(hip, knee)
         out = (d[1], -d[0])             # thigh's front: up for a seated thigh
-        reach = math.hypot(*_U0) + math.hypot(*_add(_FORE, _HAND)) - 4
-        sh = _shoulder_local(pose)
-        for i in range(12, 1, -1):
-            t = i / 20
-            p = _add(_lerp(hip, knee, t), _mul(out, 23 - 8 * t - 3))
-            if math.dist(sh, p) <= reach:
-                break
-        ang = _lean_of(d)
-    else:
-        f = 0.25 if part == "chest" else _BELLY[0]
-        sh = _shoulder_local(pose)
-        u = unit((0, 0), sh)
-        front = (-u[1], u[0])
-        p = _add(_lerp(sh, (0, 0), f), _mul(front, _front_w(f, pose.belly) + 5))
-        ang = pose.trunk
-    return place_hand(pose, side, _to_screen(pose, p), hand_angle=ang)
+        reach = math.hypot(*_U0) + math.hypot(*_add(_FORE, _HAND))
+        # the point along the thigh that leaves the elbow softly bent
+        p = min((_add(_lerp(hip, knee, t), _mul(out, 23 - 8 * t - 3)) for t in
+                 (i / 20 for i in range(2, 16))),
+                key=lambda q: abs(math.dist(sh, q) - 0.9 * reach))
+        return place_hand(pose, side, _to_screen(pose, p), hand_angle=_lean_of(d))
+    f = 0.25 if part == "chest" else _BELLY[0]
+    u = unit((0, 0), sh)
+    front = (-u[1], u[0])
+    p = _add(_lerp(sh, (0, 0), f), _mul(front, _front_w(f, pose.belly) + 5))
+    supine = front[1] < -0.7            # front faces up: the back is on the floor
+    # elbow: along the trunk from the shoulder, and toward the back (on the
+    # floor when supine, as bridge.py's flat arm lies)
+    elbow = _add(_lerp(sh, (0, 0), 0.42), _mul(front, -17 if supine else -6))
+    return place_hand(pose, side, _to_screen(pose, p), hand_angle=pose.trunk,
+                      elbow=_to_screen(pose, elbow))
 
 
 # ---------- forward kinematics ----------
@@ -315,8 +357,9 @@ def _local_joints(pose):
         pu, pf, pd = upper - _B0, fore - _F0, hand - _F0
         root = _add(sh, _rot(_ARM_ROOT, pu))
         j[side + "_arm"] = root
-        j[side + "_elbow"] = _add(root, _rot(_UPPER, pu))
-        j[side + "_wrist"] = _add(j[side + "_elbow"], _rot(_FORE, pf))
+        j[side + "_elbow"] = _add(root, _mul(_rot(_UPPER, pu), getattr(pose, side + "_upper_arm")))
+        j[side + "_wrist"] = _add(j[side + "_elbow"],
+                                  _mul(_rot(_FORE, pf), getattr(pose, side + "_forearm")))
         j[side + "_hand"] = _add(j[side + "_wrist"], _rot(_HAND, pd))
         rot[side + "_hand"] = pd
 
@@ -527,8 +570,11 @@ def draw_side_figure(img: Image.Image, pose: SidePose, *, glow_at: str | None = 
 
 
 # ---------- reference poses ----------
-FLOOR = 596        # where the chair's legs (and a standing figure's soles) meet the floor
-_SOLE_DROP = 21    # ankle -> bottom of the sole, foot flat, full size
+FLOOR = 596             # where the chair's legs (and a standing figure's soles) meet the floor
+CHAIR_TOP = (591, 326)  # top of the chair prop's backrest, middle
+_SOLE_DROP = 21         # ankle -> bottom of the sole, foot flat, full size
+STANDING_SCALE = 0.86   # largest size whose head (top y ~48) clears the frame comfortably
+                        # with the soles on FLOOR; a full-size standing figure is ~637 px
 
 
 def _supine():
@@ -548,9 +594,8 @@ def _sitting():
     return hand_on(p, "far", "thigh")
 
 
-def _standing(scale=0.85, x=470):
-    # Soles on the floor line the chair stands on; 0.85 is the largest size
-    # whose head clears the top of the frame with a margin.
+def _standing(scale=STANDING_SCALE, x=524):
+    # Soles on the floor line the chair stands on, just behind its backrest.
     ankle_y = FLOOR - _SOLE_DROP * scale
     p = SidePose(root=(x, ankle_y - (THIGH + SHIN) * scale), trunk=0.0, scale=scale,
                  near_elbow=8.0, far_elbow=8.0, far_shoulder=-4.0)
@@ -558,25 +603,25 @@ def _standing(scale=0.85, x=470):
     return plant_foot(p, "far", (x - 8 * scale, ankle_y - 2 * scale))
 
 
-def _quadruped(x=430):
-    # Knees on the mat (top y 584) under the hips; hands flat under the
-    # shoulders. bridge.py's arms are a little shorter than its thighs, so
-    # the shoulders sit a few degrees lower than the hips.
+def _quadruped(x=480, trunk=73.0):
+    # Knees on the mat (top y 584) under the hips; hands flat on the mat a
+    # little ahead of the shoulders, elbows soft. With human-length arms the
+    # shoulders ride higher than the hips, so the trunk slopes up a little.
     knee_y = 584 - 15 + 1
-    p = SidePose(root=(x, knee_y - THIGH), trunk=95.0, neck=-8.0)
+    p = SidePose(root=(x, knee_y - THIGH), trunk=trunk)
     for side, dx, dy in (("near", 0, 0), ("far", -10, -2)):
         # shin back along the mat from a knee under the hip, foot pointed
         ankle = _add((x + dx, knee_y + dy), _mul(_lean(268), SHIN))
         p = plant_foot(p, side, ankle, foot=270.0)
         sh = pose_points(p)["shoulder"]
         p = replace(p, **{side + "_wrist": 90.0})
-        p = place_hand(p, side, (sh[0] + 14 + dx, 584 - 6 + 1 + dy), hand_angle=90.0)
+        p = place_hand(p, side, (sh[0] + 35 + dx, 584 - 6 + 1 + dy), hand_angle=90.0)
     return p
 
 
 SIDE_SUPINE_KNEES_BENT = _supine()   # bridge.py at rest, on the mat
 SIDE_SITTING = _sitting()            # on the "chair" prop, hands on thighs
-SIDE_STANDING = _standing()          # on the floor beside the "chair" prop
+SIDE_STANDING = _standing()          # on the floor just behind the "chair" prop's backrest
 SIDE_QUADRUPED = _quadruped()        # hands and knees on the mat
 
 REFERENCE_POSES = {
@@ -587,6 +632,15 @@ REFERENCE_POSES = {
 }
 
 
+def _sheet_panels():
+    """The reference poses plus two built from them with the IK helpers."""
+    hold = place_hand(SIDE_STANDING, "near", (CHAIR_TOP[0], CHAIR_TOP[1] - 4), hand_angle=100.0)
+    breathe = hand_on(hand_on(SIDE_SUPINE_KNEES_BENT, "near", "chest"), "far", "belly")
+    return [*REFERENCE_POSES.values(),
+            (hold, frozenset({"chair"})),
+            (breathe, frozenset())]
+
+
 def render_pose(pose: SidePose, props=frozenset(), **kw) -> Image.Image:
     import studio
     img = studio.make_room(props)
@@ -595,11 +649,13 @@ def render_pose(pose: SidePose, props=frozenset(), **kw) -> Image.Image:
 
 
 def render_poses(out: Path) -> None:
-    tw, th = W // 2, H // 2
-    sheet = Image.new("RGB", (tw * 2, th * 2))
-    for i, (pose, props) in enumerate(REFERENCE_POSES.values()):
+    panels = _sheet_panels()
+    tw, th, cols = W // 2, H // 2, 3
+    rows = -(-len(panels) // cols)
+    sheet = Image.new("RGB", (tw * cols, th * rows))
+    for i, (pose, props) in enumerate(panels):
         sheet.paste(render_pose(pose, props).resize((tw, th), Image.LANCZOS),
-                    ((i % 2) * tw, (i // 2) * th))
+                    ((i % cols) * tw, (i // cols) * th))
     out.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out)
     print("poses", out)

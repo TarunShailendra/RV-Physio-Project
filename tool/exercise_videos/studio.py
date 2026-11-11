@@ -81,12 +81,13 @@ def make_room(props: frozenset = frozenset()) -> Image.Image:
         d.rectangle(sc([(94, y), (326, y + 1)]), fill=c)
     d.rectangle(sc([(206, 94), (214, 286)]), fill=(196, 202, 210))
     d.rectangle(sc([(94, 186), (326, 194)]), fill=(196, 202, 210))
-    # wall clock
-    circle(d, (700, 160), 40, (70, 74, 84))
-    circle(d, (700, 160), 35, (250, 250, 252))
-    d.line(sc([(700, 160), (700, 136)]), fill=(50, 50, 60), width=3 * S)
-    d.line(sc([(700, 160), (718, 170)]), fill=(50, 50, 60), width=3 * S)
-    circle(d, (700, 160), 3, TOP)
+    # wall clock; with the chair it moves right, clear of a seated or standing head
+    cx, cy = (1110, 150) if "chair" in props else (700, 160)
+    circle(d, (cx, cy), 40, (70, 74, 84))
+    circle(d, (cx, cy), 35, (250, 250, 252))
+    d.line(sc([(cx, cy), (cx, cy - 24)]), fill=(50, 50, 60), width=3 * S)
+    d.line(sc([(cx, cy), (cx + 18, cy + 10)]), fill=(50, 50, 60), width=3 * S)
+    circle(d, (cx, cy), 3, TOP)
     # exercise ball
     circle(d, (170, 506), 48, (140, 110, 190))
     circle(d, (156, 490), 14, (166, 140, 212))
