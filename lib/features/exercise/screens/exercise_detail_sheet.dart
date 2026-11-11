@@ -7,6 +7,7 @@ import '../content/exercise_content.dart';
 import '../exercise_notifier.dart';
 import '../models/exercise_model.dart';
 import '../models/protocol.dart';
+import 'exercise_demo_video.dart';
 
 /// Opens one exercise: what it is, how to do it, what not to do, and — when
 /// the document prescribes a hold — a timer for it.
@@ -20,6 +21,9 @@ Future<void> showExerciseDetail(
   int dayIndex,
   int sessionIndex,
 ) {
+  // The timer runs whichever item the notifier has selected, so opening an
+  // item has to select it.
+  context.read<ExerciseNotifier>().selectSession(sessionIndex);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -62,6 +66,7 @@ class _ExerciseDetail extends StatelessWidget {
       controller: scrollController,
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       children: [
+        ExerciseDemoVideo(session: session),
         Text(
           session.exerciseName,
           style: Theme.of(context).textTheme.headlineSmall,
