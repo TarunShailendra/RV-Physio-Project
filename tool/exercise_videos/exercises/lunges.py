@@ -1,14 +1,14 @@
-"""Lunges, standing side-on beside the chair prop, the far hand on its backrest.
+"""Lunges, standing side-on just in front of the chair prop, a hand behind on its backrest.
 
-The figure faces right with the chair beside her on the far side (she is
-drawn in front of it), her far hand on the top of its backrest for balance.
-The near foot steps forward; both knees bend, the back knee lowering toward
-the floor on the ball of the back foot, the front knee straight over the
-front ankle and the upper body tall; she pushes back up through the front
-foot and steps back to standing. The back foot's toes never move, the far
-hand never leaves the backrest, and the trunk stays upright. The front thigh
-glows as she lowers, and a green dashed line marks the front knee over the
-ankle at the bottom.
+The figure faces left, away from the chair, standing just clear of it with
+her near hand resting back on the top of its backrest for balance. The near
+foot steps forward, away from the chair; both knees bend, the back knee
+lowering toward the floor on the ball of the back foot, the front knee
+straight over the front ankle and the upper body tall; she pushes back up
+through the front foot and steps back to standing. Her legs never cross the
+chair. The back foot's toes never move, the hand never leaves the backrest,
+and the trunk stays upright. The front thigh glows as she lowers, and a green
+dashed line marks the front knee over the ankle at the bottom.
 
 Unheld loop: rest 0.4 s, step 0.9 s, lower 1.0 s, a 0.2 s pause, push up
 1.0 s, step back 0.9 s, rest 0.4 s. The into segment is step + lower and the
@@ -26,22 +26,24 @@ from studio import H, W, dashed_line, ease
 from ._motion import REST, side
 
 K = STANDING_SCALE
-X0 = 524.0                          # standing hip: the far hand reaches the backrest here and at the bottom
+F = -1                              # facing left: "forward" is -x, away from the chair
+X0 = 548.0                          # standing hip: just clear of the chair, the hand reaching back to it
 ANKLE_Y = FLOOR - 21 * K
-STEP = 290.0                        # how far the near foot steps forward
-FRONT_THIGH = 12.0                  # degrees below level at the bottom
-BACK_TOE = (X0 - 8 * K + 55 * K, ANKLE_Y - 2 * K + 18 * K)   # the back foot's toes stay put
+STEP = 262.0                        # how far the near foot steps forward
+FRONT_THIGH = 10.0                  # degrees below level at the bottom
+BACK_TOE = (X0 + F * (-8 * K + 55 * K), ANKLE_Y - 2 * K + 18 * K)   # the back foot's toes stay put
 HEEL_UP = (0.0, 15.0, 50.0)         # back heel lift: standing, after the step, at the bottom
-FAR_HAND = (591.0, 322.0)           # on top of the backrest
+HAND = (582.0, 322.0)               # on top of the backrest, at its near (left) edge
+HAND_ANGLE = 250.0                  # fingers back over the backrest (figure frame: 270 is straight back)
 SWING = 16.0                        # px the stepping foot clears the floor
 GLOW_PEAK = 0.45
 
-FRONT_ANKLE = (X0 + STEP, ANKLE_Y)
+FRONT_ANKLE = (X0 + F * STEP, ANKLE_Y)
 _FRONT_KNEE = (FRONT_ANKLE[0], ANKLE_Y - SHIN * K)
 HIPS = (
     (X0, ANKLE_Y - (THIGH + SHIN) * K),                    # standing tall, as SIDE_STANDING
-    (X0 + 140.0, 336.0),                                   # split stance, legs nearly straight
-    (_FRONT_KNEE[0] - THIGH * K * math.cos(math.radians(FRONT_THIGH)),
+    (X0 + F * 110.0, 345.0),                               # split stance, knees soft, hips already lower
+    (_FRONT_KNEE[0] - F * THIGH * K * math.cos(math.radians(FRONT_THIGH)),
      _FRONT_KNEE[1] - THIGH * K * math.sin(math.radians(FRONT_THIGH))),   # bottom
 )
 
@@ -57,26 +59,26 @@ def _lerp(a, b, k):
 def _back_ankle(heel):
     """The back ankle with the heel raised `heel` degrees about the fixed toes."""
     c, s = math.cos(math.radians(heel)), math.sin(math.radians(heel))
-    tx, ty = 55 * K, 18 * K                       # ankle -> toe, foot flat
-    return (BACK_TOE[0] - (tx * c - ty * s), BACK_TOE[1] - (tx * s + ty * c))
+    tx, ty = 55 * K, 18 * K                       # ankle -> toe, foot flat, facing right
+    return (BACK_TOE[0] - F * (tx * c - ty * s), BACK_TOE[1] - (tx * s + ty * c))
 
 
-ELBOW_BACK = 14.0     # px the far elbow sits behind the shoulder-to-hand line
 ELBOW_AT = 0.53       # the upper arm's share of shoulder -> hand
+ELBOW_OUT = 6.0       # px the elbow sits off the shoulder-to-hand line (a soft bend), once the arm has slack
 REACH = 211.0         # shoulder -> hand centre, arm straight, at this scale
 
 
 def _hold_chair(p):
-    """The far hand on the backrest. The chair is beside her, so as she steps
-    forward the arm reaches out sideways and back to it: the elbow is pinned
-    on the shoulder-to-hand line, a little behind it once the arm has slack,
-    and the arm is drawn foreshortened as the reach shortens."""
+    """The near hand on the backrest behind her. The arm stays nearly
+    straight, reaching back and down: the elbow is pinned on the
+    shoulder-to-hand line, a few px out once the arm has slack, and the arm
+    drawn slightly foreshortened rather than folding into a sharp bend."""
     sh = pose_points(p)["shoulder"]
-    d = math.dist(sh, FAR_HAND)
-    mx, my = sh[0] + (FAR_HAND[0] - sh[0]) * ELBOW_AT, sh[1] + (FAR_HAND[1] - sh[1]) * ELBOW_AT
-    nx, ny = -(FAR_HAND[1] - sh[1]) / d, (FAR_HAND[0] - sh[0]) / d   # perpendicular, toward the back
-    off = ELBOW_BACK * max(0.0, min(1.0, (REACH - d) / 30))
-    return place_hand(p, "far", FAR_HAND, hand_angle=100.0, elbow=(mx + nx * off, my + ny * off))
+    d = math.dist(sh, HAND)
+    mx, my = sh[0] + (HAND[0] - sh[0]) * ELBOW_AT, sh[1] + (HAND[1] - sh[1]) * ELBOW_AT
+    nx, ny = (HAND[1] - sh[1]) / d, -(HAND[0] - sh[0]) / d    # perpendicular, out behind her
+    off = ELBOW_OUT * max(0.0, min(1.0, (REACH - d) / 30))
+    return place_hand(p, "near", HAND, hand_angle=HAND_ANGLE, elbow=(mx + nx * off, my + ny * off))
 
 
 def pose(step, lower):
@@ -89,10 +91,10 @@ def pose(step, lower):
     else:
         hip = _lerp(HIPS[0], HIPS[1], step ** 1.8)     # the foot leads, the hips follow
         heel = HEEL_UP[0] + (HEEL_UP[1] - HEEL_UP[0]) * step
-        start = (X0 + 2 * K, ANKLE_Y)
+        start = (X0 + F * 2 * K, ANKLE_Y)
         front = (start[0] + (FRONT_ANKLE[0] - start[0]) * step,
                  ANKLE_Y - SWING * math.sin(math.pi * step))
-    p = SidePose(root=hip, trunk=0.0, scale=K, near_elbow=8.0)
+    p = SidePose(root=hip, trunk=0.0, scale=K, facing=F, far_elbow=8.0, far_shoulder=-4.0)
     p = plant_foot(p, "near", front)
     p = plant_foot(p, "far", _back_ankle(heel), foot=90.0 + heel)
     return _hold_chair(p)
