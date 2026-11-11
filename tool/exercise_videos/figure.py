@@ -3,7 +3,8 @@
     python tool/exercise_videos/figure.py --poses
 
 writes build/exercise_videos/poses.png: the four reference poses, then standing
-with a hand on the chair's backrest and lying with hands on chest and belly.
+with a hand on the chair's backrest, lying with hands on chest and belly, and
+the hands-and-knees arm-and-leg reach.
 
 Every shape (head, hair, bun, ear, nose, torso profile, limb radii, shoes) is
 the one bridge.py draws; this module only lets it bend. Each piece is stored
@@ -603,19 +604,22 @@ def _standing(scale=STANDING_SCALE, x=524):
     return plant_foot(p, "far", (x - 8 * scale, ankle_y - 2 * scale))
 
 
-def _quadruped(x=480, trunk=73.0):
-    # Knees on the mat (top y 584) under the hips; hands flat on the mat a
-    # little ahead of the shoulders, elbows soft. With human-length arms the
-    # shoulders ride higher than the hips, so the trunk slopes up a little.
+def _quadruped(x=480):
+    # Hands under the shoulders, knees under the hips, back flat (trunk 90).
+    # The arms are longer than the thighs, so each is drawn vertical with its
+    # elbow pinned midway and both bones foreshortened (seen ~0.73): the
+    # elbows sit out to the side. To reach an arm forward, lerp_pose toward a
+    # pose with that arm's *_upper_arm/*_forearm back at 1.0.
     knee_y = 584 - 15 + 1
-    p = SidePose(root=(x, knee_y - THIGH), trunk=trunk)
+    p = SidePose(root=(x, knee_y - THIGH), trunk=90.0)
     for side, dx, dy in (("near", 0, 0), ("far", -10, -2)):
         # shin back along the mat from a knee under the hip, foot pointed
         ankle = _add((x + dx, knee_y + dy), _mul(_lean(268), SHIN))
         p = plant_foot(p, side, ankle, foot=270.0)
         sh = pose_points(p)["shoulder"]
-        p = replace(p, **{side + "_wrist": 90.0})
-        p = place_hand(p, side, (sh[0] + 35 + dx, 584 - 6 + 1 + dy), hand_angle=90.0)
+        hand_y = 584 - 6 + 1 + dy
+        p = place_hand(p, side, (sh[0] + 8 + dx, hand_y), hand_angle=90.0,
+                       elbow=(sh[0] - 6 + dx, (sh[1] + hand_y) / 2 + 8))
     return p
 
 
@@ -633,12 +637,19 @@ REFERENCE_POSES = {
 
 
 def _sheet_panels():
-    """The reference poses plus two built from them with the IK helpers."""
+    """The reference poses plus three built from them: standing with a hand on
+    the chair's backrest, lying with hands on chest and belly, and hands and
+    knees reaching the near arm forward and the far leg back."""
     hold = place_hand(SIDE_STANDING, "near", (CHAIR_TOP[0], CHAIR_TOP[1] - 4), hand_angle=100.0)
     breathe = hand_on(hand_on(SIDE_SUPINE_KNEES_BENT, "near", "chest"), "far", "belly")
+    q = SIDE_QUADRUPED
+    reach = replace(q, near_shoulder=180.0, near_elbow=0.0, near_wrist=0.0,
+                    near_upper_arm=1.0, near_forearm=1.0,
+                    far_hip=0.0, far_knee=0.0, far_ankle=70.0)
     return [*REFERENCE_POSES.values(),
             (hold, frozenset({"chair"})),
-            (breathe, frozenset())]
+            (breathe, frozenset()),
+            (reach, frozenset())]
 
 
 def render_pose(pose: SidePose, props=frozenset(), **kw) -> Image.Image:
@@ -650,9 +661,9 @@ def render_pose(pose: SidePose, props=frozenset(), **kw) -> Image.Image:
 
 def render_poses(out: Path) -> None:
     panels = _sheet_panels()
-    tw, th, cols = W // 2, H // 2, 3
+    tw, th, cols = W // 2, H // 2, 4
     rows = -(-len(panels) // cols)
-    sheet = Image.new("RGB", (tw * cols, th * rows))
+    sheet = Image.new("RGB", (tw * cols, th * rows), (40, 42, 48))
     for i, (pose, props) in enumerate(panels):
         sheet.paste(render_pose(pose, props).resize((tw, th), Image.LANCZOS),
                     ((i % cols) * tw, (i // cols) * th))
