@@ -46,6 +46,7 @@ dependencies:
   provider: ^6.1.0
   shared_preferences: ^2.2.0
   google_fonts: ^6.2.1
+  video_player: ^2.9.0
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/videos/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
