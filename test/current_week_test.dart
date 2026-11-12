@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:telerehab_app/features/assessment/models/ipaq_model.dart';
 import 'package:telerehab_app/features/dashboard/dashboard_notifier.dart';
+import 'package:telerehab_app/features/exercise/protocols/protocol_lookup.dart';
 
 /// The week the dashboard and the profile say the patient is on.
 ///
@@ -7,18 +9,30 @@ import 'package:telerehab_app/features/dashboard/dashboard_notifier.dart';
 /// behind for the whole gap between finishing a week and logging the first
 /// session of the next one — so at the start of every new week both screens
 /// showed the previous week's number, exercise count and adherence.
+///
+/// Two things changed with the protocols. A week is finished when its own
+/// prescribed day count is met, three to five rather than a fixed seven; and
+/// the recommendedStartWeek parameter is gone, because the questionnaires now
+/// choose the programme instead of a starting week and every patient begins
+/// their own protocol at week 1.
 void main() {
-  const full = DashboardNotifier.daysPerWeek;
   const lastWeek = DashboardNotifier.totalWeeks;
+
+  // Five days every week, so a "full" week is the same number throughout and
+  // these cases read the way they did before.
+  final steady = protocolFor(
+    severityBand: 'mild',
+    activity: IPAQActivityLevel.high,
+  );
+  const full = 5;
 
   int currentWeek({
     Set<int> touched = const {},
     Map<int, int> completedDays = const {},
-    int recommended = 1,
   }) => resolveCurrentWeek(
     weeksTouched: touched,
     completedDaysByWeek: completedDays,
-    recommendedStartWeek: recommended,
+    protocol: steady,
   );
 
   test('a finished week moves the patient on before they log anything', () {
@@ -33,20 +47,15 @@ void main() {
 
   test('an unfinished week is the current one', () {
     expect(currentWeek(touched: {1}, completedDays: {1: 3}), 1);
-    expect(currentWeek(touched: {1, 2}, completedDays: {1: full, 2: 6}), 2);
+    expect(currentWeek(touched: {1, 2}, completedDays: {1: full, 2: 4}), 2);
   });
 
-  test('a patient who has done nothing sits on their recommended week', () {
-    expect(currentWeek(recommended: 3), 3);
-    expect(currentWeek(recommended: 1), 1);
+  test('a patient who has done nothing is on week one', () {
+    expect(currentWeek(), 1);
   });
 
-  test('activity outranks the recommendation once there is any', () {
-    expect(
-      currentWeek(touched: {4}, completedDays: {4: 2}, recommended: 1),
-      4,
-      reason: 'the recommendation is where to start, not where they are',
-    );
+  test('activity decides where the patient is', () {
+    expect(currentWeek(touched: {4}, completedDays: {4: 2}), 4);
   });
 
   test('several finished weeks are stepped over in one go', () {
@@ -70,8 +79,20 @@ void main() {
     );
   });
 
-  test('an out-of-range week does not escape the protocol', () {
-    expect(currentWeek(recommended: 99), lastWeek);
-    expect(currentWeek(recommended: 0), 1);
+  test('a week is judged against its own prescribed day count', () {
+    // Mild + low activity is three days in week 1 and five by week 8, so the
+    // same three completed days finish one week and not the other.
+    final varying = protocolFor(
+      severityBand: 'mild',
+      activity: IPAQActivityLevel.low,
+    );
+    int week(Set<int> touched, Map<int, int> days) => resolveCurrentWeek(
+      weeksTouched: touched,
+      completedDaysByWeek: days,
+      protocol: varying,
+    );
+
+    expect(week({1}, {1: 3}), 2, reason: 'week 1 prescribes three days');
+    expect(week({3}, {3: 3}), 3, reason: 'weeks 3-4 prescribe four');
   });
 }

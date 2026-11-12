@@ -27,7 +27,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // has any data, so passing them here is what actually makes them land.
       final summary = context.read<AssessmentSummaryNotifier>();
       context.read<DashboardNotifier>().loadDashboard(
-        recommendedStartWeek: summary.recommendedStartWeek,
+        protocol: summary.protocol,
         iciqScorePre: summary.iciq?.iciqScore,
       );
     });

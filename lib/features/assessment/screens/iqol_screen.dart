@@ -79,7 +79,7 @@ class _IqolScreenState extends State<IqolScreen> {
     setState(() => _isSubmitting = false);
     if (!reportAssessmentSave(context, saved)) return;
     dashboardNotifier.applyAssessmentSummary(summary);
-    exerciseNotifier.loadRecommendedWeek(summary.recommendedStartWeek);
+    exerciseNotifier.applyProtocol(summary.protocol);
     context.go('/dashboard');
   }
 

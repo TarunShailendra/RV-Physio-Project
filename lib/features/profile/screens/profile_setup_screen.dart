@@ -18,6 +18,7 @@ class ProfileSetupScreen extends StatefulWidget {
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
   final _occupationController = TextEditingController();
@@ -61,6 +62,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       // edit only once the form has actually been completed, otherwise a new
       // patient is sent to their profile instead of on to the assessment.
       _isEditing = p.city.trim().isNotEmpty;
+      final storedName = (p.fullName ?? '').trim();
+      final storedEmail = (p.email ?? '').trim();
+      _fullNameController.text = storedName.isEmpty || storedName == storedEmail
+          ? ''
+          : storedName;
       _phoneController.text = p.phone ?? '';
       _dateOfBirth = p.dateOfBirth;
       _cityController.text = p.city;
@@ -116,6 +122,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _phoneController.dispose();
     _cityController.dispose();
     _occupationController.dispose();
@@ -157,10 +164,28 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 24),
-                    // Signup asks for these two, but nothing asked for
+                    // Signup asks for these three, but nothing asked for
                     // them again, so a patient whose row had lost them had no
-                    // way to put them back and their profile showed no phone
-                    // number and no age.
+                    // way to put them back and their profile showed no name,
+                    // no phone number and no age.
+                    TextFormField(
+                      controller: _fullNameController,
+                      textCapitalization: TextCapitalization.words,
+                      autofillHints: const [AutofillHints.name],
+                      decoration: InputDecoration(
+                        labelText: l10n.name,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        final name = value?.trim() ?? '';
+                        if (name.isEmpty) return l10n.enterYourName;
+                        if (!RegExp(r"^[A-Za-z .'-]+$").hasMatch(name)) {
+                          return l10n.invalidNameFormat;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
@@ -475,7 +500,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       incontinenceType: incontinenceTypeValue,
       symptomDurationMonths: int.parse(_symptomDurationController.text.trim()),
       hasSoughtTreatment: _hasSoughtTreatment,
-      fullName: currentUser.name,
+      fullName: _fullNameController.text.trim(),
       phone: phone.isEmpty ? currentUser.phone : phone,
       email: currentUser.email,
       dateOfBirth: parsedDob,

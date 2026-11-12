@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../assessment/notifiers/assessment_summary_notifier.dart';
+import '../exercise/models/protocol.dart';
+import '../exercise/protocols/protocol_lookup.dart';
 import 'models/dashboard_model.dart';
 
 /// Adherence for the week the patient is on.
@@ -33,15 +35,20 @@ double currentWeekAdherence(List<double> weekly, int currentWeek) {
 ///
 /// Reading forward to the first incomplete week mirrors
 /// ExerciseNotifier.highestUnlockedWeek, so the two agree about where the
-/// patient is. [recommendedStartWeek] only applies to a patient who has done
-/// nothing yet; once there is any activity, that is the better evidence.
+/// patient is.
+///
+/// A week counts as finished when its own prescribed day count is met, which
+/// the protocol supplies and which varies from three to five. This used to be
+/// a fixed seven for every week of every patient. The recommendedStartWeek
+/// parameter is retired along with the rule behind it: every patient now
+/// begins their own protocol at week 1.
 int resolveCurrentWeek({
   required Set<int> weeksTouched,
   required Map<int, int> completedDaysByWeek,
-  required int recommendedStartWeek,
+  required Protocol protocol,
 }) {
   final started = weeksTouched.isEmpty
-      ? recommendedStartWeek
+      ? 1
       : weeksTouched.reduce((a, b) => a > b ? a : b);
 
   for (
@@ -49,11 +56,28 @@ int resolveCurrentWeek({
     week < DashboardNotifier.totalWeeks;
     week++
   ) {
-    if ((completedDaysByWeek[week] ?? 0) < DashboardNotifier.daysPerWeek) {
+    if ((completedDaysByWeek[week] ?? 0) <
+        protocol.blockForWeek(week).daysPerWeek) {
       return week;
     }
   }
   return DashboardNotifier.totalWeeks;
+}
+
+/// Share of the week's prescribed days the patient has completed, 0 to 100.
+///
+/// The denominator is the protocol's own days for that week. It used to be a
+/// fixed seven, so a patient prescribed a three-day week could not read above
+/// 43 per cent however diligent they were.
+@visibleForTesting
+double weekAdherence({
+  required int completedDays,
+  required int week,
+  required Protocol protocol,
+}) {
+  final target = protocol.blockForWeek(week).daysPerWeek;
+  if (target <= 0) return 0;
+  return ((completedDays / target) * 100).clamp(0.0, 100.0);
 }
 
 class DashboardNotifier extends ChangeNotifier {
@@ -66,20 +90,17 @@ class DashboardNotifier extends ChangeNotifier {
   /// The screen needs to tell those apart: one is worth retrying.
   bool loadFailed = false;
 
-  /// Sessions in a day, days in a week, and weeks in the protocol.
-  static const int sessionsPerDay = 5;
-  static const int daysPerWeek = 7;
+  /// Weeks in the protocol. Every protocol the document defines runs eight.
+  ///
+  /// The sessionsPerDay and daysPerWeek constants that used to sit here are
+  /// gone: both now vary by protocol and by week, and are read from the
+  /// patient's own plan instead of assumed.
   static const int totalWeeks = 8;
 
-  int? _recommendedStartWeek;
+  Protocol _protocol = protocolFor();
 
-  Future<void> loadDashboard({
-    int? recommendedStartWeek,
-    int? iciqScorePre,
-  }) async {
-    if (recommendedStartWeek != null) {
-      _recommendedStartWeek = recommendedStartWeek;
-    }
+  Future<void> loadDashboard({Protocol? protocol, int? iciqScorePre}) async {
+    if (protocol != null) _protocol = protocol;
 
     isLoading = true;
     loadFailed = false;
@@ -119,16 +140,24 @@ class DashboardNotifier extends ChangeNotifier {
             .add(session);
       }
 
-      /// Days where every session is done. Counting a day as complete on a
-      /// single session overstated adherence by up to five times.
-      int fullyCompletedDays(int week) =>
-          (byWeek[week] ?? const <int, Set<int>>{}).values
-              .where((sessions) => sessions.length >= sessionsPerDay)
-              .length;
+      /// Days where every prescribed item is done. Counting a day as
+      /// complete on a single session overstated adherence severalfold; the
+      /// threshold is the number of items that week actually prescribes,
+      /// which runs from six to fifteen.
+      int fullyCompletedDays(int week) {
+        final required = _protocol.blockForWeek(week).items.length;
+        return (byWeek[week] ?? const <int, Set<int>>{}).values
+            .where((sessions) => sessions.length >= required)
+            .length;
+      }
 
       final weeklyAdherence = <double>[
         for (var week = 1; week <= totalWeeks; week++)
-          ((fullyCompletedDays(week) / daysPerWeek) * 100).clamp(0.0, 100.0),
+          weekAdherence(
+            completedDays: fullyCompletedDays(week),
+            week: week,
+            protocol: _protocol,
+          ),
       ];
 
       final currentWeek = resolveCurrentWeek(
@@ -137,14 +166,16 @@ class DashboardNotifier extends ChangeNotifier {
           for (var week = 1; week <= totalWeeks; week++)
             week: fullyCompletedDays(week),
         },
-        recommendedStartWeek: _recommendedStartWeek ?? 1,
+        protocol: _protocol,
       );
 
       data = DashboardModel(
         currentWeek: currentWeek,
         totalWeeks: totalWeeks,
         exercisesCompletedThisWeek: fullyCompletedDays(currentWeek),
-        exercisesTargetThisWeek: daysPerWeek,
+        exercisesTargetThisWeek: _protocol
+            .blockForWeek(currentWeek)
+            .daysPerWeek,
         adherencePercentage: currentWeekAdherence(weeklyAdherence, currentWeek),
         iciqScorePre: iciqScorePre ?? data?.iciqScorePre ?? 0,
         iciqScorePost: data?.iciqScorePost ?? 0,
@@ -162,21 +193,16 @@ class DashboardNotifier extends ChangeNotifier {
 
   void applyAssessmentSummary(AssessmentSummaryNotifier summary) {
     // Held even when there is no dashboard yet. Every assessment screen calls
-    // this before loadDashboard has ever run, so the recommendation used to be
-    // dropped on the floor and then overwritten by "highest week with activity".
-    _recommendedStartWeek = summary.recommendedStartWeek;
+    // this before loadDashboard has ever run.
+    _protocol = summary.protocol;
 
     final current = data;
     if (current == null) return;
 
-    // The recommendation is a floor, not a position. Assigning it outright
-    // walked the patient backwards: the I-QOL is taken after a week of the
-    // protocol is finished, and saving it reset the displayed week to the one
-    // the assessments had recommended at intake.
+    // The week-raising that used to live here is gone. It carried a
+    // recommended start week onto the dashboard; every patient now begins
+    // their own protocol at week 1, so there is nothing to raise towards.
     data = current.copyWith(
-      currentWeek: summary.recommendedStartWeek > current.currentWeek
-          ? summary.recommendedStartWeek
-          : current.currentWeek,
       iciqScorePre: summary.iciq?.iciqScore ?? current.iciqScorePre,
     );
     notifyListeners();
@@ -185,7 +211,7 @@ class DashboardNotifier extends ChangeNotifier {
   void reset() {
     data = null;
     loadFailed = false;
-    _recommendedStartWeek = null;
+    _protocol = protocolFor();
     notifyListeners();
   }
 }

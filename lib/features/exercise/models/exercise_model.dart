@@ -1,23 +1,62 @@
+import '../protocols/exercise_catalogue.dart';
+import 'protocol.dart';
+
+/// One prescribed item of a day's work, as the patient sees and completes it.
+///
+/// A session used to be one of five identical repeats of a single exercise.
+/// Under the protocol document a day is a pelvic floor block plus up to
+/// thirteen other exercises, so a session is now one item of that list and
+/// [sessionNumber] is its position within the day.
+///
+/// [reps] and [holdSeconds] are nullable because the document prescribes
+/// neither uniformly: diaphragmatic breathing is given without a rep count,
+/// and several exercises are explicitly "no hold".
 class ExerciseSession {
   const ExerciseSession({
     required this.week,
     required this.day,
     required this.sessionNumber,
+    required this.exerciseKey,
     required this.exerciseName,
-    required this.reps,
-    required this.holdSeconds,
-    required this.restSeconds,
+    required this.sets,
     required this.isCompleted,
+    this.reps,
+    this.holdSeconds,
+    this.relaxSeconds,
+    this.position,
   });
 
   final int week;
   final int day;
+
+  /// One-based index of this item within its day. Written to
+  /// exercise_logs.session_number, whose constraint allows 1 to 30.
   final int sessionNumber;
+
+  /// Identifier from [exerciseCatalogue]; also written to the log row so it
+  /// stays interpretable if the display name later changes.
+  final String exerciseKey;
   final String exerciseName;
-  final int reps;
-  final int holdSeconds;
-  final int restSeconds;
+  final int? reps;
+  final int? holdSeconds;
+  final int? relaxSeconds;
+  final int sets;
+  final ExercisePosition? position;
   final bool isCompleted;
+
+  ExerciseSession copyWith({bool? isCompleted}) => ExerciseSession(
+    week: week,
+    day: day,
+    sessionNumber: sessionNumber,
+    exerciseKey: exerciseKey,
+    exerciseName: exerciseName,
+    sets: sets,
+    reps: reps,
+    holdSeconds: holdSeconds,
+    relaxSeconds: relaxSeconds,
+    position: position,
+    isCompleted: isCompleted ?? this.isCompleted,
+  );
 }
 
 class DayPlan {
@@ -26,7 +65,8 @@ class DayPlan {
   final int dayNumber;
   final List<ExerciseSession> sessions;
 
-  bool get isCompleted => sessions.every((s) => s.isCompleted);
+  bool get isCompleted =>
+      sessions.isNotEmpty && sessions.every((s) => s.isCompleted);
   int get completedCount => sessions.where((s) => s.isCompleted).length;
 }
 
@@ -34,87 +74,64 @@ class WeeklyPlan {
   const WeeklyPlan({
     required this.weekNumber,
     required this.days,
-    required this.difficultyLabel,
+    required this.daysPerWeek,
+    required this.progressionFocus,
   });
 
   final int weekNumber;
   final List<DayPlan> days;
-  final String difficultyLabel;
+
+  /// Days the patient trains this week: three to five, from the protocol.
+  /// This used to be a fixed seven for every patient and every week.
+  final int daysPerWeek;
+
+  /// The document's own label for what this stage is working towards, such as
+  /// "Baseline activation" or "Functional + dynamic strength".
+  final String progressionFocus;
 
   bool get isCompleted => days.every((d) => d.isCompleted);
   int get completedDays => days.where((d) => d.isCompleted).length;
 
-  static WeeklyPlan getWeekPlan(int week) {
-    final config = switch (week) {
-      1 || 2 => const _WeeklyPlanConfig(
-        exerciseName: 'Pelvic Floor Contraction',
-        reps: 10,
-        holdSeconds: 5,
-        restSeconds: 5,
-        difficultyLabel: 'Beginner',
-      ),
-      3 || 4 => const _WeeklyPlanConfig(
-        exerciseName: 'Extended Hold Contraction',
-        reps: 10,
-        holdSeconds: 8,
-        restSeconds: 4,
-        difficultyLabel: 'Beginner',
-      ),
-      5 || 6 => const _WeeklyPlanConfig(
-        exerciseName: 'Rapid Contractions',
-        reps: 15,
-        holdSeconds: 3,
-        restSeconds: 3,
-        difficultyLabel: 'Intermediate',
-      ),
-      7 || 8 => const _WeeklyPlanConfig(
-        exerciseName: 'Advanced Hold + Rapid Mix',
-        reps: 20,
-        holdSeconds: 10,
-        restSeconds: 3,
-        difficultyLabel: 'Advanced',
-      ),
-      _ => throw ArgumentError.value(week, 'week', 'Must be between 1 and 8'),
-    };
-
+  /// Expands one week of [protocol] into days of prescribed items.
+  ///
+  /// Every day within a week-block is identical. The document varies its
+  /// prescriptions by block, never by day, and inventing per-day variation
+  /// would be inventing clinical content.
+  static WeeklyPlan forProtocol(Protocol protocol, int week) {
+    final block = protocol.blockForWeek(week);
     return WeeklyPlan(
       weekNumber: week,
-      difficultyLabel: config.difficultyLabel,
+      daysPerWeek: block.daysPerWeek,
+      progressionFocus: block.progressionFocus,
       days: List.generate(
-        7,
+        block.daysPerWeek,
         (dayIndex) => DayPlan(
           dayNumber: dayIndex + 1,
-          sessions: List.generate(
-            5,
-            (sessionIndex) => ExerciseSession(
-              week: week,
-              day: dayIndex + 1,
-              sessionNumber: sessionIndex + 1,
-              exerciseName: config.exerciseName,
-              reps: config.reps,
-              holdSeconds: config.holdSeconds,
-              restSeconds: config.restSeconds,
-              isCompleted: false,
-            ),
-          ),
+          sessions: [
+            for (var i = 0; i < block.items.length; i++)
+              _sessionFor(block.items[i], week, dayIndex + 1, i + 1),
+          ],
         ),
       ),
     );
   }
-}
 
-class _WeeklyPlanConfig {
-  const _WeeklyPlanConfig({
-    required this.exerciseName,
-    required this.reps,
-    required this.holdSeconds,
-    required this.restSeconds,
-    required this.difficultyLabel,
-  });
-
-  final String exerciseName;
-  final int reps;
-  final int holdSeconds;
-  final int restSeconds;
-  final String difficultyLabel;
+  static ExerciseSession _sessionFor(
+    PrescribedItem item,
+    int week,
+    int day,
+    int sessionNumber,
+  ) => ExerciseSession(
+    week: week,
+    day: day,
+    sessionNumber: sessionNumber,
+    exerciseKey: item.exerciseKey,
+    exerciseName: exerciseCatalogue[item.exerciseKey] ?? item.exerciseKey,
+    reps: item.reps,
+    holdSeconds: item.holdSeconds,
+    relaxSeconds: item.relaxSeconds,
+    sets: item.sets,
+    position: item.position,
+    isCompleted: false,
+  );
 }

@@ -70,9 +70,7 @@ class _IciqScreenState extends State<IciqScreen> {
     if (!reportAssessmentSave(context, saved)) return;
 
     context.read<DashboardNotifier>().applyAssessmentSummary(summary);
-    context.read<ExerciseNotifier>().loadRecommendedWeek(
-      summary.recommendedStartWeek,
-    );
+    context.read<ExerciseNotifier>().applyProtocol(summary.protocol);
 
     final severity = notifier.severityBand;
 
