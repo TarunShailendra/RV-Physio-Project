@@ -1,17 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:telerehab_app/features/exercise/exercise_notifier.dart';
+import 'package:telerehab_app/features/exercise/screens/exercise_demo_video.dart';
 import 'package:telerehab_app/features/exercise/screens/exercise_detail_sheet.dart';
 import 'package:telerehab_app/features/exercise/videos/demo_video_player.dart';
 import 'package:telerehab_app/l10n/app_localizations.dart';
 
 class FakeDemoVideoPlayer implements DemoVideoPlayer {
-  FakeDemoVideoPlayer({this.failLoad = false});
+  FakeDemoVideoPlayer({this.failLoad = false, this.hangDispose = false});
 
   final bool failLoad;
+
+  /// Mirrors video_player when the platform throws before a player exists:
+  /// the controller's dispose then waits forever on its creation.
+  final bool hangDispose;
   final calls = <String>[];
   final _changes = ChangeNotifier();
   bool disposed = false;
@@ -57,6 +64,7 @@ class FakeDemoVideoPlayer implements DemoVideoPlayer {
   Future<void> dispose() async {
     disposed = true;
     calls.add('dispose');
+    if (hangDispose) await Completer<void>().future;
   }
 }
 
@@ -312,5 +320,62 @@ void main() {
     expect(video.height, lessThanOrEqualTo(body.height * 0.4));
     expect(video.width / video.height, closeTo(16 / 9, 0.01));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a failed video collapses even if its player never disposes', (
+    tester,
+  ) async {
+    fake = FakeDemoVideoPlayer(failLoad: true, hangDispose: true);
+    createDemoVideoPlayer = () => fake;
+    await openSheet(tester, 3);
+
+    expect(
+      find.descendant(
+        of: find.byType(ExerciseDemoVideo),
+        matching: find.byType(AspectRatio),
+      ),
+      findsNothing,
+    );
+    expect(fake.disposed, isTrue);
+  });
+
+  testWidgets('Start runs the item on screen even if the selection moved', (
+    tester,
+  ) async {
+    createDemoVideoPlayer = () => fake;
+    final notifier = await openSheet(tester, 3);
+    // Stands in for loadProgress re-resolving the plan while the sheet is open.
+    notifier.selectSession(0);
+    await tester.pump();
+
+    await scrollToStart(tester);
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+
+    expect(notifier.currentSession!.exerciseKey, 'pelvic_bridging');
+    expect(notifier.isTimerRunning, isTrue);
+    await tester.pump(const Duration(seconds: 30));
+    notifier.pauseTimer();
+  });
+
+  testWidgets('the countdown shows no seconds while moving', (tester) async {
+    createDemoVideoPlayer = () => fake;
+    final notifier = await openSheet(tester, 3);
+    final secondsText = find.byWidgetPredicate(
+      (w) => w is Text && RegExp(r'^\d+s$').hasMatch(w.data ?? ''),
+    );
+    await scrollToStart(tester);
+    expect(secondsText, findsOneWidget);
+
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+
+    expect(notifier.phase, ExercisePhase.moveIn);
+    expect(secondsText, findsNothing);
+    expect(find.text('Get into position'), findsOneWidget);
+    notifier.pauseTimer();
+    await tester.pump(const Duration(seconds: 3));
   });
 }

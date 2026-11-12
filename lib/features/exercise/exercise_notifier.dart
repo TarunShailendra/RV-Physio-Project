@@ -296,9 +296,20 @@ class ExerciseNotifier extends ChangeNotifier {
       if (openWeek != null) {
         currentPlan = _plans[openWeek];
         if (currentPlan != null) {
-          currentDayIndex = _firstIncompleteDay(currentPlan!);
-          currentSessionIndex = _firstIncompleteSession();
-          secondsRemaining.value = _secondsForCurrentSession();
+          final day = _firstIncompleteDay(currentPlan!);
+          final moved = day != currentDayIndex;
+          currentDayIndex = day;
+          final index = _firstIncompleteSession();
+          if (moved || index != currentSessionIndex) {
+            // The timer belonged to another item; never carry its rep and
+            // phase over to this one.
+            currentSessionIndex = index;
+            _resetTimer();
+          } else if (phase == ExercisePhase.ready) {
+            // Same item: refresh the idle readout, but never overwrite a
+            // countdown the patient is in the middle of.
+            secondsRemaining.value = _secondsForCurrentSession();
+          }
         }
       }
 

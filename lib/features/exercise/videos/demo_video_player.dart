@@ -24,7 +24,12 @@ class VideoPlayerDemo implements DemoVideoPlayer {
 
   @override
   Future<void> load(String asset) async {
-    final controller = VideoPlayerController.asset(asset);
+    // Mix with other audio: the video is silent, and without this playing it
+    // takes audio focus on Android and iOS and stops the patient's music.
+    final controller = VideoPlayerController.asset(
+      asset,
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
     _controller = controller;
     await controller.initialize();
     await controller.setVolume(0);

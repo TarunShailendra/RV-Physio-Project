@@ -185,7 +185,12 @@ class _ExerciseDetail extends StatelessWidget {
         // Exercises the document prescribes without a hold are counted by the
         // patient, not timed, so there is no countdown to show for them.
         if (session.holdSeconds != null) ...[
-          _Timer(session: session, notifier: notifier),
+          _Timer(
+            session: session,
+            dayIndex: dayIndex,
+            sessionIndex: sessionIndex,
+            notifier: notifier,
+          ),
           const SizedBox(height: 20),
         ],
 
@@ -217,7 +222,26 @@ class _ExerciseDetail extends StatelessWidget {
 }
 
 class _Timer extends StatelessWidget {
-  const _Timer({required this.session, required this.notifier});
+  const _Timer({
+    required this.session,
+    required this.dayIndex,
+    required this.sessionIndex,
+    required this.notifier,
+  });
+
+  final int dayIndex;
+  final int sessionIndex;
+
+  /// Starts the timer on the item this sheet shows. Opening the sheet selected
+  /// it, but loadProgress can move the selection back to the day's first
+  /// unfinished item while the sheet is open, after a login on a slow network.
+  void _start() {
+    if (notifier.currentDayIndex != dayIndex) notifier.selectDay(dayIndex);
+    if (notifier.currentSessionIndex != sessionIndex) {
+      notifier.selectSession(sessionIndex);
+    }
+    notifier.startTimer();
+  }
 
   final ExerciseSession session;
   final ExerciseNotifier notifier;
@@ -226,6 +250,9 @@ class _Timer extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isBetweenReps = notifier.phase == ExercisePhase.betweenReps;
+    final isMoving =
+        notifier.phase == ExercisePhase.moveIn ||
+        notifier.phase == ExercisePhase.moveOut;
 
     return Column(
       children: [
@@ -246,11 +273,13 @@ class _Timer extends StatelessWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(color: AppTheme.primaryColor),
               ),
-              // Only this rebuilds on each tick of the countdown.
+              // Only this rebuilds on each tick of the countdown. Moving into
+              // and out of the hold is timed by the video, not counted, so
+              // the readout shows a dash rather than a number that stands still.
               ValueListenableBuilder<int>(
                 valueListenable: notifier.secondsRemaining,
                 builder: (context, seconds, _) => Text(
-                  l10n.seconds(seconds),
+                  isMoving ? '–' : l10n.seconds(seconds),
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.w700,
@@ -271,9 +300,7 @@ class _Timer extends StatelessWidget {
             backgroundColor: AppTheme.primaryColor,
             foregroundColor: Colors.white,
           ),
-          onPressed: notifier.isTimerRunning
-              ? notifier.pauseTimer
-              : notifier.startTimer,
+          onPressed: notifier.isTimerRunning ? notifier.pauseTimer : _start,
           icon: Icon(
             notifier.isTimerRunning
                 ? Icons.pause

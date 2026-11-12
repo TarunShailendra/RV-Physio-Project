@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -51,10 +53,11 @@ class _ExerciseDemoVideoState extends State<ExerciseDemoVideo> {
       _failed = true;
       if (identical(_player, player)) _player = null;
       _generation++;
-      try {
-        await player.dispose();
-      } catch (_) {}
+      // Collapse first: when the platform throws before a player exists,
+      // video_player's dispose waits forever, so awaiting it would leave an
+      // empty box above the instructions.
       if (mounted) setState(() {});
+      _quietly(player.dispose());
       return;
     }
     if (_disposed) return;
@@ -70,9 +73,13 @@ class _ExerciseDemoVideoState extends State<ExerciseDemoVideo> {
     _detachSegmentListener();
     final player = _player;
     _player = null;
-    player?.dispose();
+    if (player != null) _quietly(player.dispose());
     super.dispose();
   }
+
+  /// Runs a player call whose result nothing waits on, so a player error
+  /// never surfaces as an uncaught async error.
+  void _quietly(Future<void> call) => unawaited(call.catchError((_) {}));
 
   void _detachSegmentListener() {
     final listener = _segmentListener;
@@ -118,7 +125,7 @@ class _ExerciseDemoVideoState extends State<ExerciseDemoVideo> {
             if (stale()) return;
             if (player.position >= end) {
               _detachSegmentListener();
-              player.pause();
+              _quietly(player.pause());
             }
           }
 
