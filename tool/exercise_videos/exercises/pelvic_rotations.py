@@ -4,10 +4,12 @@ Knees bent and together, feet flat and together, arms spread wide on the
 mat. Both knees lower together to the picture's left as far as is
 comfortable (moderately, not to the floor), the pelvis turning a little with
 them, hold, and come slowly back; then the same to the right. The feet stay
-planted; the shoulders, arms and head stay flat on the mat. The belly glows
-through the turn; at the hold a green dashed line across the shoulders shows
-them level on the floor. Two held sides, each rest 0.4 s, lower 1.5 s,
-plateau 0.8 s, return 1.5 s, rest 0.4 s.
+planted; the shoulders, arms and head stay flat on the mat. The waist (the
+obliques, on the side away from the knees) glows through the turn; at the
+hold a green dashed line across the shoulders shows them level on the
+floor. The camera stands a little round to her left so the bend of the
+knees shows. Two held sides, each rest 0.4 s, lower 1.5 s, plateau 0.8 s,
+return 1.5 s, rest 0.4 s.
 """
 from PIL import Image
 
@@ -21,6 +23,7 @@ from ._motion import REST, phase, side
 
 DROP = 35.0               # degrees the knees lower to each side
 GLOW_PEAK = 0.4
+GLOW_F, GLOW_SIDE = 0.66, 0.6   # the waist, toward the side away from the knees
 
 S1 = side(0.0, 1.5, 0.8, 1.5)
 S2 = side(S1.out_end + REST, 1.5, 0.8, 1.5)
@@ -37,7 +40,10 @@ def frame(t, room):
     legs, roll = knees_bent(drop)
     body = supine(legs, roll, supine_layers(drop))
     img = feet_room().copy()
-    draw_front_figure(img, body, FEET_CAM, glow_at=body.trunk.surface(0.55), glow_k=GLOW_PEAK * e)
+    # the waist (obliques) on the side away from the knees
+    away = 1.0 if drop > 0 else -1.0          # trunk.across is the picture's right
+    glow = body.trunk.surface(GLOW_F, GLOW_SIDE * away)
+    draw_front_figure(img, body, FEET_CAM, glow_at=glow, glow_k=GLOW_PEAK * e)
     draw_guide(img, FEET_CAM, GUIDE, max(0.0, min(1.0, (e - 0.85) / 0.15)))
     return img.convert("RGB").resize((W, H), Image.LANCZOS)
 

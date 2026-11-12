@@ -108,21 +108,28 @@ def two_bone(root, end, l1, l2, pole):
 class Camera:
     """origin: where the 3D origin lands on screen. elevation: degrees the
     camera looks down. distance: px from the origin to the camera, for
-    perspective (None: parallel projection). scale: px per unit at the origin."""
+    perspective (None: parallel projection). scale: px per unit at the origin.
+    yaw: degrees the camera has walked round to the picture's right, about
+    the vertical through the origin."""
     origin: tuple[float, float]
     elevation: float
     distance: float | None = None
     scale: float = 1.0
+    yaw: float = 0.0
 
     def _view(self, p):
+        x, y, z = p
+        if self.yaw:
+            w = math.radians(self.yaw)
+            x, z = x * math.cos(w) - z * math.sin(w), x * math.sin(w) + z * math.cos(w)
         e = math.radians(self.elevation)
         c, s = math.cos(e), math.sin(e)
-        return p[0], p[1] * c - p[2] * s, p[1] * s + p[2] * c
+        return x, y * c - z * s, y * s + z * c
 
     def toward(self) -> Vec:
         """Unit vector from the scene toward the camera."""
-        e = math.radians(self.elevation)
-        return (0.0, math.sin(e), math.cos(e))
+        e, w = math.radians(self.elevation), math.radians(self.yaw)
+        return (math.cos(e) * math.sin(w), math.sin(e), math.cos(e) * math.cos(w))
 
     def depth(self, p) -> float:
         """Distance toward the camera: larger is nearer."""
@@ -437,16 +444,21 @@ def draw_guide(img: Image.Image, cam: Camera, points, alpha: float) -> None:
 
 
 def _mat(d, cam, x0, x1, z0, z1, *, edge=8, shadow=True):
-    """A mat on the floor, x0..x1 by z0..z1, its near edge showing its thickness."""
-    far = [cam((x0, 0, z0)), cam((x1, 0, z0))]
-    near = [cam((x1, 0, z1)), cam((x0, 0, z1))]
+    """A mat on the floor, x0..x1 by z0..z1: its top, the thickness of the
+    edges that face the camera, and a soft-edged shadow under the near edge."""
+    top = [cam((x0, 0, z0)), cam((x1, 0, z0)), cam((x1, 0, z1)), cam((x0, 0, z1))]
+    near = [top[3], top[2]]
+
+    def down(pts, dy):
+        return [(x, y + dy) for x, y in pts]
+
     if shadow:
-        (ax, ay), (bx, by) = near[1], near[0]
-        d.ellipse([(ax - 10) * S, (ay + edge - 4) * S, (bx + 10) * S, (by + edge + 12) * S],
+        (ax, ay), (bx, by) = near
+        d.polygon([((ax - 10) * S, (ay + edge - 2) * S), ((bx + 10) * S, (by + edge - 2) * S),
+                   ((bx + 4) * S, (by + edge + 8) * S), ((ax - 4) * S, (ay + edge + 8) * S)],
                   fill=(40, 42, 48))
-    d.polygon([(x * S, y * S) for x, y in far + [(near[0][0], near[0][1] + edge),
-                                                  (near[1][0], near[1][1] + edge)]], fill=MAT_SIDE)
-    d.polygon([(x * S, y * S) for x, y in far + near], fill=MAT)
+    d.polygon([(x * S, y * S) for x, y in _hull(top + down(top, edge))], fill=MAT_SIDE)
+    d.polygon([(x * S, y * S) for x, y in top], fill=MAT)
 
 
 # ---------- lying on the side, seen from the front ----------
@@ -459,12 +471,15 @@ SIDE_PELVIS_X = SIDE_SHOULDER_X + TORSO
 SIDE_HIPS = {"bottom": (SIDE_PELVIS_X, SIDE_SPINE_Y - HIP_HALF, 0.0),
              "top": (SIDE_PELVIS_X, SIDE_SPINE_Y + HIP_HALF, 0.0)}
 SIDE_LAYERS = ("arm bottom", "leg bottom", "trunk", "head", "leg top", "arm top")
-_SIDE_MAT = (180, 1090, -60, 150)     # x0, x1, z0, z1 of the mat she lies on
+_SIDE_MAT = (180, 1090, -60, 200)     # x0, x1, z0, z1 of the mat she lies on
 
 
 def side_lying(legs: dict) -> Body:
     """Lying on the right side, head to the left, the head resting on the
-    lower arm stretched along the mat beyond it, the upper hand on the hip. legs: "top" and "bottom" Limbs (see leg())."""
+    lower arm stretched along the mat beyond it; the upper arm props her on
+    the mat in front of her chest, elbow down, forearm and hand flat on the
+    mat toward her head, clear of the hips. legs: "top" and "bottom" Limbs
+    (see leg())."""
     up, front = (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)
     sh = (SIDE_SHOULDER_X, SIDE_SPINE_Y, 0.0)
     trunk = Trunk(sh, (SIDE_PELVIS_X, SIDE_SPINE_Y, 0.0), across=up, front=front)
@@ -473,11 +488,23 @@ def side_lying(legs: dict) -> Body:
     bottom_root = (SIDE_SHOULDER_X + 4, SIDE_SPINE_Y - ARM_ROOT + 2, -2.0)
     arms = {
         "bottom": straight_arm(bottom_root, (-1.0, -0.06, -0.02), shade=1.0),
-        "top": arm((SIDE_SHOULDER_X + 4, SIDE_SPINE_Y + ARM_ROOT - 2, 0.0),
-                   (SIDE_PELVIS_X + 22, SIDE_SPINE_Y + HIP_HALF + 24, 8.0),
-                   pole=(0.0, 1.0, -0.4), toward=(0.85, -0.5, 0.15)),
+        "top": _propping_arm((SIDE_SHOULDER_X + 4, SIDE_SPINE_Y + ARM_ROOT - 2, 0.0)),
     }
     return Body(trunk, head, arms, legs, SIDE_LAYERS)
+
+
+PROP_ELBOW_X = 46            # the propping elbow, this far toward the feet from the shoulder
+PROP_FOREARM = (-0.88, 0.0, 0.47)   # its forearm on the mat, toward the head and the camera
+
+
+def _propping_arm(root) -> Limb:
+    """The upper arm down to an elbow on the mat in front of the chest, the
+    forearm and hand flat on the mat."""
+    y = 8.0                                     # the forearm's radius: resting on the mat
+    dx, dy = PROP_ELBOW_X, y - root[1]
+    elbow = (root[0] + dx, y, root[2] + math.sqrt(UPPER_ARM ** 2 - dx * dx - dy * dy))
+    wrist = add(elbow, mul(PROP_FOREARM, FOREARM))
+    return Limb(root, elbow, (wrist[0], _HAND_R[1], wrist[2]), PROP_FOREARM)
 
 
 def side_room(room: Image.Image) -> Image.Image:
@@ -495,11 +522,12 @@ _ROOMS: dict = {}
 
 
 # ---------- lying on the back, seen from the feet ----------
-# The camera stands beyond her feet, looking down along her toward her head.
-FEET_CAM = Camera(origin=(640, 452), elevation=40, distance=1400, scale=1.22)
+# The camera stands beyond her feet, looking down along her toward her head,
+# a little round to her left so the bend of the knees shows.
+FEET_CAM = Camera(origin=(600, 432), elevation=32, distance=1400, scale=1.15, yaw=20)
 SUPINE_SPINE_Y = 24          # spine height above the mat lying on the back (figure.py's)
 SUPINE_HIPS = {"left": (-HIP_HALF, SUPINE_SPINE_Y, 0.0), "right": (HIP_HALF, SUPINE_SPINE_Y, 0.0)}
-_FEET_MAT = (-290, 290, -385, 270)
+_FEET_MAT = (-290, 290, -385, 240)
 ARM_SPREAD = 62.0            # degrees each arm lies out from the body
 
 
@@ -525,6 +553,7 @@ def supine(legs: dict, roll: float = 0.0, layers=None) -> Body:
 
 SUPINE_ANKLE_Z = 190.0       # feet flat, this far toward the camera from the hips
 PELVIS_FOLLOW = 0.35         # how much of the knees' turn the pelvis follows
+THIGH_SHADE = 0.25          # the thighs, a little in shade beside the shins
 
 
 def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
@@ -545,7 +574,8 @@ def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
         target = add(knee, rotate((side * 15.0, 0.0, 0.0), (0.0, 0.0, 1.0), drop))
         under = min(1.0, abs(drop) / 35.0) if (side < 0) == (drop > 0) else 0.0
         out[name] = leg(hip, (side * SHOE_HALF_WIDTH, 21.0, SUPINE_ANKLE_Z), sub(target, hip),
-                        (0.0, 0.0, 1.0), shade=0.8 * under, upper_shade=0.5 + 0.5 * under,
+                        (0.0, 0.0, 1.0), shade=0.8 * under,
+                        upper_shade=THIGH_SHADE + (1 - THIGH_SHADE) * under,
                         foot_up=(0.0, 1.0, 0.0), foot_shade=0.0)
     return out, roll
 
