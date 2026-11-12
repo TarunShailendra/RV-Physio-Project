@@ -35,6 +35,51 @@ const _rotations = Protocol(
   ],
 );
 
+/// A one-block programme whose day is [items], for the squeeze-position tests.
+Protocol _squeezes(List<PrescribedItem> items) => Protocol(
+  id: 'test_squeezes',
+  severityBand: 'mild',
+  activity: IPAQActivityLevel.high,
+  intensity: 'low',
+  timeRange: '5 mins',
+  type: 'test',
+  blocks: [
+    ProtocolWeekBlock(
+      startWeek: 1,
+      endWeek: 8,
+      daysPerWeek: 5,
+      progressionFocus: 'test',
+      items: items,
+    ),
+  ],
+);
+
+const _slowSupine = PrescribedItem(
+  exerciseKey: 'pfmt_slow',
+  sets: 1,
+  position: ExercisePosition.supine,
+  reps: 10,
+  holdSeconds: 6,
+  relaxSeconds: 3,
+);
+const _slowSitting = PrescribedItem(
+  exerciseKey: 'pfmt_slow',
+  sets: 1,
+  position: ExercisePosition.sitting,
+  reps: 10,
+  holdSeconds: 6,
+  relaxSeconds: 3,
+);
+const _slowStanding = PrescribedItem(
+  exerciseKey: 'pfmt_slow',
+  sets: 1,
+  position: ExercisePosition.standing,
+  reps: 10,
+  holdSeconds: 6,
+  relaxSeconds: 3,
+);
+const _quick = PrescribedItem(exerciseKey: 'pfmt_quick', sets: 2, reps: 8);
+
 void main() {
   ExerciseNotifier openBridge() => ExerciseNotifier()
     ..loadWeek(1)
@@ -176,4 +221,43 @@ void main() {
     }
     expect(notifier.phase, ExercisePhase.finished);
   });
+
+  // The protocol tables give quick squeezes no position; the written steps say
+  // they are done "same as Slow Squeeze ... depending on your plan". The video
+  // must show the position the day's slow squeezes have just been done in.
+  group(
+    'quick squeezes take the position of the slow squeezes before them',
+    () {
+      String quickVideo(List<PrescribedItem> items) {
+        final notifier = ExerciseNotifier()
+          ..applyProtocol(_squeezes(items))
+          ..loadWeek(1);
+        notifier.selectSession(items.indexOf(_quick));
+        return notifier.currentVideo!.id;
+      }
+
+      test('lying', () {
+        expect(quickVideo([_slowSupine, _quick]), 'pfmt_quick_supine');
+      });
+
+      test('sitting, after a lying and a sitting slow squeeze', () {
+        expect(
+          quickVideo([_slowSupine, _slowSitting, _quick]),
+          'pfmt_quick_sitting',
+        );
+      });
+
+      test('standing', () {
+        expect(
+          quickVideo([_slowSitting, _slowStanding, _quick]),
+          'pfmt_quick_standing',
+        );
+        expect(quickVideo([_slowStanding, _quick]), 'pfmt_quick_standing');
+      });
+
+      test('lying when no slow squeeze comes before', () {
+        expect(quickVideo([_quick, _slowStanding]), 'pfmt_quick_supine');
+      });
+    },
+  );
 }

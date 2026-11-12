@@ -84,7 +84,26 @@ class ExerciseNotifier extends ChangeNotifier {
   ExerciseVideo? get currentVideo {
     final session = currentSession;
     if (session == null) return null;
-    return videoLookup(session.exerciseKey, session.position);
+    return videoLookup(session.exerciseKey, _videoPosition(session));
+  }
+
+  /// The position the current item's video should show.
+  ///
+  /// The protocol tables give quick squeezes no position of their own, and
+  /// their written steps say to do them in the same position as the slow
+  /// squeezes "depending on your plan". So they borrow the position of the
+  /// nearest slow squeeze before them in the day — the more advanced one in
+  /// the weeks that prescribe two. Without this the video stayed lying down
+  /// from week 3 on, while the plan had moved to sitting and then standing.
+  ExercisePosition? _videoPosition(ExerciseSession session) {
+    if (session.position != null || session.exerciseKey != 'pfmt_quick') {
+      return session.position;
+    }
+    final sessions = currentDay?.sessions ?? const <ExerciseSession>[];
+    for (var i = currentSessionIndex - 1; i >= 0; i--) {
+      if (sessions[i].exerciseKey == 'pfmt_slow') return sessions[i].position;
+    }
+    return null;
   }
 
   /// Index into [ExerciseVideo.sides] for [currentRep]: 0 unless the video
