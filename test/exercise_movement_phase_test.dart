@@ -1,10 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:telerehab_app/features/assessment/models/ipaq_model.dart';
 import 'package:telerehab_app/features/exercise/exercise_notifier.dart';
+import 'package:telerehab_app/features/exercise/models/protocol.dart';
 
 /// Covers the movement phases: the patient is shown getting into the hold
 /// position and coming back out, and the hold clock only runs in between.
 ///
 /// Week 1's fourth item is pelvic_bridging (10 s hold, no relax).
+
+/// A one-item programme: pelvic rotations, 3 reps x 2 sets, 10 s hold, so an
+/// odd rep count shows the sides restarting on A each set.
+const _rotations = Protocol(
+  id: 'test_rotations',
+  severityBand: 'mild',
+  activity: IPAQActivityLevel.high,
+  intensity: 'low',
+  timeRange: '5 mins',
+  type: 'test',
+  blocks: [
+    ProtocolWeekBlock(
+      startWeek: 1,
+      endWeek: 8,
+      daysPerWeek: 5,
+      progressionFocus: 'test',
+      items: [
+        PrescribedItem(
+          exerciseKey: 'pelvic_rotations',
+          sets: 2,
+          reps: 3,
+          holdSeconds: 10,
+        ),
+      ],
+    ),
+  ],
+);
+
 void main() {
   ExerciseNotifier openBridge() => ExerciseNotifier()
     ..loadWeek(1)
@@ -114,5 +144,36 @@ void main() {
     expect(notifier.phase, ExercisePhase.hold);
     expect(notifier.secondsRemaining.value, 10);
     notifier.pauseTimer();
+  });
+
+  testWidgets('alternating sides go A, B, A and restart each set', (
+    tester,
+  ) async {
+    final notifier = ExerciseNotifier()
+      ..applyProtocol(_rotations)
+      ..loadWeek(1);
+    final session = notifier.currentSession!;
+    expect(session.exerciseKey, 'pelvic_rotations');
+    final video = notifier.currentVideo!;
+    expect(video.alternates, isTrue);
+
+    for (var set = 1; set <= session.sets; set++) {
+      final sides = <int>[];
+      for (var rep = 1; rep <= session.reps!; rep++) {
+        notifier.startTimer();
+        expect(notifier.currentSet, set);
+        expect(notifier.currentRep, rep);
+        final side = video.sides[notifier.currentSideIndex];
+        await tester.pump(side.intoDuration);
+        expect(notifier.phase, ExercisePhase.hold);
+        sides.add(notifier.currentSideIndex);
+        await tester.pump(Duration(seconds: session.holdSeconds!));
+        expect(notifier.phase, ExercisePhase.moveOut);
+        await tester.pump(side.outDuration);
+      }
+      expect(sides, [0, 1, 0], reason: 'set $set');
+      expect(notifier.currentSideIndex, 0, reason: 'after set $set');
+    }
+    expect(notifier.phase, ExercisePhase.finished);
   });
 }

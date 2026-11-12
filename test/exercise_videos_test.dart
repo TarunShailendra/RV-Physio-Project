@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:telerehab_app/features/exercise/models/protocol.dart';
+import 'package:telerehab_app/features/exercise/protocols/exercise_catalogue.dart';
 import 'package:telerehab_app/features/exercise/videos/exercise_video.dart';
 import 'package:telerehab_app/features/exercise/videos/exercise_videos.g.dart';
 
@@ -77,5 +78,17 @@ void main() {
     expect(v.sideForRep(1), same(v.sides[0]));
     expect(v.sideForRep(2), same(v.sides[1]));
     expect(v.sideForRep(5), same(v.sides[0]));
+  });
+
+  test('every exercise in the catalogue has a video', () {
+    for (final key in exerciseCatalogue.keys) {
+      expect(videoFor(key, null), isNotNull, reason: key);
+      if (isPfmt(key)) {
+        for (final pos in ExercisePosition.values) {
+          expect(videoFor(key, pos), isNotNull, reason: '$key ${pos.name}');
+        }
+      }
+    }
+    expect(exerciseVideos.length, 20);
   });
 }

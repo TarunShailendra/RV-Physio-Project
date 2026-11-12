@@ -140,6 +140,27 @@ const Map<String, ExerciseVideo> exerciseVideos = {
       ),
     ],
   ),
+  'pelvic_rotations': ExerciseVideo(
+    id: 'pelvic_rotations',
+    exerciseKey: 'pelvic_rotations',
+    position: ExercisePosition.supine,
+    asset: 'assets/videos/pelvic_rotations.mp4',
+    durationMs: 9200,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1900,
+        outStartMs: 2700,
+        outEndMs: 4200,
+      ),
+      VideoSide(
+        intoStartMs: 5000,
+        holdMs: 6500,
+        outStartMs: 7300,
+        outEndMs: 8800,
+      ),
+    ],
+  ),
   'straight_leg_raise': ExerciseVideo(
     id: 'straight_leg_raise',
     exerciseKey: 'straight_leg_raise',
@@ -152,6 +173,21 @@ const Map<String, ExerciseVideo> exerciseVideos = {
         holdMs: 1900,
         outStartMs: 2700,
         outEndMs: 4200,
+      ),
+    ],
+  ),
+  'side_leg_raise': ExerciseVideo(
+    id: 'side_leg_raise',
+    exerciseKey: 'side_leg_raise',
+    position: null,
+    asset: 'assets/videos/side_leg_raise.mp4',
+    durationMs: 4500,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1800,
+        outStartMs: 2600,
+        outEndMs: 4100,
       ),
     ],
   ),
@@ -245,6 +281,21 @@ const Map<String, ExerciseVideo> exerciseVideos = {
         holdMs: 6500,
         outStartMs: 7300,
         outEndMs: 8800,
+      ),
+    ],
+  ),
+  'clamshells': ExerciseVideo(
+    id: 'clamshells',
+    exerciseKey: 'clamshells',
+    position: null,
+    asset: 'assets/videos/clamshells.mp4',
+    durationMs: 4000,
+    sides: [
+      VideoSide(
+        intoStartMs: 400,
+        holdMs: 1600,
+        outStartMs: 2000,
+        outEndMs: 3600,
       ),
     ],
   ),
