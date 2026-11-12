@@ -35,7 +35,7 @@ sys.path.insert(0, str(HERE))
 
 from figure import (_FORE, _HAND_R, _SHOE, _SOLE, _TIE, _UPPER, DNW, FAR_SOLE, SHIN,  # noqa: E402
                     THIGH, TORSO, UPW, WAISTBAND, _lerpw)
-from studio import (GLOW, HAIR, LEG, LEG_D, MAT, MAT_SIDE, SHOE, SHOE_D, SKIN,  # noqa: E402
+from studio import (GLOW, HAIR, LEG, LEG_D, MAT, MAT_SIDE, SHADOW, SHOE, SHOE_D, SKIN,  # noqa: E402
                     SKIN_D, TOP, H, S, W, capsule, circle, dashed_line, paste_sprite)
 
 Vec = tuple[float, float, float]
@@ -154,7 +154,7 @@ class Limb:
     toward: the hand's or the toes' direction. up: a leg's foot, from the sole
     to the top of the foot. shade: 0 lit .. 1 in shadow (figure.py's far
     limb colours); upper_shade and foot_shade, if given, shade the upper arm
-    or thigh, and the shoe, apart from the rest."""
+    or thigh, and the shoe, apart from the rest. kneecap: see below."""
     root: Vec
     mid: Vec
     end: Vec
@@ -163,6 +163,7 @@ class Limb:
     shade: float = 0.0
     upper_shade: float | None = None
     foot_shade: float | None = None
+    kneecap: float = 0.0       # a leg's kneecap radius, drawn lighter on the shin's top; 0: none
 
     def upper(self):
         return self.shade if self.upper_shade is None else self.upper_shade
@@ -218,7 +219,8 @@ class Body:
     legs: dict = field(default_factory=dict)    # name -> Limb
     # paint order, back to front: "trunk", "head", "arm <name>", "leg <name>",
     # or a leg in two parts, "thigh <name>" and "shin <name>" (with the shoe);
-    # "glow" pastes the glow there (otherwise it goes on top of everything)
+    # "glow" pastes the glow there (otherwise it goes on top of everything);
+    # "shadow" lays soft shadows on the mat under the knees
     layers: tuple = ()
 
 
@@ -233,7 +235,7 @@ def _depth(f):
 
 
 def leg(hip, ankle, pole, toes, shade=0.0, upper_shade=None, foot_up=None,
-        foot_shade=None) -> Limb:
+        foot_shade=None, kneecap=0.0) -> Limb:
     """A leg from hip to ankle, the knee bent toward pole, the toes pointing
     along `toes` (at right angles to the shin is figure.py's flat foot). The
     top of the foot faces the knee, or foot_up if given (a planted foot)."""
@@ -241,7 +243,7 @@ def leg(hip, ankle, pole, toes, shade=0.0, upper_shade=None, foot_up=None,
     f = unit3(toes)
     up = foot_up or sub(knee, ankle)
     return Limb(hip, knee, ankle, f, unit3(sub(up, mul(f, dot(up, f)))), shade, upper_shade,
-                foot_shade)
+                foot_shade, kneecap)
 
 
 def arm(root, hand, pole, toward, shade=0.0) -> Limb:
@@ -403,6 +405,10 @@ def _draw_leg(pen, g: Limb, part="leg"):
     pen.solid(_shoe_points(g.end, g.toward, g.up, sole), _mix(TOP, FAR_SOLE, g.foot()))
     upper = [(x, min(y, 15)) for x, y in _dense(_SHOE)]
     pen.solid(_shoe_points(g.end, g.toward, g.up, upper), _mix(SHOE, SHOE_D, g.foot()))
+    if g.kneecap:
+        # a kneecap catching the light: the leggings, a little lighter
+        pen.circle(g.mid, g.kneecap, _mix(_mix(LEG, WAISTBAND, KNEE_LIGHT), LEG_D, g.shade))
+
 
 
 def _dense(poly, step=6.0):
@@ -429,6 +435,10 @@ def draw_front_figure(img: Image.Image, body: Body, cam: Camera, *, glow_at: Vec
         kind, _, name = layer.partition(" ")
         if kind == "glow":
             glow()
+            pen = _Pen(img, cam)
+        elif kind == "shadow":              # soft shadows on the mat under the knees
+            for g in body.legs.values():
+                paste_sprite(img, SHADOW, cam((g.mid[0], 0.0, g.mid[2])), KNEE_SHADOW)
             pen = _Pen(img, cam)
         elif kind == "trunk":
             _draw_trunk(pen, body.trunk)
@@ -532,9 +542,10 @@ _ROOMS: dict = {}
 
 
 # ---------- lying on the back, seen from the feet ----------
-# The camera stands beyond her feet, looking down along her toward her head,
-# square on, so the knees lower the same way to either side.
-FEET_CAM = Camera(origin=(640, 440), elevation=40, distance=1400, scale=1.22)
+# The camera stands beyond her feet, low and square on, looking along her
+# toward her head: the knees peak in front of her, and lower the same way to
+# either side.
+FEET_CAM = Camera(origin=(640, 470), elevation=28, distance=1400, scale=1.22)
 SUPINE_SPINE_Y = 24          # spine height above the mat lying on the back (figure.py's)
 SUPINE_HIPS = {"left": (-HIP_HALF, SUPINE_SPINE_Y, 0.0), "right": (HIP_HALF, SUPINE_SPINE_Y, 0.0)}
 _FEET_MAT = (-290, 290, -385, 240)
@@ -564,12 +575,16 @@ def supine(legs: dict, roll: float = 0.0, layers=None) -> Body:
 SUPINE_ANKLE_Z = 190.0       # feet flat, this far toward the camera from the hips
 PELVIS_FOLLOW = 0.35         # how much of the knees' turn the pelvis follows
 THIGH_SHADE = 0.25          # the thighs, a little in shade beside the shins
-FEET_HALF = 42.0             # centre -> each ankle: knees together, feet a little apart,
-                             # so the shins splay down from the knees and show the bend
+FEET_HALF = 55.0             # centre -> each ankle: knees together, feet apart, so the
+                             # shins splay down from the knees in an upside-down V
+TOE_OUT = 20.0               # degrees each foot turns out: the shoe shows its side, flat on the mat
+KNEECAP = 15.5               # the knees, nearest the camera, catch the light
+KNEE_LIGHT = 0.35            # how much lighter the kneecaps are (toward WAISTBAND)
+KNEE_SHADOW = 0.55           # the knees' shadow on the mat between the feet
 
 
 def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
-    """Both legs bent, knees together, feet flat and a little apart; the knees lowered
+    """Both legs bent, knees together, feet flat and apart; the knees lowered
     `drop` degrees together to the picture's left (- to the right), the feet
     staying where they are. The knees turn as a pair about the line from the
     hips to the feet; the pelvis follows a little of the turn. Returns the
@@ -585,8 +600,9 @@ def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
         hip = add(mid_hip, rotate((side * HIP_HALF, 0.0, 0.0), (0.0, 0.0, 1.0), roll))
         target = add(knee, rotate((side * 15.0, 0.0, 0.0), (0.0, 0.0, 1.0), drop))
         under = min(1.0, abs(drop) / 35.0) if (side < 0) == (drop > 0) else 0.0
+        toe = math.radians(side * TOE_OUT)
         out[name] = leg(hip, (side * FEET_HALF, 21.0, SUPINE_ANKLE_Z), sub(target, hip),
-                        (0.0, 0.0, 1.0), shade=0.8 * under,
+                        (math.sin(toe), 0.0, math.cos(toe)), shade=0.8 * under, kneecap=KNEECAP,
                         upper_shade=THIGH_SHADE + (1 - THIGH_SHADE) * under,
                         foot_up=(0.0, 1.0, 0.0), foot_shade=0.0)
     return out, roll
@@ -598,7 +614,8 @@ def supine_layers(drop: float) -> tuple:
     two orders paint the same picture. The glow goes on the trunk, under the
     legs, so it never lights a knee."""
     first, second = ("left", "right") if drop >= 0 else ("right", "left")
-    return ("head", "arm left", "arm right", "trunk", "glow", "thigh " + first, "thigh " + second,
+    return ("head", "arm left", "arm right", "trunk", "glow", "shadow", "thigh " + first,
+            "thigh " + second,
             "shin " + first, "shin " + second)
 
 

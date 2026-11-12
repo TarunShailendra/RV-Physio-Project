@@ -1,15 +1,17 @@
-"""Pelvic rotations, lying on the back, seen from her feet.
+"""Pelvic rotations, lying on the back, seen low from her feet.
 
-Knees bent and together, feet flat and a little apart, arms spread wide on
-the mat. Both knees lower together to the picture's left as far as is
-comfortable (moderately, not to the floor, out beyond her side), the pelvis
-turning a little with them, hold, and come slowly back; then the same to
-the right. The feet stay planted; the shoulders, arms and head stay flat on
-the mat. The waist (the obliques, on the side away from the knees) glows
-through the turn, under the legs, so a passing knee covers it rather than
-lighting up; at the hold a green dashed line across the shoulders shows them
-level on the floor. Two held sides, each rest 0.4 s, lower 1.5 s, plateau
-0.8 s, return 1.5 s, rest 0.4 s.
+Knees bent and together, feet flat and apart, arms spread wide on the mat;
+the knees peak in front of her, their shadow on the mat between the feet.
+Both knees lower together to the picture's left as far as is comfortable
+(moderately, not to the floor, out beyond her side), the pelvis turning a
+little with them, hold, and come slowly back; then the same to the right.
+Each knee keeps to its own leg's length, so with the feet apart they part a
+little as they lower, both to the same side. The feet stay planted; the
+shoulders, arms and head stay flat on the mat. The waist (the obliques, on
+the side away from the knees) glows through the turn, under the legs, so a
+passing knee covers it rather than lighting up; at the hold a green dashed
+line across the shoulders shows them level on the floor. Two held sides,
+each rest 0.4 s, lower 1.5 s, plateau 0.8 s, return 1.5 s, rest 0.4 s.
 """
 from PIL import Image
 
