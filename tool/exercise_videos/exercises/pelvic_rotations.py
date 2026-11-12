@@ -1,15 +1,15 @@
 """Pelvic rotations, lying on the back, seen from her feet.
 
-Knees bent and together, feet flat and together, arms spread wide on the
-mat. Both knees lower together to the picture's left as far as is
-comfortable (moderately, not to the floor), the pelvis turning a little with
-them, hold, and come slowly back; then the same to the right. The feet stay
-planted; the shoulders, arms and head stay flat on the mat. The waist (the
-obliques, on the side away from the knees) glows through the turn; at the
-hold a green dashed line across the shoulders shows them level on the
-floor. The camera stands a little round to her left so the bend of the
-knees shows. Two held sides, each rest 0.4 s, lower 1.5 s, plateau 0.8 s,
-return 1.5 s, rest 0.4 s.
+Knees bent and together, feet flat and a little apart, arms spread wide on
+the mat. Both knees lower together to the picture's left as far as is
+comfortable (moderately, not to the floor, out beyond her side), the pelvis
+turning a little with them, hold, and come slowly back; then the same to
+the right. The feet stay planted; the shoulders, arms and head stay flat on
+the mat. The waist (the obliques, on the side away from the knees) glows
+through the turn, under the legs, so a passing knee covers it rather than
+lighting up; at the hold a green dashed line across the shoulders shows them
+level on the floor. Two held sides, each rest 0.4 s, lower 1.5 s, plateau
+0.8 s, return 1.5 s, rest 0.4 s.
 """
 from PIL import Image
 

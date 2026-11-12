@@ -217,7 +217,8 @@ class Body:
     arms: dict = field(default_factory=dict)    # name -> Limb
     legs: dict = field(default_factory=dict)    # name -> Limb
     # paint order, back to front: "trunk", "head", "arm <name>", "leg <name>",
-    # or a leg in two parts, "thigh <name>" and "shin <name>" (with the shoe)
+    # or a leg in two parts, "thigh <name>" and "shin <name>" (with the shoe);
+    # "glow" pastes the glow there (otherwise it goes on top of everything)
     layers: tuple = ()
 
 
@@ -416,11 +417,20 @@ def _dense(poly, step=6.0):
 def draw_front_figure(img: Image.Image, body: Body, cam: Camera, *, glow_at: Vec | None = None,
                       glow_k: float = 0.0) -> None:
     """Draw body on the supersampled RGBA image img, painting body.layers in
-    order; the orange glow sits at the 3D point glow_at at strength glow_k."""
+    order; the orange glow sits at the 3D point glow_at at strength glow_k,
+    pasted at the "glow" layer if there is one, else over everything."""
     pen = _Pen(img, cam)
+
+    def glow():
+        if glow_at is not None:
+            paste_sprite(img, GLOW, cam(glow_at), glow_k)
+
     for layer in body.layers:
         kind, _, name = layer.partition(" ")
-        if kind == "trunk":
+        if kind == "glow":
+            glow()
+            pen = _Pen(img, cam)
+        elif kind == "trunk":
             _draw_trunk(pen, body.trunk)
         elif kind == "head":
             _draw_head(pen, body.head)
@@ -430,8 +440,8 @@ def draw_front_figure(img: Image.Image, body: Body, cam: Camera, *, glow_at: Vec
             _draw_leg(pen, body.legs[name], kind)
         else:
             raise ValueError("unknown layer %r" % layer)
-    if glow_at is not None:
-        paste_sprite(img, GLOW, cam(glow_at), glow_k)
+    if "glow" not in body.layers:
+        glow()
 
 
 def draw_guide(img: Image.Image, cam: Camera, points, alpha: float) -> None:
@@ -523,8 +533,8 @@ _ROOMS: dict = {}
 
 # ---------- lying on the back, seen from the feet ----------
 # The camera stands beyond her feet, looking down along her toward her head,
-# a little round to her left so the bend of the knees shows.
-FEET_CAM = Camera(origin=(600, 432), elevation=32, distance=1400, scale=1.15, yaw=20)
+# square on, so the knees lower the same way to either side.
+FEET_CAM = Camera(origin=(640, 440), elevation=40, distance=1400, scale=1.22)
 SUPINE_SPINE_Y = 24          # spine height above the mat lying on the back (figure.py's)
 SUPINE_HIPS = {"left": (-HIP_HALF, SUPINE_SPINE_Y, 0.0), "right": (HIP_HALF, SUPINE_SPINE_Y, 0.0)}
 _FEET_MAT = (-290, 290, -385, 240)
@@ -554,10 +564,12 @@ def supine(legs: dict, roll: float = 0.0, layers=None) -> Body:
 SUPINE_ANKLE_Z = 190.0       # feet flat, this far toward the camera from the hips
 PELVIS_FOLLOW = 0.35         # how much of the knees' turn the pelvis follows
 THIGH_SHADE = 0.25          # the thighs, a little in shade beside the shins
+FEET_HALF = 42.0             # centre -> each ankle: knees together, feet a little apart,
+                             # so the shins splay down from the knees and show the bend
 
 
 def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
-    """Both legs bent, knees and feet together, feet flat; the knees lowered
+    """Both legs bent, knees together, feet flat and a little apart; the knees lowered
     `drop` degrees together to the picture's left (- to the right), the feet
     staying where they are. The knees turn as a pair about the line from the
     hips to the feet; the pelvis follows a little of the turn. Returns the
@@ -573,7 +585,7 @@ def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
         hip = add(mid_hip, rotate((side * HIP_HALF, 0.0, 0.0), (0.0, 0.0, 1.0), roll))
         target = add(knee, rotate((side * 15.0, 0.0, 0.0), (0.0, 0.0, 1.0), drop))
         under = min(1.0, abs(drop) / 35.0) if (side < 0) == (drop > 0) else 0.0
-        out[name] = leg(hip, (side * SHOE_HALF_WIDTH, 21.0, SUPINE_ANKLE_Z), sub(target, hip),
+        out[name] = leg(hip, (side * FEET_HALF, 21.0, SUPINE_ANKLE_Z), sub(target, hip),
                         (0.0, 0.0, 1.0), shade=0.8 * under,
                         upper_shade=THIGH_SHADE + (1 - THIGH_SHADE) * under,
                         foot_up=(0.0, 1.0, 0.0), foot_shade=0.0)
@@ -583,9 +595,10 @@ def knees_bent(drop: float = 0.0) -> tuple[dict, float]:
 def supine_layers(drop: float) -> tuple:
     """Paint order for supine(): the leg the knees lower toward goes first.
     Both thighs go before both shins, so at rest, where the side changes, the
-    two orders paint the same picture."""
+    two orders paint the same picture. The glow goes on the trunk, under the
+    legs, so it never lights a knee."""
     first, second = ("left", "right") if drop >= 0 else ("right", "left")
-    return ("head", "arm left", "arm right", "trunk", "thigh " + first, "thigh " + second,
+    return ("head", "arm left", "arm right", "trunk", "glow", "thigh " + first, "thigh " + second,
             "shin " + first, "shin " + second)
 
 
